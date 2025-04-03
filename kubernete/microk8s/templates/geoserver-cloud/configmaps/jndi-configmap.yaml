@@ -32,7 +32,7 @@ data:
           wait-timeout: 100
           url: jdbc:postgresql://database:5432/pgconfig
           username: pgconfig
-          password: ACL_PASSWORD
+          password: ACL-PASSWORD
           maximum-pool-size: 10
           minimum-idle: 0
           connection-timeout: 5000

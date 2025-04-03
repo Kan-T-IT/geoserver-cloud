@@ -46,15 +46,10 @@ spec:
         - name: gateway
           mountPath: "/etc/geoserver/gateway-service.yml"
           subPath: "gateway-service.yml"
-        - name: statics
-          mountPath: /mnt/volumes/statics
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
       - name: gateway
         configMap:
           name: gateway-configmap
-      - name: statics
-        persistentVolumeClaim:
-          claimName: statics 
 status: {}

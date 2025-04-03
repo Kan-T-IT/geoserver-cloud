@@ -45,7 +45,7 @@ data:
         client:
           basePath: ${acl.url:http://acl:8080/acl/api}
           username: ${acl.username:}
-          password: ${acl.password:}
+          password: ACL-PASSWORD
           debug: ${acl.debug:false}
           caching: ${acl.caching:true}
           # timeout in seconds for startup to fail if API is not available
