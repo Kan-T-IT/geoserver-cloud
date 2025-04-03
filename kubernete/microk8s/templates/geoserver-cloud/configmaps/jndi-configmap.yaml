@@ -30,9 +30,9 @@ data:
           schema: pgconfig
           wait-for-it: true
           wait-timeout: 100
-          url: jdbc:postgresql://gndatabase:5432/pgconfig
+          url: jdbc:postgresql://database:5432/pgconfig
           username: pgconfig
-          password: pgconfig
+          password: ACL_PASSWORD
           maximum-pool-size: 10
           minimum-idle: 0
           connection-timeout: 5000

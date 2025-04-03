@@ -4,10 +4,10 @@ data:
   TAG: "1.4.0"
 
   ACL_DEFAULT_PROFILES: acl
-  ACL_TAG: 2.0-SNAPSHOT
+  ACL_TAG: 2.3.1
 
   # GATEWAY
-  GEOSERVER_BASE_PATH: /geoserver
+  GEOSERVER_BASE_PATH: 
   SPRING_CONFIG_LOCATION: /etc/gscloud/gateway-service.yml
   GATEWAY_SPRING_PROFILES_ACTIVE: "standalone,bootstrap_standalone,discovery_none"
   GOOGLE_CLIENT_ID: ""
@@ -17,36 +17,27 @@ data:
   MANAGEMENT_SERVER_PORT: "8081"
 
   # ACL
-  PG_HOST: gndatabase
+  PG_HOST: database
   PG_PORT: "5432"
   PG_SCHEMA: acl
   POSTGRES_DB: pgconfig
   POSTGRES_USER: pgconfig
-  POSTGRES_PASSWORD: pgconfig
-  JDBCCONFIG_URL: jdbc:postgresql://gndatabase:5432/pgconfig
-  ACL_USERS_ADMIN_PASSWORD: "s3cr3t"
-  ACL_USERS_GEOSERVER_PASSWORD: "s3cr3t"
+  POSTGRES_PASSWORD: ACL_PASSWORD
+  JDBCCONFIG_URL: jdbc:postgresql://database:5432/pgconfig
+  ACL_USERS_ADMIN_PASSWORD: "GEOSERVER-PASSWORD"
   GEOSERVER_BUS_ENABLED: "true"
-
-  # GEONODE OAUTH2
-  GEONODE_CLIENT_NAME: geonode
-  GEONODE_CLIENT_ID: Jrchz2oPY3akmzndmgUTYrs9gczlgoV20YPSvqaV
-  GEONODE_CLIENT_SECRET: rCnp5txobUo83EpQEblM8fVj3QT5zb5qRfxNsuPzCqZaiRyIoxM4jdgMiZKFfePBHYXCLd7B8NlkfDBY9HKeIQPcy5Cp08KQNpRHQbjpLItDHv12GvkSeXp6OxaUETv3
-  GEONODE_CLIENT_REDIRECT_URI: https://KUBERNETES-SITE-URL/geoserver/index.html
-  GEONODE_CLIENT_SCOPE: write
-  GEONODE_CLIENT_LOGOUT_URI: https://KUBERNETES-SITE-URL/account/logout/
 
   # WEBUI
   URL_AFTER_LOGOUT: "/logout"
   GEOSERVER_SECURITY_AUTHKEY: "true"
   ACL_URL: http://acl:8080/acl/api
   ACL_USERNAME: admin
-  ACL_PASSWORD: s3cr3t
+  ACL_PASSWORD: ACL-PASSWORD
 
   # Configuracion comun de los servicios de Geoserver-cloud
   JAVA_OPTS: -XX:MaxRAMPercentage=80 -XshowSettings:system -Dgeoserver.security.authkey=true -Djndi.datasources.postgis.enabled=false
-  SPRING_PROFILES_ACTIVE: "standalone,pgconfig,acl,geonode"
-  GEOSERVER_DEFAULT_PROFILES: "standalone,pgconfig,acl,geonode"
+  SPRING_PROFILES_ACTIVE: "standalone,pgconfig,acl"
+  GEOSERVER_DEFAULT_PROFILES: "standalone,pgconfig,acl"
   SPRING_CONFIG_ADDITIONAL_LOCATION: /etc/gscloud/values.yml
 
   # RABBITMQ

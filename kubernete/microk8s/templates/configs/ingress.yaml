@@ -1,7 +1,7 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: geonode-network
+  name: gs-cloud-network
   namespace: KUBERNETES-NAMESPACE
   annotations:
     nginx.ingress.kubernetes.io/use-regex: "true"
@@ -26,71 +26,38 @@ metadata:
     cert-manager.io/cluster-issuer: "letsencrypt"
     nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 
-
-
-
 spec:
   ingressClassName: nginx
   tls:
   - hosts:
-    - 0.0.0.0
-    secretName: letsencrypt
+    - KUBERNETES-SITE-URL
+    secretName: CLUSTER-ISSUER-NAME
   rules:
-  - host: kube-qa.kan.com.ar
+  - host: KUBERNETES-SITE-URL
+
     http:
       paths:
-      - path: /static/mapstore
-        pathType: Prefix
-        backend:
-          service:
-            name: mapstore
-            port:
-              number: 8081
-
       - path: /
         pathType: Prefix
         backend:
           service:
-            name: django
+            name: gateway
             port:
-              number: 8000
+              number: 8080
 
-      - path: /static/
-        pathType: ImplementationSpecific
+      - path: /login
+        pathType: Prefix
         backend:
           service:
-            name: django
+            name: gateway
             port:
-              number: 8000
+              number: 8080
 
-      - path: /static/.*(html|js|jpg|jpeg|gif|png|css|tgz|gz|rar|bz2|doc|pdf|ppt|tar|tif|tiff|wav|bmp|ttf|rtf|swf|ico|flv|txt|woff|woff2|svg|xml)
-        pathType: ImplementationSpecific
+      - path: /acl
+        pathType: Prefix
         backend:
           service:
-            name: django
+            name: acl
             port:
-              number: 8000
+              number: 8080
 
-      - path: /uploaded/
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: django
-            port:
-              number: 8000
-
-      - path: /uploaded/.*(html|js|jpg|jpeg|gif|png|css|tgz|gz|rar|bz2|doc|pdf|ppt|tar|tif|tiff|wav|bmp|ttf|rtf|swf|ico|flv|txt|woff|woff2|svg|xml)
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: django
-            port:
-              number: 8000
-
-      - path: /celery/
-        pathType: ImplementationSpecific
-        backend:
-          service:
-            name: celery
-            port:
-              number: 8001

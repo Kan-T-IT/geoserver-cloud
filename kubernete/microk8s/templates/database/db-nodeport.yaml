@@ -1,13 +1,13 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: gndatabase
+  name: database
   namespace: KUBERNETES-NAMESPACE
   labels:
-    component: gndatabase
+    component: database
 spec:
   selector:
-    component: gndatabase
+    component: database
   type: NodePort
   ports:
     - port: 5432

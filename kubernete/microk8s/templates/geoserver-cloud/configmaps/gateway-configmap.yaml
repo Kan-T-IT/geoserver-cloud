@@ -1,20 +1,8 @@
 apiVersion: v1
 data:
   gateway-service.yml: |-
-    # Defines the root base path at which the gateway exposes all geoserver request paths
-    # We're not setting the spring.webflux.base-path because spring-cloud Gateway doesn't
-    # work properly with it. See https://github.com/spring-cloud/spring-cloud-gateway/issues/1759
-    # For example, if geoserver.base-path=/geoserver-cloud, then geoserver requests will be served
-    # under that path prefix (e.g. http://localhost:9090/geoserver-cloud/web, http://localhost:9090/geoserver-cloud/wfs, etc)
-    # Examples:
-    #geoserver.base-path:
-    #geoserver.base-path: /geoserver-cloud
-    geoserver.base-path: /geoserver
     # Leave it empty for no additional path, setting it to / won't work currently
-    #
-    # Please note any other prefix than the empty string will require a trailing slash in the root URL
-    # for the redirection to the web-ui to work. This is something we need to fix. For example:
-    # http://localhost:9090/geoserver-cloud will return 404, but http://localhost:9090/geoserver-cloud/ will work.
+    geoserver.base-path: 
 
     # by default, assumes a discovery-client is in use, and perform client-side load balancing on
     # the advertised instances. See the 'standalone' profile notes for a static config

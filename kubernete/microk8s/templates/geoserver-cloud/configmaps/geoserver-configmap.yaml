@@ -184,7 +184,7 @@ data:
     acl.enabled: true
     acl.url: http://acl:8080/acl/api
     acl.username: geoserver
-    acl.password: s3cr3t
+    acl.password: ACL-PASSWORD
     acl.debug: false
     acl.caching: true
     acl.startupCheck: true
@@ -292,7 +292,7 @@ data:
           resource-browser: true
           catalog-bulk-load: true
     ---
-    spring.config.activate.on-profile: geonode
+    spring.config.activate.on-profile: admin
     # Access Control List client config. Replaces GeoFence
     acl.enabled: true
     ---

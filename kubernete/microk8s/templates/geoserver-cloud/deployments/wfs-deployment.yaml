@@ -1,18 +1,18 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: wcs
+  name: wfs
   namespace: KUBERNETES-NAMESPACE
   labels:
     app: geoserver
-    component: wcs
+    component: wfs
     ogc: service
 spec:
   replicas: 1
   selector:
     matchLabels:
       app: geoserver
-      component: wcs
+      component: wfs
       ogc: service
   strategy:
     type: RollingUpdate
@@ -20,7 +20,7 @@ spec:
     metadata:
       labels:
         app: geoserver
-        component: wcs
+        component: wfs
         ogc: service
     spec:
       containers:
@@ -40,26 +40,23 @@ spec:
             configMapKeyRef:
               key: SPRING_PROFILES_ACTIVE
               name: geoserver--env
-        image: geoservercloud/geoserver-cloud-wcs:1.9-SNAPSHOT
+        image: geoservercloud/geoserver-cloud-wfs:2.26.2.0
         imagePullPolicy: "IfNotPresent"
-        name: wcs
+        name: wfs
         resources:
           requests:
             memory: "1Gi"
             cpu: "200m"
           limits:
-            cpu: "1500m"
-            memory: "4Gi"
-        securityContext:
-          runAsUser: 0
-          runAsGroup: 0
+            cpu: "4000m"
+            memory: "2Gi"
         volumeMounts:
-        - name: geoserver
-          mountPath: "/etc/geoserver/geoserver.yml"
-          subPath: "geoserver.yaml"
         - name: jndi
           mountPath: "/etc/geoserver/jndi.yml"
           subPath: "jndi.yaml"
+        - name: geoserver
+          mountPath: "/etc/geoserver/geoserver.yml"
+          subPath: "geoserver.yaml"
         - name: statics
           mountPath: /mnt/volumes/statics
       restartPolicy: Always
@@ -75,4 +72,3 @@ spec:
         persistentVolumeClaim:
           claimName: statics
 status: {}
-

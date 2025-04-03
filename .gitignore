@@ -45,3 +45,6 @@ docker-compose_datadir*
 hs_err_pid*.log
 
 .spotless-index
+
+
+./kubernete/microk8s/workdir/

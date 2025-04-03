@@ -1,24 +1,24 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: gndatabase
+  name: database
   namespace: KUBERNETES-NAMESPACE
   labels:
-    app: geonode
-    component: gndatabase
+    app: geoserver
+    component: database
 spec:
   replicas: 1
   selector:
     matchLabels:
-      app: geonode
-      component: gndatabase
+      app: geoserver
+      component: database
   strategy:
     type: RollingUpdate
   template:
     metadata:
       labels:
-        app: geonode
-        component: gndatabase
+        app: geoserver
+        component: database
     spec:
       containers:
         - args:
@@ -27,7 +27,7 @@ spec:
             - max_connections=1000
           envFrom:
             - configMapRef:
-                name: gndatabase--env
+                name: database
           image: postgis/postgis:15-master
           livenessProbe:
             exec:
@@ -37,7 +37,7 @@ spec:
               - postgres
               - -U
               - postgres
-          name: db4geonode
+          name: db4geoserver
           resources:
             requests:
               memory: "3Gi"
@@ -51,5 +51,5 @@ spec:
       volumes:
         - name: dbdata
           persistentVolumeClaim:
-            claimName: dbdata
+            claimName: database-pvc
 status: {}

@@ -4,7 +4,7 @@ data:
     geoserver.acl.enabled: true
     geoserver.acl.client.basePath: http://acl:8080/acl/api
     geoserver.acl.client.username: admin
-    geoserver.acl.client.password: s3cr3t
+    geoserver.acl.client.password: ACL-PASSWORD
     geoserver.acl.client.debug: true
 
     geoserver.web-ui.acl.enabled: true
