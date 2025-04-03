@@ -47,4 +47,4 @@ hs_err_pid*.log
 .spotless-index
 
 
-./kubernete/microk8s/workdir/
+kubernete/microk8s/workdir/
