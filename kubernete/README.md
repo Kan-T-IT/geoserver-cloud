@@ -9,12 +9,14 @@ Docker images for all the services are available on DockerHub.
 
 You can find production-suitable deployment files in the folders:
 * [microk8s](microk8s): for deployment on Micro K8S
-* [eks](eks): for deployment on AWS
+* [eks](eks): for deployment on AWS **(In Progreess)**
+* Open Shift: for deployment any cloud **(In the Future)**
 
+
+## Deployment on MicroK8S
 
 For the deployment of GeoServer Cloud we can deploy it on different Kubernete platforms, here are the details of the deployment on MickoK8S 
 
-## Deployment on MicroK8S
 
 ### Pre Requisites
 
@@ -37,6 +39,7 @@ microk8s enable cert-manager
 ```
 
 3. Create certmanager config to enable letsencrypt using your own email
+
 ```bash
 microk8s kubectl apply -f - <<EOF
 ---
@@ -63,33 +66,48 @@ EOF
 
 It clone repository
 
-
-```bash
-cd geoserver-cloud/kubernete
-```
-
 5. Access to directory for microk8s
 
+
 ```bash
-cd microk8s
+cd geoserver-cloud/kubernete/microk8s
 ```
 
-6. Edit all fields in .env file with the necesary information.
-```env
-KUBERNETES_SITE_URL=GEONODE_CLOUD_FINAL_URL    # i.e.: cloud.mygeonode.com
-KUBERNETES_NODE_NAME=YOUR_CLUSTER_NAME_NAME    # usually host machine name
-KUBERNETES_VOL_DIR=YOUR_DESIRED_LOCATION       # this path shold exist
-CLUSTER_ISSUER_NAME=YOUR_CLUSTER_ISSUER_NAME   # created earlier in this guide
-SERVER_PUBLIC_IP=YOU.RPU.BLI.CIP               # the public ipv4 of the server                 
-GEOSERVER_PASSWORD=geoserver                   # password for geoserver admin user
+
+6. Copy of .env.sample file for .env and edit all fields in .env file with the necesary information.
+
+```bash
+cp .env.sample .env
 ```
 
-7. Run `./install.sh` and enjoy.
+**Note:** It is recommended to add a DNS name to the computer to correctly enable certificates.
+
+7. Edit all fields in .env file with the necesary information.
+
+```bash
+
+KUBERNETES_SITE_URL=      # i.e.: gscloud.kan.com.ar
+KUBERNETES_NODE_NAME=     # usually host machine name
+KUBERNETES_VOL_DIR=       # This path should exist on the host to store the volumes
+CLUSTER_ISSUER_NAME=      # created earlier in this guide
+SERVER_PUBLIC_IP=         # the public ipv4 of the server                 
+GEOSERVER_PASSWORD=       # password for admin geoserver
+ACL_PASSWORD=             # password for ACL module
+DATABASE_USER=            # database user for postgres
+DATABASE_NAME=            # database name for postgres 
+DATABASE_PASS=            # database password for postgres
+KUBERNETES_NAMESPACE=     # i.e.: geoserver-cloud
+
+```
+
+8. Run `./install.sh` and enjoy.
 
 
 ---
 
 ## Deployment on EKS
+
+Here are the details of the deployment on EKS of AWS product.
 
 ### Pre requisites
 
@@ -111,10 +129,10 @@ To deploy the necessary resources on EKS, follow this order:
   - `local-storageclass.yaml` in `configs/storageclass` (to set up the StorageClass before creating volumes).
 
 - **Database**
-  - ConfigMap: `gndatabase-configmap.yaml` in `database/configmaps`.
+  - ConfigMap: `gsdatabase-configmap.yaml` in `database/configmaps`.
   - PVC: `dbdata-pvc.yaml` in `database/volumes`.
-  - Deployment: `gndatabase-deployment.yaml` in `database/deployments`.
-  - Service: `gndatabase-service.yaml` in `database/services`.
+  - Deployment: `gsdatabase-deployment.yaml` in `database/deployments`.
+  - Service: `gsdatabase-service.yaml` in `database/services`.
 
 
 - **gs-cloud Components**
@@ -124,7 +142,7 @@ To deploy the necessary resources on EKS, follow this order:
   - Services in `gs-cloud/services`.
 
 - **Ingress**
-  - Finally, apply `geonode-ingress.yaml` in `configs/ingress` to expose services to the outside.
+  - Finally, apply `gs-ingress.yaml` in `configs/ingress` to expose services to the outside.
 
 
 After following these steps, verify the status of your pods and services.
