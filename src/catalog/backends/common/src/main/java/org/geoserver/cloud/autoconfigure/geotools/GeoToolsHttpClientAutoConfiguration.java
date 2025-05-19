@@ -1,7 +1,8 @@
-/*
- * (c) 2021 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2021 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.autoconfigure.geotools;
 
 import lombok.extern.slf4j.Slf4j;
@@ -65,11 +66,17 @@ import org.springframework.context.annotation.Bean;
  * </pre>
  */
 @AutoConfiguration
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @EnableConfigurationProperties(GeoToolsHttpClientProxyConfigurationProperties.class)
 @ConditionalOnProperty(name = "geotools.httpclient.proxy.enabled", havingValue = "true", matchIfMissing = true)
 @Slf4j(topic = "org.geotools.autoconfigure.httpclient")
 public class GeoToolsHttpClientAutoConfiguration {
 
+    /**
+     * Updates the
+     * {@link SpringEnvironmentAwareGeoToolsHttpClientFactory#setProxyConfig()
+     * factory config} with the provided configuration properties
+     */
     @Bean
     SpringEnvironmentAwareGeoToolsHttpClientFactory springEnvironmentAwareGeoToolsHttpClientFactory(
             GeoToolsHttpClientProxyConfigurationProperties proxyConfig) {

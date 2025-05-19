@@ -1,11 +1,12 @@
-/*
- * (c) 2024 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2024 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.app;
 
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.ApplicationRunner;
 import org.springframework.boot.CommandLineRunner;
@@ -47,7 +48,9 @@ import org.springframework.core.env.Environment;
  * @since 1.9.0
  */
 @AutoConfiguration
+@SuppressWarnings({"java:S115"})
 @ConditionalOnProperty("spring.context.exit")
+@RequiredArgsConstructor
 @Slf4j
 public class ExitOnApplicationEventAutoConfiguration {
 
@@ -83,8 +86,7 @@ public class ExitOnApplicationEventAutoConfiguration {
         onReady
     }
 
-    @Autowired
-    private ApplicationContext appContext;
+    private final ApplicationContext appContext;
 
     @Value("${spring.context.exit}")
     ExitOn exitOn;

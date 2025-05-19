@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geotools.jackson.databind.filter.mapper;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -17,7 +18,8 @@ class ExpressionMapperTest extends ExpressionRoundtripTest {
 
     private ExpressionMapper expressions;
 
-    public @BeforeEach void before() {
+    @BeforeEach
+    void before() {
         expressions = Mappers.getMapper(ExpressionMapper.class);
     }
 

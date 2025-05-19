@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.security;
 
 import java.util.List;
@@ -18,7 +19,6 @@ import org.geoserver.platform.config.UpdateSequence;
 import org.geoserver.security.CloudGeoServerSecurityFilterChainProxy;
 import org.geoserver.security.GeoServerSecurityFilterChainProxy;
 import org.geoserver.security.GeoServerSecurityManager;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.context.ApplicationEventPublisher;
@@ -53,8 +53,6 @@ public class GeoServerSecurityConfiguration {
     /** */
     public static final String APPLICATION_SECURITY_CONTEXT_FILTER =
             "classpath*:/applicationSecurityContext.xml#name=^(?!authenticationManager|filterChainProxy).*$";
-
-    private @Value("${geoserver.security.enabled:#{null}}") Boolean enabled;
 
     public @PostConstruct void log() {
         log.info("GeoServer security being configured through classpath*:/applicationSecurityContext.xml");

@@ -1,3 +1,8 @@
+/* (c) 2025 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
+
 package org.geoserver.cloud.autoconfigure.web.gwc;
 
 import java.util.ArrayList;
@@ -38,7 +43,7 @@ import org.geotools.util.Version;
 class CloudGWCServiceDescriptionProvider extends ServiceDescriptionProvider {
 
     /** Service type to cross-link between service description and service link description. */
-    public static final String SERVICE_TYPE = "WMTS";
+    public static final String SERVICE_TYPE = GWCServiceDescriptionProvider.SERVICE_TYPE;
 
     private final GWC gwc;
     private final GeoServer geoserver;
@@ -51,6 +56,7 @@ class CloudGWCServiceDescriptionProvider extends ServiceDescriptionProvider {
 
     public CloudGWCServiceDescriptionProvider(
             GWC gwc, GeoServer gs, GoServerWebUIConfigurationProperties staticConfig) {
+        super(SERVICE_TYPE);
         this.gwc = gwc;
         this.geoserver = gs;
         this.staticConfig = staticConfig;

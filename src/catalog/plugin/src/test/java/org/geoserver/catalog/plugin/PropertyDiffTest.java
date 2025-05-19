@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.catalog.plugin;
 
 import static java.util.Collections.singletonList;
@@ -33,7 +34,8 @@ class PropertyDiffTest {
 
     public CatalogTestData data;
 
-    public @BeforeEach void setup() {
+    @BeforeEach
+    void setup() {
         Catalog catalog = new CatalogPlugin();
         data = CatalogTestData.empty(() -> catalog, () -> null)
                 .initConfig(false)

@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <parent>
+    <groupId>org.geoserver.cloud</groupId>
+    <artifactId>gs-cloud-starters</artifactId>
+    <version>${revision}</version>
+  </parent>
+  <artifactId>gs-cloud-starter-extensions</artifactId>
+  <packaging>jar</packaging>
+  <description>Spring Boot starter for the GeoServer Cloud curated list of suppported extensions</description>
+  <dependencies>
+    <!-- Input format extensions -->
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gs-cloud-starter-input-formats</artifactId>
+    </dependency>
+    <!-- Output format extensions -->
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gs-cloud-starter-output-formats</artifactId>
+    </dependency>
+    <!-- Security starter (includes all security extensions) -->
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gs-cloud-starter-security</artifactId>
+    </dependency>
+    <!-- Feature extensions -->
+    <dependency>
+      <groupId>org.geoserver.cloud.extensions</groupId>
+      <artifactId>gs-cloud-extension-app-schema</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.cloud.extensions</groupId>
+      <artifactId>gs-cloud-extension-inspire</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.cloud.extensions</groupId>
+      <artifactId>gs-cloud-extension-css-styling</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.cloud.extensions</groupId>
+      <artifactId>gs-cloud-extension-mapbox-styling</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.cloud.extensions</groupId>
+      <artifactId>gs-cloud-extension-importer</artifactId>
+    </dependency>
+    <dependency>
+      <groupId>org.geoserver.cloud.extensions</groupId>
+      <artifactId>gs-cloud-extension-ogcapi-features</artifactId>
+    </dependency>
+  </dependencies>
+</project>

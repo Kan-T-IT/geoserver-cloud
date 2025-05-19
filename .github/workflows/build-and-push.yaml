@@ -10,6 +10,7 @@ on:
       - "Makefile"
       - "pom.xml"
       - ".github/workflows/build-and-push.yaml"
+      - "docker-build/**"
       - "config"
       - "src/**"
     tags:
@@ -60,7 +61,7 @@ jobs:
 
     - name: Build application packages
       run: |
-        make package
+        make install
 
     - name: Build and push base images
       run: |

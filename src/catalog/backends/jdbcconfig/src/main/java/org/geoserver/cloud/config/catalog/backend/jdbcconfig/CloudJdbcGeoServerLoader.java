@@ -1,12 +1,12 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.config.catalog.backend.jdbcconfig;
 
 import java.io.IOException;
 import java.util.List;
-import javax.annotation.PostConstruct;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.cloud.config.catalog.backend.core.CoreBackendConfiguration;
 import org.geoserver.config.DefaultGeoServerLoader;
@@ -40,29 +40,15 @@ import org.geoserver.platform.resource.Resource.Lock;
  */
 public class CloudJdbcGeoServerLoader extends DefaultGeoServerLoader {
 
-    private Catalog rawCatalog;
-    private GeoServer jdbcConfigGeoserver;
-
     private JDBCConfigProperties config;
 
     private ConfigDatabase configdb;
 
     public CloudJdbcGeoServerLoader(
-            Catalog rawCatalog,
-            GeoServer geoserver,
-            GeoServerResourceLoader resourceLoader,
-            JDBCConfigProperties config,
-            ConfigDatabase configdb) {
+            GeoServerResourceLoader resourceLoader, JDBCConfigProperties config, ConfigDatabase configdb) {
         super(resourceLoader);
-        this.rawCatalog = rawCatalog;
-        this.jdbcConfigGeoserver = geoserver;
         this.config = config;
         this.configdb = configdb;
-    }
-
-    public @PostConstruct void load() {
-        postProcessBeforeInitialization(rawCatalog, "rawCatalog");
-        postProcessBeforeInitialization(jdbcConfigGeoserver, "geoServer");
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.autoconfigure.security;
 
 import javax.annotation.PostConstruct;
@@ -19,6 +20,7 @@ import org.springframework.context.annotation.Import;
 import org.springframework.context.event.EventListener;
 
 @AutoConfiguration(after = GeoServerBackendAutoConfiguration.class)
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @Import({GeoServerSecurityAutoConfiguration.WhenEnabled.class, GeoServerSecurityAutoConfiguration.WhenDisabled.class})
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.security")
 public class GeoServerSecurityAutoConfiguration {
@@ -31,18 +33,19 @@ public class GeoServerSecurityAutoConfiguration {
         private @Value("${geoserver.security.enabled:#{null}}") Boolean enabled;
 
         public @PostConstruct void log() {
-            if (enabled == null)
+            if (enabled == null) {
                 log.info(
                         """
                         GeoServer security auto-configuration enabled automatically \
                         (no geoserver.security.enabled configuration property provided)
                         """);
-            else if (enabled.booleanValue())
+            } else if (enabled.booleanValue()) {
                 log.info(
                         """
                         GeoServer security auto-configuration enabled \
                         explicitly through geoserver.security.enabled: true
                         """);
+            }
         }
 
         /**

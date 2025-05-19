@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.test;
 
 import org.springframework.boot.actuate.autoconfigure.security.servlet.ManagementWebSecurityAutoConfiguration;
@@ -12,7 +13,6 @@ import org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfigurat
 import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServiceAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.cloud.client.loadbalancer.reactive.LoadBalancerBeanPostProcessorAutoConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.test.context.TestPropertySource;
 
@@ -29,8 +29,7 @@ import org.springframework.test.context.TestPropertySource;
             HibernateJpaAutoConfiguration.class, //
             SecurityAutoConfiguration.class, //
             UserDetailsServiceAutoConfiguration.class, //
-            ManagementWebSecurityAutoConfiguration.class, //
-            LoadBalancerBeanPostProcessorAutoConfiguration.class
+            ManagementWebSecurityAutoConfiguration.class
         })
 @TestPropertySource(properties = {"geoserver.backend.data-directory.enabled=true"})
 public class TestConfiguration {}

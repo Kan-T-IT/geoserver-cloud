@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.autoconfigure.servlet;
 
 import javax.annotation.PostConstruct;
@@ -13,12 +14,14 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Import;
 
 @AutoConfiguration(after = GeoServerWebMvcMainAutoConfiguration.class)
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnProperty(prefix = "geoserver.servlet", name = "enabled", havingValue = "true", matchIfMissing = true)
 @Import(GeoServerServletContextConfiguration.class)
 @Slf4j
 public class GeoServerServletContextAutoConfiguration {
 
     @AutoConfiguration
+    @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
     @ConditionalOnProperty(
             prefix = "geoserver.servlet",
             name = "enabled",

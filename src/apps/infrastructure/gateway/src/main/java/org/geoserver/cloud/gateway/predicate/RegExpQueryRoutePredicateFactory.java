@@ -1,16 +1,17 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.gateway.predicate;
 
+import jakarta.validation.constraints.NotEmpty;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
 import java.util.regex.Pattern;
-import javax.validation.constraints.NotEmpty;
 import lombok.Data;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;

@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.event.config;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -36,8 +37,9 @@ public abstract class ConfigInfoRemoved extends InfoRemoved implements ConfigInf
         return switch (type) {
             case SERVICE -> ServiceRemoved.createLocal(updateSequence, (ServiceInfo) configInfo);
             case SETTINGS -> SettingsRemoved.createLocal(updateSequence, (SettingsInfo) configInfo);
-            default -> throw new IllegalArgumentException(
-                    "Unknown or unsupported config Info type: %s. %s".formatted(type, configInfo));
+            default ->
+                throw new IllegalArgumentException(
+                        "Unknown or unsupported config Info type: %s. %s".formatted(type, configInfo));
         };
     }
 }

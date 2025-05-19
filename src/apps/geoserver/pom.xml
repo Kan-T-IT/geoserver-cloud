@@ -29,6 +29,15 @@
         <type>pom</type>
         <scope>import</scope>
       </dependency>
+      <dependency>
+        <!-- For testing service conditional annotations -->
+        <groupId>org.geoserver.cloud.extensions</groupId>
+        <artifactId>gs-cloud-extensions-core</artifactId>
+        <version>${project.version}</version>
+        <classifier>tests</classifier>
+        <type>test-jar</type>
+        <scope>test</scope>
+      </dependency>
     </dependencies>
   </dependencyManagement>
   <dependencies>
@@ -36,9 +45,25 @@
       <groupId>org.geoserver.cloud</groupId>
       <artifactId>gs-cloud-spring-factory</artifactId>
     </dependency>
+    <!-- Base Spring Boot integration -->
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gs-cloud-spring-boot-starter</artifactId>
+    </dependency>
+    <!-- Spring Cloud integration -->
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gs-cloud-spring-cloud-starter</artifactId>
+    </dependency>
+    <!-- Web MVC functionality -->
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
       <artifactId>gs-cloud-starter-webmvc</artifactId>
+    </dependency>
+    <!-- Extensions and functionality -->
+    <dependency>
+      <groupId>org.geoserver.cloud</groupId>
+      <artifactId>gs-cloud-starter-extensions</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
@@ -49,31 +74,6 @@
       <artifactId>gs-cloud-starter-observability</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.geoserver.cloud</groupId>
-      <artifactId>gs-cloud-starter-geonode</artifactId>
-      <version>${project.version}</version>
-    </dependency>
-    <dependency>
-      <groupId>org.geoserver.cloud</groupId>
-      <artifactId>spring-boot-simplejndi</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.geoserver.cloud</groupId>
-      <artifactId>gs-cloud-starter-event-bus</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.cloud</groupId>
-      <artifactId>spring-cloud-starter-bootstrap</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.retry</groupId>
-      <artifactId>spring-retry</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-starter-aop</artifactId>
-    </dependency>
-    <dependency>
       <groupId>org.geotools</groupId>
       <artifactId>gt-iau-wkt</artifactId>
       <version>${gt.version}</version>
@@ -81,11 +81,6 @@
     <dependency>
       <groupId>org.springframework.boot</groupId>
       <artifactId>spring-boot-configuration-processor</artifactId>
-      <optional>true</optional>
-    </dependency>
-    <dependency>
-      <groupId>org.springframework.boot</groupId>
-      <artifactId>spring-boot-autoconfigure-processor</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>
@@ -106,6 +101,14 @@
     <dependency>
       <groupId>org.xmlunit</groupId>
       <artifactId>xmlunit-assertj3</artifactId>
+      <scope>test</scope>
+    </dependency>
+    <dependency>
+      <!-- For testing service conditional annotations -->
+      <groupId>org.geoserver.cloud.extensions</groupId>
+      <artifactId>gs-cloud-extensions-core</artifactId>
+      <classifier>tests</classifier>
+      <type>test-jar</type>
       <scope>test</scope>
     </dependency>
   </dependencies>

@@ -1,9 +1,11 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.jackson.databind.catalog;
 
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.MatcherAssert.assertThat;
 import static org.hamcrest.Matchers.instanceOf;
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -22,6 +24,7 @@ import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
+import lombok.SneakyThrows;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.AuthorityURLInfo;
@@ -32,6 +35,7 @@ import org.geoserver.catalog.CatalogTestData;
 import org.geoserver.catalog.CoverageDimensionInfo;
 import org.geoserver.catalog.CoverageStoreInfo;
 import org.geoserver.catalog.DataLinkInfo;
+import org.geoserver.catalog.DataStoreInfo;
 import org.geoserver.catalog.DimensionInfo;
 import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.Info;
@@ -78,12 +82,12 @@ import org.geotools.coverage.grid.GeneralGridEnvelope;
 import org.geotools.coverage.grid.GridGeometry2D;
 import org.geotools.data.DataUtilities;
 import org.geotools.factory.CommonFactoryFinder;
-import org.geotools.feature.SchemaException;
 import org.geotools.feature.simple.SimpleFeatureTypeBuilder;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.jdbc.VirtualTable;
 import org.geotools.measure.Measure;
 import org.geotools.referencing.CRS;
+import org.geotools.util.Converters;
 import org.geotools.util.NumberRange;
 import org.hamcrest.CoreMatchers;
 import org.junit.jupiter.api.BeforeAll;
@@ -92,8 +96,9 @@ import org.junit.jupiter.api.Test;
 import si.uom.SI;
 
 /**
- * Verifies that all {@link CatalogInfo} can be sent over the wire and parsed back using jackson,
- * thanks to {@link GeoServerCatalogModule} jackcon-databind module
+ * Verifies that all {@link CatalogInfo} can be sent over the wire and parsed
+ * back using jackson, thanks to {@link GeoServerCatalogModule} jackcon-databind
+ * module
  */
 @Slf4j
 public abstract class GeoServerCatalogModuleTest {
@@ -102,7 +107,9 @@ public abstract class GeoServerCatalogModuleTest {
 
     protected void print(String logmsg, Object... args) {
         boolean debug = Boolean.getBoolean("debug");
-        if (debug) log.info(logmsg, args);
+        if (debug) {
+            log.info(logmsg, args);
+        }
     }
 
     private ObjectMapper objectMapper;
@@ -129,8 +136,14 @@ public abstract class GeoServerCatalogModuleTest {
 
     protected abstract ObjectMapper newObjectMapper();
 
-    @SuppressWarnings("unchecked")
-    private <T extends CatalogInfo> T catalogInfoRoundtripTest(final T orig) throws JsonProcessingException {
+    private <T extends CatalogInfo> T catalogInfoRoundtripTest(final T orig) {
+        boolean assertEquals = true;
+        return catalogInfoRoundtripTest(orig, assertEquals);
+    }
+
+    @SneakyThrows(JsonProcessingException.class)
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    private <T extends CatalogInfo> T catalogInfoRoundtripTest(final T orig, boolean assertEquals) {
         ObjectWriter writer = objectMapper.writer();
         writer = writer.withDefaultPrettyPrinter();
 
@@ -147,12 +160,16 @@ public abstract class GeoServerCatalogModuleTest {
         CatalogInfo asCatalogInfo = objectMapper.readValue(encoded, CatalogInfo.class);
         assertNotNull(asCatalogInfo);
         // and also as its direct super-type, if it not CatalogInfo
-        if (orig instanceof StoreInfo) assertNotNull(objectMapper.readValue(encoded, StoreInfo.class));
-        if (orig instanceof ResourceInfo) assertNotNull(objectMapper.readValue(encoded, ResourceInfo.class));
-        if (orig instanceof PublishedInfo) assertNotNull(objectMapper.readValue(encoded, PublishedInfo.class));
+        if (orig instanceof StoreInfo) {
+            assertNotNull(objectMapper.readValue(encoded, StoreInfo.class));
+        } else if (orig instanceof ResourceInfo) {
+            assertNotNull(objectMapper.readValue(encoded, ResourceInfo.class));
+        } else if (orig instanceof PublishedInfo) {
+            assertNotNull(objectMapper.readValue(encoded, PublishedInfo.class));
+        }
 
-        // This is the client code's responsibility, the Deserializer returns "resolving proxy"
-        // proxies for Info references
+        // This is the client code's responsibility, the Deserializer returns "resolving proxy"  proxies for Info
+        // references
         decoded = proxyResolver.resolve(decoded);
 
         if (Proxy.isProxyClass(orig.getClass())) {
@@ -160,15 +177,30 @@ public abstract class GeoServerCatalogModuleTest {
             proxy.commit();
             unproxied = (T) proxy.getProxyObject();
         }
+        if (assertEquals) {
+            if (unproxied instanceof DataStoreInfo store1) {
+                DataStoreInfo store2 = (DataStoreInfo) decoded;
+                Map params1 = store1.getConnectionParameters();
+                Map params2 = store2.getConnectionParameters();
+                // Convert to the orig map's class. It'll be done by Param.resolve() in real life
+                assertThat(params1.keySet()).isEqualTo(params2.keySet());
+                params1.forEach((k, v) -> {
+                    if (v != null) {
+                        Object converted = Converters.convert(params2.get(k), v.getClass());
+                        params2.put(k, converted);
+                    }
+                });
+            }
 
-        data.assertEqualsLenientConnectionParameters(unproxied, decoded);
+            assertEquals(unproxied, decoded);
+        }
         data.assertInternationalStringPropertiesEqual(unproxied, decoded);
 
         return decoded;
     }
 
     @Test
-    void testWorkspace() throws Exception {
+    void testWorkspace() {
         catalogInfoRoundtripTest(data.workspaceA);
 
         data.workspaceB.setIsolated(true);
@@ -178,7 +210,7 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testNamespace() throws Exception {
+    void testNamespace() {
         catalogInfoRoundtripTest(data.namespaceA);
 
         data.namespaceB.setIsolated(true);
@@ -188,19 +220,85 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testDataStore() throws Exception {
+    void testDataStore() {
         catalogInfoRoundtripTest(data.dataStoreA);
         catalogInfoRoundtripTest(data.dataStoreB);
         catalogInfoRoundtripTest(data.dataStoreC);
     }
 
     @Test
-    void testCoverageStore() throws Exception {
+    void storeParameterScalars() {
+        testStoreConnectionParameter(Integer.valueOf(101));
+        testStoreConnectionParameter(Double.valueOf(101.1));
+        testStoreConnectionParameter(Boolean.TRUE);
+        testStoreConnectionParameter(Boolean.FALSE);
+        testStoreConnectionParameter("String value");
+    }
+
+    @Test
+    void storeParameterPrimitives() {
+        testStoreConnectionParameter(Byte.valueOf((byte) 10));
+        testStoreConnectionParameter(Short.valueOf((short) 101));
+        testStoreConnectionParameter(Integer.valueOf(101));
+        testStoreConnectionParameter(Long.valueOf(101));
+        testStoreConnectionParameter(Float.valueOf(101.1f));
+        testStoreConnectionParameter(Double.valueOf(101.1));
+        testStoreConnectionParameter("String value");
+    }
+
+    @Test
+    @SneakyThrows
+    void storeParameterCoordinateReferenceSystem() {
+        CoordinateReferenceSystem crs = CRS.decode("EPSG:4326", true);
+
+        testStoreConnectionParameter(crs);
+
+        crs = CRS.decode("EPSG:3857", true);
+        testStoreConnectionParameter(crs);
+    }
+
+    @Test
+    @SneakyThrows
+    void storeParameterReferencedEnvelope() {
+        CoordinateReferenceSystem crs;
+        ReferencedEnvelope bbox;
+
+        crs = CRS.decode("EPSG:4326", true);
+        bbox = new ReferencedEnvelope(-180, 180, -90, 90, crs);
+        testStoreConnectionParameter(bbox);
+
+        crs = CRS.decode("EPSG:3857", true);
+        bbox = new ReferencedEnvelope(-20037508.34, -20048966.1, 20037508.34, 20048966.1, crs);
+        testStoreConnectionParameter(bbox);
+    }
+
+    @SuppressWarnings({"unchecked", "rawtypes"})
+    void testStoreConnectionParameter(Object value) {
+        DataStoreInfo store = data.dataStoreA;
+        store.getConnectionParameters().clear();
+        Class<?> type = value.getClass();
+        String key = "test-key-for-%s".formatted(type.getName());
+        Map expected = store.getConnectionParameters();
+        expected.put(key, value);
+        final boolean assertEquals = false;
+        DataStoreInfo decoded = catalogInfoRoundtripTest(store, assertEquals);
+
+        Map<String, Serializable> actual = decoded.getConnectionParameters();
+
+        assertThat(actual.keySet()).isEqualTo(expected.keySet());
+
+        Object roundtripped = actual.get(key);
+        Object converted = Converters.convert(roundtripped, value.getClass());
+        assertThat(converted).isEqualTo(value);
+    }
+
+    @Test
+    void testCoverageStore() {
         catalogInfoRoundtripTest(data.coverageStoreA);
     }
 
     @Test
-    void testCoverageStore_COG() throws Exception {
+    void testCoverageStore_COG() {
         CoverageStoreInfo store = data.coverageStoreA;
         CogSettingsStore cogSettings = new CogSettingsStore();
         cogSettings.setRangeReaderSettings(RangeReaderType.Azure);
@@ -214,17 +312,17 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testWmsStore() throws Exception {
+    void testWmsStore() {
         catalogInfoRoundtripTest(data.wmsStoreA);
     }
 
     @Test
-    void testWmtsStore() throws Exception {
+    void testWmtsStore() {
         catalogInfoRoundtripTest(data.wmtsStoreA);
     }
 
     @Test
-    void testFeatureType() throws Exception {
+    void testFeatureType() {
         KeywordInfo k = new Keyword("value");
         k.setLanguage("es");
         FeatureTypeInfo ft = data.featureTypeA;
@@ -242,7 +340,8 @@ public abstract class GeoServerCatalogModuleTest {
         catalogInfoRoundtripTest(ft);
     }
 
-    private List<AttributeTypeInfo> createTestAttributes(FeatureTypeInfo info) throws SchemaException {
+    @SneakyThrows
+    private List<AttributeTypeInfo> createTestAttributes(FeatureTypeInfo info) {
         String typeSpec =
                 "name:string,id:String,polygonProperty:Polygon:srid=32615,centroid:Point,url:java.net.URL,uuid:UUID";
         SimpleFeatureType ft = DataUtilities.createType("TestType", typeSpec);
@@ -261,22 +360,22 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testCoverage() throws Exception {
+    void testCoverage() {
         catalogInfoRoundtripTest(data.coverageA);
     }
 
     @Test
-    void testWmsLayer() throws Exception {
+    void testWmsLayer() {
         catalogInfoRoundtripTest(data.wmsLayerA);
     }
 
     @Test
-    void testWtmsLayer() throws Exception {
+    void testWtmsLayer() {
         catalogInfoRoundtripTest(data.wmtsLayerA);
     }
 
     @Test
-    void testLayer() throws Exception {
+    void testLayer() {
         LayerInfo layer = data.layerFeatureTypeA;
         layer.getStyles().add(data.style1);
         layer.getStyles().add(data.style2);
@@ -284,7 +383,7 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testLayerGroup() throws Exception {
+    void testLayerGroupLayerGroupStyle() {
         LayerGroupInfo lg = data.layerGroup1;
         lg.setTitle("LG Title");
         lg.setAbstract("LG abstract");
@@ -311,13 +410,25 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testLayerGroupWorkspace() throws Exception {
+    void testLayerGroupDefaultStyles() {
+        LayerGroupInfo lg = data.layerGroup1;
+
+        assertThat(lg.getLayers()).isNotEmpty();
+        lg.getStyles().clear();
+        for (int i = 0; i < lg.getLayers().size(); i++) {
+            lg.getStyles().add(null);
+        }
+        catalogInfoRoundtripTest(lg);
+    }
+
+    @Test
+    void testLayerGroupWorkspace() {
         data.layerGroup1.setWorkspace(data.workspaceC);
         catalogInfoRoundtripTest(data.layerGroup1);
     }
 
     @Test
-    void testStyle() throws Exception {
+    void testStyle() {
         StyleInfo style1 = data.style1;
         style1.setFormatVersion(SLDHandler.VERSION_10);
         style1.setFormat(SLDHandler.FORMAT);
@@ -331,7 +442,7 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testStyleWorkspace() throws Exception {
+    void testStyleWorkspace() {
         data.style1.setWorkspace(data.workspaceA);
         data.style2.setWorkspace(data.workspaceB);
         catalogInfoRoundtripTest(data.style1);
@@ -354,7 +465,7 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testFilterWithInfoLiterals() throws JsonProcessingException {
+    void testFilterWithInfoLiterals() {
         testFilterLiteral(forceNonProxy(data.workspaceA));
         testFilterLiteral(forceNonProxy(data.namespaceA));
         testFilterLiteral(forceNonProxy(data.dataStoreA));
@@ -371,7 +482,7 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testFilterWithModificationProxyInfoLiterals() throws JsonProcessingException {
+    void testFilterWithModificationProxyInfoLiterals() {
         testFilterLiteral(forceModificationProxy(data.workspaceA));
         testFilterLiteral(forceModificationProxy(data.namespaceA));
         testFilterLiteral(forceModificationProxy(data.dataStoreA));
@@ -401,7 +512,8 @@ public abstract class GeoServerCatalogModuleTest {
         return ModificationProxy.unwrap(info);
     }
 
-    private <T> T testFilterLiteral(T value) throws JsonProcessingException {
+    @SneakyThrows
+    private <T> T testFilterLiteral(T value) {
         Class<? extends Object> expectedDecodedType = value.getClass();
         if (value instanceof Proxy) {
             T unwrap = ModificationProxy.unwrap(value);
@@ -411,12 +523,12 @@ public abstract class GeoServerCatalogModuleTest {
         return testFilterLiteral(value, expectedDecodedType);
     }
 
-    protected <T> T testFilterLiteral(T value, Class<? extends Object> expectedDecodedType)
-            throws JsonProcessingException {
+    protected <T> T testFilterLiteral(T value, Class<? extends Object> expectedDecodedType) {
         PropertyIsEqualTo filter = equals("literalTestProp", value);
         PropertyIsEqualTo decodedFilter = roundTrip(filter, Filter.class);
         assertEquals(filter.getExpression1(), decodedFilter.getExpression1());
-        // can't trust the equals() implementation on the provided object, make some basic checks
+        // can't trust the equals() implementation on the provided object, make some
+        // basic checks
         // and return the decoded object
         Literal decodedExp = (Literal) decodedFilter.getExpression2();
         Object decodedValue = decodedExp.getValue();
@@ -444,7 +556,8 @@ public abstract class GeoServerCatalogModuleTest {
         return ff.equals(ff.property(propertyName), ff.literal(literal));
     }
 
-    private <T> T roundTrip(T orig, Class<? super T> clazz) throws JsonProcessingException {
+    @SneakyThrows(JsonProcessingException.class)
+    private <T> T roundTrip(T orig, Class<? super T> clazz) {
         ObjectWriter writer = objectMapper.writer();
         writer = writer.withDefaultPrettyPrinter();
         String encoded = writer.writeValueAsString(orig);
@@ -456,7 +569,7 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueKeywordInfo() throws JsonProcessingException {
+    void testValueKeywordInfo() {
         KeywordInfo keyword = new org.geoserver.catalog.Keyword("value");
         keyword.setLanguage("en");
         keyword.setVocabulary("bad");
@@ -466,50 +579,54 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueCoordinateReferenceSystemGeographicLatLon() throws Exception {
+    @SneakyThrows
+    void testValueCoordinateReferenceSystemGeographicLatLon() {
         CoordinateReferenceSystem wgs84LatLon = CRS.decode("EPSG:4326", false);
         testValueCoordinateReferenceSystem(wgs84LatLon);
     }
 
     @Test
-    void testValueCoordinateReferenceSystemGeographicLonLat() throws Exception {
+    @SneakyThrows
+    void testValueCoordinateReferenceSystemGeographicLonLat() {
         CoordinateReferenceSystem wgs84LonLat = CRS.decode("EPSG:4326", true);
         testValueCoordinateReferenceSystem(wgs84LonLat);
     }
 
     @Test
-    void testValueCoordinateReferenceSystemProjected() throws Exception {
+    @SneakyThrows
+    void testValueCoordinateReferenceSystemProjected() {
         CoordinateReferenceSystem webMercator = CRS.decode("EPSG:3857", true);
         testValueCoordinateReferenceSystem(webMercator);
     }
 
     @Test
-    void testValueCoordinateReferenceSystemCustomCRS() throws Exception {
+    @SneakyThrows
+    void testValueCoordinateReferenceSystemCustomCRS() {
         String customWKT =
                 """
-			PROJCS[ "UTM Zone 10, Northern Hemisphere",
-			  GEOGCS["GRS 1980(IUGG, 1980)",
-			    DATUM["unknown",
-			       SPHEROID["GRS80",6378137,298.257222101],
-			       TOWGS84[0,0,0,0,0,0,0]
-			    ],
-			    PRIMEM["Greenwich",0],
-			    UNIT["degree",0.0174532925199433]
-			  ],
-			  PROJECTION["Transverse_Mercator"],
-			  PARAMETER["latitude_of_origin",0],
-			  PARAMETER["central_meridian",-123],
-			  PARAMETER["scale_factor",0.9996],
-			  PARAMETER["false_easting",1640419.947506562],
-			  PARAMETER["false_northing",0],
-			  UNIT["Foot (International)",0.3048]
-			]""";
+                PROJCS[ "UTM Zone 10, Northern Hemisphere",
+                  GEOGCS["GRS 1980(IUGG, 1980)",
+                    DATUM["unknown",
+                       SPHEROID["GRS80",6378137,298.257222101],
+                       TOWGS84[0,0,0,0,0,0,0]
+                    ],
+                    PRIMEM["Greenwich",0],
+                    UNIT["degree",0.0174532925199433]
+                  ],
+                  PROJECTION["Transverse_Mercator"],
+                  PARAMETER["latitude_of_origin",0],
+                  PARAMETER["central_meridian",-123],
+                  PARAMETER["scale_factor",0.9996],
+                  PARAMETER["false_easting",1640419.947506562],
+                  PARAMETER["false_northing",0],
+                  UNIT["Foot (International)",0.3048]
+                ]""";
 
         CoordinateReferenceSystem crs = CRS.parseWKT(customWKT);
         testValueCoordinateReferenceSystem(crs);
     }
 
-    private void testValueCoordinateReferenceSystem(CoordinateReferenceSystem crs) throws Exception {
+    private void testValueCoordinateReferenceSystem(CoordinateReferenceSystem crs) {
         CoordinateReferenceSystem decoded = roundTrip(crs, CoordinateReferenceSystem.class);
         assertTrue(CRS.equalsIgnoreMetadata(crs, decoded));
         decoded = testFilterLiteral(crs);
@@ -517,16 +634,17 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     /**
-     * Does not perform equals check, for value types that don't implement {@link
-     * Object#equals(Object)} or have misbehaving implementations
+     * Does not perform equals check, for value types that don't implement
+     * {@link Object#equals(Object)} or have misbehaving implementations
      */
-    private <T> T testValue(final T value, Class<T> type) throws Exception {
+    private <T> T testValue(final T value, Class<T> type) {
         T decoded = roundTrip(value, type);
+        assertNotNull(decoded);
         decoded = testFilterLiteral(value);
         return decoded;
     }
 
-    private <T> void testValueWithEquals(final T value, Class<T> type) throws Exception {
+    private <T> void testValueWithEquals(final T value, Class<T> type) {
         T decoded = roundTrip(value, type);
         assertEquals(value, decoded);
         decoded = testFilterLiteral(value);
@@ -534,20 +652,21 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueNumberRange() throws Exception {
+    void testValueNumberRange() {
         testValueWithEquals(NumberRange.create(Double.MIN_VALUE, 0d), NumberRange.class);
         testValueWithEquals(NumberRange.create(0L, false, Long.MAX_VALUE, true), NumberRange.class);
         testValueWithEquals(NumberRange.create(Integer.MIN_VALUE, true, Integer.MAX_VALUE, false), NumberRange.class);
     }
 
     @Test
-    void testValueMeasure() throws Exception {
+    void testValueMeasure() {
         testValueWithEquals(new Measure(1000, SI.METRE), Measure.class);
         testValueWithEquals(new Measure(.75, SI.RADIAN_PER_SECOND), Measure.class);
     }
 
     @Test
-    void testValueReferencedEnvelope() throws Exception {
+    @SneakyThrows
+    void testValueReferencedEnvelope() {
         CoordinateReferenceSystem wgs84LatLon = CRS.decode("EPSG:4326", false);
         CoordinateReferenceSystem wgs84LonLat = CRS.decode("EPSG:4326", true);
 
@@ -556,7 +675,8 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueGridGeometry2D() throws Exception {
+    @SneakyThrows
+    void testValueGridGeometry2D() {
         CoordinateReferenceSystem crs = CRS.decode("EPSG:4326", true);
         ReferencedEnvelope env = new ReferencedEnvelope(-180, 180, -90, 90, crs);
         GridEnvelope range = new GeneralGridEnvelope(new int[] {0, 0}, new int[] {1024, 768});
@@ -565,7 +685,7 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueAuthorityURLInfo() throws Exception {
+    void testValueAuthorityURLInfo() {
         AuthorityURL info = new AuthorityURL();
         info.setHref("href");
         info.setName("name");
@@ -573,13 +693,13 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueCoverageDimensionInfo() throws Exception {
+    void testValueCoverageDimensionInfo() {
         CoverageDimensionInfo cdi = data.faker().coverageDimensionInfo();
         testValueWithEquals(cdi, CoverageDimensionInfo.class);
     }
 
     @Test
-    void testValueDimensionInfo() throws Exception {
+    void testValueDimensionInfo() {
         DimensionInfo di = data.faker().dimensionInfo();
 
         // bad equals implementation on DimensionInfoImpl
@@ -601,19 +721,19 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueDataLinkInfo() throws Exception {
+    void testValueDataLinkInfo() {
         DataLinkInfo dl = data.faker().dataLinkInfo();
         testValueWithEquals(dl, DataLinkInfo.class);
     }
 
     @Test
-    void testValueLayerIdentifierInfo() throws Exception {
+    void testValueLayerIdentifierInfo() {
         org.geoserver.catalog.impl.LayerIdentifier li = data.faker().layerIdentifierInfo();
         testValueWithEquals(li, LayerIdentifierInfo.class);
     }
 
     @Test
-    void testValueLegendInfo() throws Exception {
+    void testValueLegendInfo() {
         LegendInfoImpl l = new LegendInfoImpl();
         l.setFormat("format");
         l.setHeight(10);
@@ -630,18 +750,18 @@ public abstract class GeoServerCatalogModuleTest {
     }
 
     @Test
-    void testValueMetadataLinkInfo() throws Exception {
+    void testValueMetadataLinkInfo() {
         testValueWithEquals(data.faker().metadataLink(), MetadataLinkInfo.class);
     }
 
     @Test
-    void testValueVirtualTable() throws Exception {
+    void testValueVirtualTable() {
         VirtualTable vt = new VirtualTable("testvt", "select * from test;", true);
         testValueWithEquals(vt, VirtualTable.class);
     }
 
     @Test
-    void testValueMetadataMap() throws Exception {
+    void testValueMetadataMap() {
         MetadataMap mdm = new MetadataMap();
         mdm.put("k1", "v1");
         mdm.put("k2", "v2");
@@ -694,8 +814,9 @@ public abstract class GeoServerCatalogModuleTest {
 
         Filter f1 = query.getFilter();
         Filter f2 = parsed.getFilter();
-        if (f1 == Filter.INCLUDE) assertEquals(Filter.INCLUDE, f2);
-        else {
+        if (f1 == Filter.INCLUDE) {
+            assertEquals(Filter.INCLUDE, f2);
+        } else {
             PropertyIsEqualTo p1 = (PropertyIsEqualTo) f1;
             PropertyIsEqualTo p2 = (PropertyIsEqualTo) f2;
             assertEquals(p1.getExpression1(), p2.getExpression1());

@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.security.impl;
 
 import static org.hamcrest.MatcherAssert.assertThat;
@@ -87,7 +88,7 @@ class GsCloudLayerGroupContainmentCacheTest {
     static Path tmpDir;
 
     @BeforeAll
-    public static void setupBaseCatalog() throws Exception {
+    static void setupBaseCatalog() throws Exception {
         GeoServerExtensionsHelper.setIsSpringContext(false);
         catalog = new CatalogImpl();
         catalog.setResourceLoader(new GeoServerResourceLoader());
@@ -151,7 +152,7 @@ class GsCloudLayerGroupContainmentCacheTest {
     }
 
     @BeforeEach
-    public void setupLayerGrups() {
+    void setupLayerGrups() {
         LayerInfo lakes = catalog.getLayerByName(getLayerId(MockData.LAKES));
         LayerInfo forests = catalog.getLayerByName(getLayerId(MockData.FORESTS));
         LayerInfo roads = catalog.getLayerByName(getLayerId(MockData.ROAD_SEGMENTS));
@@ -175,7 +176,7 @@ class GsCloudLayerGroupContainmentCacheTest {
     }
 
     @AfterEach
-    public void clearLayerGroups() {
+    void clearLayerGroups() {
         CascadeDeleteVisitor remover = new CascadeDeleteVisitor(catalog);
         for (LayerGroupInfo lg : catalog.getLayerGroups()) {
             if (catalog.getLayerGroup(lg.getId()) != null) {
@@ -340,14 +341,14 @@ class GsCloudLayerGroupContainmentCacheTest {
 
     @Test
     void testAddRemoveNamed() {
-        final String NAMED_GROUP = "named";
+        final String namedGroup = "named";
         LayerInfo neatline = catalog.getLayerByName(getLayerId(MockData.MAP_NEATLINE));
         LayerInfo lakes = catalog.getLayerByName(getLayerId(MockData.LAKES));
 
         // add and check containment
-        LayerGroupInfo named = addLayerGroup(NAMED_GROUP, Mode.NAMED, null, lakes, neatline);
-        assertThat(containerNamesForResource(MockData.LAKES), equalTo(set(CONTAINER_GROUP, NAMED_GROUP)));
-        assertThat(containerNamesForResource(MockData.MAP_NEATLINE), equalTo(set(NAMED_GROUP)));
+        LayerGroupInfo named = addLayerGroup(namedGroup, Mode.NAMED, null, lakes, neatline);
+        assertThat(containerNamesForResource(MockData.LAKES), equalTo(set(CONTAINER_GROUP, namedGroup)));
+        assertThat(containerNamesForResource(MockData.MAP_NEATLINE), equalTo(set(namedGroup)));
         assertThat(containerNamesForGroup(named), empty());
 
         // delete and check containment
@@ -359,17 +360,17 @@ class GsCloudLayerGroupContainmentCacheTest {
 
     @Test
     void testAddRemoveNestedNamed() {
-        final String NESTED_NAMED = "nestedNamed";
+        final String nestedName = "nestedNamed";
         LayerInfo neatline = catalog.getLayerByName(getLayerId(MockData.MAP_NEATLINE));
         LayerInfo lakes = catalog.getLayerByName(getLayerId(MockData.LAKES));
 
         // add, nest, and check containment
-        LayerGroupInfo nestedNamed = addLayerGroup(NESTED_NAMED, Mode.NAMED, null, lakes, neatline);
+        LayerGroupInfo nestedNamed = addLayerGroup(nestedName, Mode.NAMED, null, lakes, neatline);
         container.getLayers().add(nestedNamed);
         container.getStyles().add(null);
         catalog.save(container);
-        assertThat(containerNamesForResource(MockData.LAKES), equalTo(set(CONTAINER_GROUP, NESTED_NAMED)));
-        assertThat(containerNamesForResource(MockData.MAP_NEATLINE), equalTo(set(CONTAINER_GROUP, NESTED_NAMED)));
+        assertThat(containerNamesForResource(MockData.LAKES), equalTo(set(CONTAINER_GROUP, nestedName)));
+        assertThat(containerNamesForResource(MockData.MAP_NEATLINE), equalTo(set(CONTAINER_GROUP, nestedName)));
         assertThat(containerNamesForGroup(nestedNamed), equalTo(set(CONTAINER_GROUP)));
 
         // delete and check containment

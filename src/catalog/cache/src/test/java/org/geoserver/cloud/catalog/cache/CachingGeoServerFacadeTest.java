@@ -1,3 +1,8 @@
+/* (c) 2025 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
+
 package org.geoserver.cloud.catalog.cache;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -90,7 +95,8 @@ class CachingGeoServerFacadeTest {
 
     public static interface TestService2 extends ServiceInfo {}
 
-    public @BeforeEach void before() {
+    @BeforeEach
+    void before() {
         global = stub(GeoServerInfo.class);
         workspace = stub(WorkspaceInfo.class);
         settings = stub(SettingsInfo.class);

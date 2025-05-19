@@ -12,16 +12,21 @@ REPACKAGE ?= true
 clean:
 	./mvnw clean
 
+.PHONY: build-tools
+build-tools:
+	./mvnw clean install -pl build-tools/
+
 .PHONY: lint
-lint: lint-pom lint-java
+lint: build-tools
+	./mvnw validate -Dqa -fae -ntp -T1C
 
 .PHONY: lint-pom
 lint-pom:
-	./mvnw sortpom:verify -Dsort.verifyFailOn=strict -Dsort.verifyFail=stop -ntp -T1C
+	./mvnw validate -Dqa -fae -Dspotless.skip=true -Dcheckstyle.skip=true -ntp -T1C
 
 .PHONY: lint-java
-lint-java:
-	./mvnw spotless:check -ntp -T1C
+lint-java: build-tools
+	./mvnw validate -Dqa -fae -Dsortpom.skip=true -ntp -T1C
 
 .PHONY: format
 format: format-pom format-java
@@ -35,7 +40,8 @@ format-java:
 	./mvnw spotless:apply -ntp -T1C
 
 .PHONY: install
-install:
+install: build-tools
+	./mvnw clean install -DskipTests -ntp -U -T1C -pl src/starters/spring-boot3,src/starters/observability-spring-boot-3 -am
 	./mvnw clean install -DskipTests -ntp -U -T1C
 
 .PHONY: package
@@ -52,10 +58,12 @@ build-image: build-base-images build-image-infrastructure build-image-geoserver
 .PHONY: build-base-images
 build-base-images: package-base-images
 	COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 TAG=$(TAG) \
-	docker compose -f docker-build/base-images.yml build jre \
-	&& COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 TAG=$(TAG) \
-	docker compose -f docker-build/base-images.yml build spring-boot \
-	&& COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 TAG=$(TAG) \
+	docker compose -f docker-build/base-images.yml build jre
+	COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 TAG=$(TAG) \
+	docker compose -f docker-build/base-images.yml build spring-boot
+	COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 TAG=$(TAG) \
+	docker compose -f docker-build/base-images.yml build spring-boot3
+	COMPOSE_DOCKER_CLI_BUILD=0 DOCKER_BUILDKIT=0 TAG=$(TAG) \
 	docker compose -f docker-build/base-images.yml build geoserver-common
 
 .PHONY: build-image-infrastructure
@@ -77,6 +85,8 @@ build-base-images-multiplatform: package-base-images
 	docker compose -f docker-build/base-images-multiplatform.yml build jre --push \
 	&& COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 TAG=$(TAG) \
 	   docker compose -f docker-build/base-images-multiplatform.yml build spring-boot --push \
+	&& COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 TAG=$(TAG) \
+	   docker compose -f docker-build/base-images-multiplatform.yml build spring-boot3 --push \
 	&& COMPOSE_DOCKER_CLI_BUILD=1 DOCKER_BUILDKIT=1 TAG=$(TAG) \
 	   docker compose -f docker-build/base-images-multiplatform.yml build geoserver-common --push
 

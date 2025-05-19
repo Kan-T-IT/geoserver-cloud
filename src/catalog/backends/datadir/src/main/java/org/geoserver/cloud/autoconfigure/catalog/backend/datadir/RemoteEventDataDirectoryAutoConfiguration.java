@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.autoconfigure.catalog.backend.datadir;
 
 import org.geoserver.cloud.autoconfigure.catalog.event.ConditionalOnCatalogEvents;
@@ -14,11 +15,13 @@ import org.springframework.context.annotation.Import;
 
 /**
  * {@link AutoConfiguration @AutoConfiguration} to contribute beans related to handling remotely
+ * @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
  * produced catalog and config events
  *
  * @see RemoteEventDataDirectoryConfiguration
  */
 @AutoConfiguration
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnDataDirectoryEnabled
 @ConditionalOnCatalogEvents
 @Import(RemoteEventDataDirectoryConfiguration.class)

@@ -13,21 +13,24 @@
     <module>library</module>
     <module>catalog</module>
     <module>gwc</module>
+    <module>extensions</module>
     <module>starters</module>
     <module>apps</module>
     <module>integration-tests</module>
   </modules>
   <properties>
+    <checkstyle.skip>false</checkstyle.skip>
     <maven.compiler.source>21</maven.compiler.source>
     <maven.compiler.target>21</maven.compiler.target>
     <spring-cloud.version>2021.0.9</spring-cloud.version>
     <spring-boot.version>2.7.18</spring-boot.version>
     <spring.version>5.3.39</spring.version>
     <spring.security.version>5.8.16</spring.security.version>
+    <tomcat.version>9.0.104</tomcat.version>
     <jackson.version>2.18.2</jackson.version>
-    <gs.version>2.27.0-SNAPSHOT</gs.version>
-    <gt.version>33-SNAPSHOT</gt.version>
-    <acl.version>2.4-SNAPSHOT</acl.version>
+    <gs.version>2.28.0-SNAPSHOT</gs.version>
+    <gt.version>34-SNAPSHOT</gt.version>
+    <acl.version>2.3.2</acl.version>
     <postgresql.version>42.7.5</postgresql.version>
     <!-- Same netty.version used by geoserver for COG and GWC Azure plugin -->
     <netty.version>4.1.113.Final</netty.version>
@@ -84,6 +87,24 @@
         <version>${spring.security.version}</version>
         <type>pom</type>
         <scope>import</scope>
+      </dependency>
+      <dependency>
+        <!-- override spring-boot-starter-web:2.7.18's embedded tomcat 9.0.83 to latest supported version -->
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-core</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <!-- override spring-boot-starter-web:2.7.18's embedded tomcat 9.0.83 to latest supported version -->
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-el</artifactId>
+        <version>${tomcat.version}</version>
+      </dependency>
+      <dependency>
+        <!-- override spring-boot-starter-web:2.7.18's embedded tomcat 9.0.83 to latest supported version -->
+        <groupId>org.apache.tomcat.embed</groupId>
+        <artifactId>tomcat-embed-websocket</artifactId>
+        <version>${tomcat.version}</version>
       </dependency>
       <dependency>
         <groupId>org.springframework.cloud</groupId>
@@ -620,6 +641,12 @@
         <groupId>org.geoserver.community</groupId>
         <artifactId>gs-flatgeobuf</artifactId>
         <version>${gs.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.geoserver</groupId>
+            <artifactId>gs-wfs</artifactId>
+          </exclusion>
+        </exclusions>
       </dependency>
       <dependency>
         <groupId>org.geoserver.extension</groupId>
@@ -677,6 +704,11 @@
       </dependency>
       <dependency>
         <groupId>org.geoserver.extension</groupId>
+        <artifactId>gs-inspire</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.extension</groupId>
         <artifactId>gs-feature-pregeneralized</artifactId>
         <version>${gs.version}</version>
       </dependency>
@@ -704,6 +736,39 @@
         <groupId>org.geoserver.extension</groupId>
         <artifactId>gs-authkey</artifactId>
         <version>${gs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.extension</groupId>
+        <artifactId>gs-app-schema-core</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.community</groupId>
+        <artifactId>gs-geoparquet</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <dependency>
+        <!-- override 1.2.0 from gt-geoparquet:33-SNAPSHOT -->
+        <groupId>org.duckdb</groupId>
+        <artifactId>duckdb_jdbc</artifactId>
+        <version>1.2.2.0</version>
+      </dependency>
+      <!-- GeoServer Cloud Extensions -->
+      <dependency>
+        <groupId>org.geoserver.cloud.extensions</groupId>
+        <artifactId>gs-cloud-extension-vector-formats</artifactId>
+        <version>${revision}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.cloud.extensions</groupId>
+        <artifactId>gs-cloud-extension-raster-formats</artifactId>
+        <version>${revision}</version>
+      </dependency>
+      <!-- GeoServer Cloud Starters -->
+      <dependency>
+        <groupId>org.geoserver.cloud</groupId>
+        <artifactId>gs-cloud-starter-input-formats</artifactId>
+        <version>${revision}</version>
       </dependency>
       <dependency>
         <groupId>org.geoserver.community</groupId>
@@ -761,6 +826,21 @@
         </exclusions>
       </dependency>
       <dependency>
+        <groupId>org.geoserver.community</groupId>
+        <artifactId>gs-graticule</artifactId>
+        <version>${gs.version}</version>
+        <exclusions>
+          <exclusion>
+            <groupId>org.apache.wicket</groupId>
+            <artifactId>wicket-core</artifactId>
+          </exclusion>
+          <exclusion>
+            <groupId>org.geoserver.web</groupId>
+            <artifactId>gs-web-core</artifactId>
+          </exclusion>
+        </exclusions>
+      </dependency>
+      <dependency>
         <!--- Override  old aws version without support for "IAM roles for service accounts" -->
         <groupId>software.amazon.awssdk</groupId>
         <artifactId>s3</artifactId>
@@ -778,11 +858,30 @@
         <artifactId>sts</artifactId>
         <version>${aws.version}</version>
       </dependency>
+      <!-- OGC API core dependencies -->
       <dependency>
-        <groupId>org.geoserver.community</groupId>
-        <artifactId>gs-datadir-catalog-loader</artifactId>
+        <groupId>org.geoserver.extension</groupId>
+        <artifactId>gs-ogcapi-core</artifactId>
+        <version>${gs.version}</version>
+        <optional>true</optional>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.extension</groupId>
+        <artifactId>gs-web-ogcapi</artifactId>
         <version>${gs.version}</version>
       </dependency>
+      <!-- OGC API Features dependencies -->
+      <dependency>
+        <groupId>org.geoserver.extension</groupId>
+        <artifactId>gs-ogcapi-features</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.extension</groupId>
+        <artifactId>gs-web-features</artifactId>
+        <version>${gs.version}</version>
+      </dependency>
+      <!-- GeoTools dependencies -->
       <dependency>
         <groupId>org.geotools</groupId>
         <artifactId>gt-main</artifactId>
@@ -874,6 +973,26 @@
         <version>${gt.version}</version>
       </dependency>
       <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-complex</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-flatgeobuf</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-app-schema</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geotools</groupId>
+        <artifactId>gt-app-schema-resolver</artifactId>
+        <version>${gt.version}</version>
+      </dependency>
+      <dependency>
         <groupId>org.mapstruct</groupId>
         <artifactId>mapstruct</artifactId>
         <version>${mapstruct.version}</version>
@@ -915,8 +1034,53 @@
     </dependency>
   </dependencies>
   <build>
+    <resources>
+      <resource>
+        <directory>${basedir}/src/main/java</directory>
+        <includes>
+          <include>**/*.txt</include>
+          <include>**/*.sql</include>
+          <include>**/*.html</include>
+          <include>**/*.xml</include>
+          <include>**/*.utf</include>
+          <include>**/*.properties</include>
+          <include>**/*.template</include>
+          <include>**/*.serialized</include>
+          <include>**/*.xsd</include>
+          <include>META-INF/*.jai</include>
+          <include>META-INF/mailcap</include>
+          <include>META-INF/services/**</include>
+          <include>applicationContext.xml</include>
+          <include>**/*.ftl</include>
+          <include>**/*.css</include>
+          <include>**/*.js</include>
+          <include>**/*.png</include>
+          <include>**/*.gif</include>
+          <include>**/*.sld</include>
+          <include>**/*.ico</include>
+          <include>**/*.json</include>
+          <include>**/*.svg</include>
+        </includes>
+        <excludes>
+          <exclude>**/doc-files/**</exclude>
+          <exclude>org/geotools/resources/i18n/**/*.properties</exclude>
+        </excludes>
+      </resource>
+      <resource>
+        <directory>${basedir}/src/main/resources</directory>
+        <includes>
+          <include>**/*</include>
+        </includes>
+      </resource>
+    </resources>
+
     <pluginManagement>
       <plugins>
+        <plugin>
+          <groupId>org.apache.maven.plugins</groupId>
+          <artifactId>maven-checkstyle-plugin</artifactId>
+          <version>3.6.0</version>
+        </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
           <artifactId>maven-compiler-plugin</artifactId>
@@ -968,6 +1132,11 @@
                 <goal>integration-test</goal>
                 <goal>verify</goal>
               </goals>
+              <configuration>
+                <forkCount>2</forkCount>
+                <reuseForks>false</reuseForks>
+                <trimStackTrace>false</trimStackTrace>
+              </configuration>
             </execution>
           </executions>
         </plugin>
@@ -991,11 +1160,6 @@
           <groupId>org.codehaus.mojo</groupId>
           <artifactId>build-helper-maven-plugin</artifactId>
           <version>3.4.0</version>
-        </plugin>
-        <plugin>
-          <groupId>org.codehaus.mojo</groupId>
-          <artifactId>versions-maven-plugin</artifactId>
-          <version>2.16.1</version>
         </plugin>
         <plugin>
           <groupId>org.apache.maven.plugins</groupId>
@@ -1125,6 +1289,11 @@
             <groupId>commons-collections</groupId>
             <artifactId>commons-collections</artifactId>
             <version>3.2.2</version>
+          </dependency>
+          <dependency>
+            <groupId>commons-digester</groupId>
+            <artifactId>commons-digester</artifactId>
+            <version>1.7</version>
           </dependency>
           <dependency>
             <groupId>commons-lang</groupId>
@@ -1457,6 +1626,54 @@
                   </rules>
                   <dataFile>${project.build.directory}/jacoco.exec</dataFile>
                 </configuration>
+              </execution>
+            </executions>
+          </plugin>
+        </plugins>
+      </build>
+    </profile>
+    <profile>
+      <id>qa</id>
+      <activation>
+        <activeByDefault>false</activeByDefault>
+        <property>
+          <name>qa</name>
+        </property>
+      </activation>
+      <build>
+        <plugins>
+          <plugin>
+            <groupId>org.apache.maven.plugins</groupId>
+            <artifactId>maven-checkstyle-plugin</artifactId>
+            <inherited>true</inherited>
+            <configuration>
+              <skip>${checkstyle.skip}</skip>
+              <configLocation>checkstyle/checkstyle.xml</configLocation>
+              <suppressionsLocation>checkstyle/suppressions.xml</suppressionsLocation>
+              <consoleOutput>true</consoleOutput>
+              <failsOnError>true</failsOnError>
+              <linkXRef>false</linkXRef>
+              <includeTestSourceDirectory>true</includeTestSourceDirectory>
+            </configuration>
+            <dependencies>
+              <dependency>
+                <groupId>org.geoserver.cloud</groupId>
+                <artifactId>gs-cloud-build-tools</artifactId>
+                <version>${project.version}</version>
+              </dependency>
+              <dependency>
+                <groupId>com.puppycrawl.tools</groupId>
+                <artifactId>checkstyle</artifactId>
+                <version>10.12.5</version>
+              </dependency>
+            </dependencies>
+            <executions>
+              <execution>
+                <id>validate</id>
+                <goals>
+                  <goal>check</goal>
+                </goals>
+                <phase>validate</phase>
               </execution>
             </executions>
           </plugin>

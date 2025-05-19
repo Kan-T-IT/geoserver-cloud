@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.autoconfigure.catalog.backend.datadir;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -14,12 +15,11 @@ import org.geoserver.catalog.plugin.CatalogPlugin;
 import org.geoserver.catalog.plugin.locking.LockProviderGeoServerConfigurationLock;
 import org.geoserver.catalog.plugin.locking.LockingCatalog;
 import org.geoserver.catalog.plugin.locking.LockingGeoServer;
+import org.geoserver.cloud.config.catalog.backend.datadirectory.CloudDataDirectoryGeoServerLoader;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryBackendConfiguration;
-import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryGeoServerLoader;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryProperties;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryUpdateSequence;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.NoServletContextDataDirectoryResourceStore;
-import org.geoserver.cloud.config.catalog.backend.datadirectory.ParallelDataDirectoryGeoServerLoader;
 import org.geoserver.config.plugin.RepositoryGeoServerFacade;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.config.UpdateSequence;
@@ -37,6 +37,8 @@ class DataDirectoryAutoConfigurationTest {
     static @TempDir Path datadir;
 
     private ApplicationContextRunner runner = new ApplicationContextRunner()
+            .withAllowBeanDefinitionOverriding(true)
+            .withAllowCircularReferences(true)
             .withConfiguration(AutoConfigurations.of(
                     // AutoConfigurations from gs-cloud-catalog-backend-common
                     org.geoserver.cloud.autoconfigure.geotools.GeoToolsHttpClientAutoConfiguration.class,
@@ -45,6 +47,7 @@ class DataDirectoryAutoConfigurationTest {
                     org.geoserver.cloud.autoconfigure.catalog.backend.core.XstreamServiceLoadersAutoConfiguration.class,
                     org.geoserver.cloud.autoconfigure.catalog.backend.core
                             .RemoteEventResourcePoolCleanupUpAutoConfiguration.class,
+                    //
                     org.geoserver.cloud.autoconfigure.security.GeoServerSecurityAutoConfiguration.class,
                     org.geoserver.cloud.autoconfigure.metrics.catalog.CatalogMetricsAutoConfiguration.class,
                     // AutoConfigurations from gs-cloud-catalog-backend-datadir
@@ -106,17 +109,9 @@ class DataDirectoryAutoConfigurationTest {
     }
 
     @Test
-    void testGeoserverLoaderLegacy() {
-        runner.withPropertyValues("geoserver.backend.data-directory.parallel-loader=false")
-                .run(context -> {
-                    assertThat(context).getBean("geoServerLoaderImpl").isInstanceOf(DataDirectoryGeoServerLoader.class);
-                });
-    }
-
-    @Test
     void testGeoserverLoader() {
         runner.run(context -> {
-            assertThat(context).getBean("geoServerLoaderImpl").isInstanceOf(ParallelDataDirectoryGeoServerLoader.class);
+            assertThat(context).getBean("geoServerLoaderImpl").isInstanceOf(CloudDataDirectoryGeoServerLoader.class);
         });
     }
 

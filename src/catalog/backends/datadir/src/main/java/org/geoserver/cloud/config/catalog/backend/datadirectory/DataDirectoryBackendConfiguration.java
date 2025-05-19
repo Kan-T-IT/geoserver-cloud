@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.config.catalog.backend.datadirectory;
 
 import java.io.File;
@@ -34,7 +35,6 @@ import org.geoserver.platform.resource.LockProvider;
 import org.geoserver.platform.resource.ResourceStore;
 import org.geoserver.security.GeoServerSecurityManager;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.DependsOn;
@@ -54,6 +54,7 @@ public class DataDirectoryBackendConfiguration extends GeoServerBackendConfigure
             DataDirectoryProperties dataDirectoryConfig,
             CatalogProperties catalogProperties,
             Optional<EventualConsistencyEnforcer> converger) {
+
         this.dataDirectoryConfig = dataDirectoryConfig;
         this.catalogProperties = catalogProperties;
         this.converger = converger;
@@ -129,8 +130,7 @@ public class DataDirectoryBackendConfiguration extends GeoServerBackendConfigure
     }
 
     /**
-     * Contributes the default {@link GeoServerLoader} if {@code
-     * geoserver.backend.data-directory.parallel-loader=false}
+     * Contributes the optimized parallel {@link GeoServerLoader}
      */
     @DependsOn({
         "extensions",
@@ -142,46 +142,15 @@ public class DataDirectoryBackendConfiguration extends GeoServerBackendConfigure
         "geoServerSecurityManager"
     })
     @Bean(name = "geoServerLoaderImpl")
-    @ConditionalOnProperty(
-            name = "geoserver.backend.data-directory.parallel-loader",
-            havingValue = "false",
-            matchIfMissing = false)
-    protected @Override GeoServerLoader geoServerLoaderImpl() {
-        log.info("Using default data directory config loader");
-        UpdateSequence updateSequence = updateSequence();
-        GeoServerResourceLoader resourceLoader = resourceLoader();
-        Catalog rawCatalog = rawCatalog();
-        LockingGeoServer geoserver = geoServer(rawCatalog);
-        return new DataDirectoryGeoServerLoader(updateSequence, resourceLoader, geoserver, rawCatalog);
-    }
-
-    /**
-     * Contributes the optimized parallel {@link GeoServerLoader} if {@code
-     * geoserver.backend.data-directory.parallel-loader=true} (default behavior).
-     */
-    @DependsOn({
-        "extensions",
-        "wmsLoader",
-        "wfsLoader",
-        "wcsLoader",
-        "wpsServiceLoader",
-        "wmtsLoader",
-        "geoServerSecurityManager"
-    })
-    @Bean(name = "geoServerLoaderImpl")
-    @ConditionalOnProperty(
-            name = "geoserver.backend.data-directory.parallel-loader",
-            havingValue = "true",
-            matchIfMissing = true)
-    GeoServerLoader geoServerLoaderImplParallel(GeoServerSecurityManager securityManager) {
+    @Override
+    public GeoServerLoader geoServerLoaderImpl(GeoServerSecurityManager securityManager) {
         log.info("Using optimized parallel data directory config loader");
-        UpdateSequence updateSequence = updateSequence();
         GeoServerResourceLoader resourceLoader = resourceLoader();
+        GeoServerDataDirectory dataDirectory = new GeoServerDataDirectory(resourceLoader);
         Catalog rawCatalog = rawCatalog();
         LockingGeoServer geoserver = geoServer(rawCatalog);
 
-        return new ParallelDataDirectoryGeoServerLoader(
-                updateSequence, resourceLoader, geoserver, rawCatalog, securityManager);
+        return new CloudDataDirectoryGeoServerLoader(dataDirectory, geoserver, securityManager);
     }
 
     protected @Bean @Override GeoServerResourceLoader resourceLoader() {

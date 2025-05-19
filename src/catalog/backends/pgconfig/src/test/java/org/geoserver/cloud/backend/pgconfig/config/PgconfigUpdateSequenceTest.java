@@ -1,7 +1,8 @@
-/*
- * (c) 2023 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2023 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.backend.pgconfig.config;
 
 import org.geoserver.cloud.backend.pgconfig.support.PgConfigTestContainer;
@@ -29,7 +30,7 @@ class PgconfigUpdateSequenceTest implements UpdateSequenceConformanceTest {
     private GeoServer geoserver;
 
     @BeforeEach
-    public void init() {
+    void init() {
         container.setUp();
         facade = new PgconfigGeoServerFacade(container.getTemplate());
         geoserver = new GeoServerImpl(facade);

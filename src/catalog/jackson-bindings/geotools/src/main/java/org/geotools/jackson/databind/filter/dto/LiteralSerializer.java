@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geotools.jackson.databind.filter.dto;
 
 import com.fasterxml.jackson.core.Base64Variant;
@@ -55,14 +56,16 @@ public class LiteralSerializer extends StdSerializer<Literal> {
 
     private static final long serialVersionUID = 1L;
 
-    private transient GeoToolsValueMappers classNameMapper = Mappers.getMapper(GeoToolsValueMappers.class);
+    protected transient GeoToolsValueMappers classNameMapper = Mappers.getMapper(GeoToolsValueMappers.class);
 
     public LiteralSerializer() {
         super(Literal.class);
     }
 
-    private GeoToolsValueMappers classNameMapper() {
-        if (classNameMapper == null) classNameMapper = Mappers.getMapper(GeoToolsValueMappers.class);
+    protected GeoToolsValueMappers classNameMapper() {
+        if (classNameMapper == null) {
+            classNameMapper = Mappers.getMapper(GeoToolsValueMappers.class);
+        }
         return classNameMapper;
     }
 
@@ -170,7 +173,7 @@ public class LiteralSerializer extends StdSerializer<Literal> {
         }
     }
 
-    private void writeCollection(Collection<?> collection, JsonGenerator gen, SerializerProvider provider)
+    protected void writeCollection(Collection<?> collection, JsonGenerator gen, SerializerProvider provider)
             throws IOException {
 
         final Class<?> contentType = findContentType(collection, provider);
@@ -194,7 +197,7 @@ public class LiteralSerializer extends StdSerializer<Literal> {
         gen.writeEndArray();
     }
 
-    private Class<?> findContentType(Collection<?> collection, SerializerProvider provider)
+    protected Class<?> findContentType(Collection<?> collection, SerializerProvider provider)
             throws JsonMappingException {
         List<?> types = collection.stream()
                 .filter(Objects::nonNull)
@@ -202,7 +205,9 @@ public class LiteralSerializer extends StdSerializer<Literal> {
                 .distinct()
                 .toList();
 
-        if (types.isEmpty()) return null; // all null values or empty collection
+        if (types.isEmpty()) {
+            return null; // all null values or empty collection
+        }
         if (types.size() == 1) {
             Class<?> type = (Class<?>) types.get(0);
             JsonSerializer<Object> valueSerializer = findValueSerializer(provider, type);

@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.event.config;
 
 import com.fasterxml.jackson.annotation.JsonSubTypes;
@@ -48,8 +49,9 @@ public abstract class ConfigInfoModified extends InfoModified implements ConfigI
             case SERVICE -> service(updateSequence, (ServiceInfo) info, patch);
             case SETTINGS -> settings(updateSequence, (SettingsInfo) info, patch);
             case LOGGING -> logging(updateSequence, (LoggingInfo) info, patch);
-            default -> throw new IllegalArgumentException(
-                    "Unknown or unsupported config Info type: %s. %s".formatted(type, info));
+            default ->
+                throw new IllegalArgumentException(
+                        "Unknown or unsupported config Info type: %s. %s".formatted(type, info));
         };
     }
 

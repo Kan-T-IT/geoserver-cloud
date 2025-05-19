@@ -1,7 +1,8 @@
-/*
- * (c) 2020 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.wfs.config;
 
 import org.geoserver.catalog.Catalog;
@@ -13,11 +14,8 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Bean;
 
 @AutoConfiguration(after = GeoServerWebMvcMainAutoConfiguration.class)
-@ImportFilteredResource({
-    "jar:gs-wfs-.*!/applicationContext.xml#name=.*",
-    "jar:gs-flatgeobuf-.*!/applicationContext.xml#name=.*",
-    "jar:gs-dxf-core-.*!/applicationContext.xml#name=.*"
-})
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
+@ImportFilteredResource({"jar:gs-wfs-.*!/applicationContext.xml#name=.*"})
 public class WfsAutoConfiguration {
 
     @Bean

@@ -1,7 +1,8 @@
-/*
- * (c) 2023 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2023 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.backend.pgconfig.catalog.repository;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
@@ -40,7 +41,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     protected static final ObjectMapper objectMapper = PgconfigObjectMapper.newObjectMapper();
 
     /**
-     * Columns required by {@link #mapNamespace(ResultSet, int)}
+     * Columns required by {@link #mapNamespace(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -51,7 +52,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     static final String NAMESPACE_BUILD_COLUMNS = "\"@type\", namespace";
 
     /**
-     * Columns required by {@link #mapWorkspace(ResultSet, int)}
+     * Columns required by {@link #mapWorkspace(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -62,7 +63,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     static final String WORKSPACE_BUILD_COLUMNS = "\"@type\", workspace";
 
     /**
-     * Columns required by {@link #mapStore(ResultSet, int)}
+     * Columns required by {@link #mapStore(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -74,7 +75,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     static final String STOREINFO_BUILD_COLUMNS = "\"@type\", store, workspace";
 
     /**
-     * Columns required by {@link #mapStyle(ResultSet, int)}
+     * Columns required by {@link #mapStyle(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -86,7 +87,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     static final String STYLEINFO_BUILD_COLUMNS = "\"@type\", style, workspace";
 
     /**
-     * Columns required by {@link #mapResource(ResultSet, int)}
+     * Columns required by {@link #mapResource(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -100,7 +101,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     static final String RESOURCEINFO_BUILD_COLUMNS = "\"@type\", resource, store, workspace, namespace";
 
     /**
-     * Columns required by {@link #mapPublishedInfo(ResultSet, int)}
+     * Columns required by {@link #mapPublishedInfo(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -118,7 +119,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
             "\"@type\", publishedinfo, workspace, resource, store, namespace, \"defaultStyle\"";
 
     /**
-     * Columns required by {@link #mapLayer(ResultSet, int)}
+     * Columns required by {@link #mapLayer(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -135,7 +136,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
             "\"@type\", publishedinfo, resource, store, workspace, namespace, \"defaultStyle\"";
 
     /**
-     * Columns required by {@link #mapLayerGroup(ResultSet, int)}
+     * Columns required by {@link #mapLayerGroup(ResultSet)}
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -165,19 +166,13 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     public T mapRow(ResultSet rs, int rowNum) throws SQLException {
         final String type = rs.getString("@type");
         return switch (type) {
-            case "NamespaceInfo" -> (T) mapNamespace(rs, rowNum);
-            case "WorkspaceInfo" -> (T) mapWorkspace(rs, rowNum);
-            case "DataStoreInfo" -> (T) mapStore(rs, rowNum);
-            case "CoverageStoreInfo" -> (T) mapStore(rs, rowNum);
-            case "WMSStoreInfo" -> (T) mapStore(rs, rowNum);
-            case "WMTSStoreInfo" -> (T) mapStore(rs, rowNum);
-            case "FeatureTypeInfo" -> (T) mapResource(rs, rowNum);
-            case "CoverageInfo" -> (T) mapResource(rs, rowNum);
-            case "WMSLayerInfo" -> (T) mapResource(rs, rowNum);
-            case "WMTSLayerInfo" -> (T) mapResource(rs, rowNum);
-            case "LayerInfo" -> (T) mapLayer(rs, rowNum);
-            case "LayerGroupInfo" -> (T) mapLayerGroup(rs, rowNum);
-            case "StyleInfo" -> (T) mapStyle(rs, rowNum);
+            case "NamespaceInfo" -> (T) mapNamespace(rs);
+            case "WorkspaceInfo" -> (T) mapWorkspace(rs);
+            case "DataStoreInfo", "CoverageStoreInfo", "WMSStoreInfo", "WMTSStoreInfo" -> (T) mapStore(rs);
+            case "FeatureTypeInfo", "CoverageInfo", "WMSLayerInfo", "WMTSLayerInfo" -> (T) mapResource(rs);
+            case "LayerInfo" -> (T) mapLayer(rs);
+            case "LayerGroupInfo" -> (T) mapLayerGroup(rs);
+            case "StyleInfo" -> (T) mapStyle(rs);
             default -> throw new IllegalArgumentException("Unexpected value: " + type);
         };
     }
@@ -197,7 +192,9 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     }
 
     protected <C extends CatalogInfo> C resolveCached(String id, Class<C> clazz, Function<String, C> loader) {
-        if (null == id) return null;
+        if (null == id) {
+            return null;
+        }
         var infoCache = cache(clazz);
         C info = infoCache.get(id);
         if (clazz.isInstance(info)) {
@@ -222,15 +219,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
      * workspace        | jsonb    |
      * }</pre>
      */
-    WorkspaceInfo mapWorkspace(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return mapWorkspace(rs);
-        } catch (UncheckedSqlException e) {
-            throw e.getCause();
-        }
-    }
-
-    protected WorkspaceInfo mapWorkspace(ResultSet rs) {
+    WorkspaceInfo mapWorkspace(ResultSet rs) {
         try {
             return decode(rs, "workspace", WorkspaceInfo.class);
         } catch (SQLException e) {
@@ -239,7 +228,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     }
 
     protected WorkspaceInfo mapWorkspace(String id, ResultSet rs) {
-        return resolveCached(id, WorkspaceInfo.class, rs, this::mapWorkspace);
+        return resolveCached(id, WorkspaceInfo.class, rs, k -> mapWorkspace(rs));
     }
 
     /**
@@ -251,15 +240,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
      * namespace        | jsonb    |
      * }</pre>
      */
-    NamespaceInfo mapNamespace(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return mapNamespace(rs);
-        } catch (UncheckedSqlException e) {
-            throw e.getCause();
-        }
-    }
-
-    protected NamespaceInfo mapNamespace(ResultSet rs) {
+    NamespaceInfo mapNamespace(ResultSet rs) {
         try {
             return decode(rs, "namespace", NamespaceInfo.class);
         } catch (SQLException e) {
@@ -281,15 +262,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
      * workspace        | jsonb    |
      * }</pre>
      */
-    StyleInfo mapStyle(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return loadStyle(rs);
-        } catch (UncheckedSqlException e) {
-            throw e.getCause();
-        }
-    }
-
-    protected StyleInfo loadStyle(ResultSet rs) {
+    StyleInfo mapStyle(ResultSet rs) {
         return loadStyle(rs, "style");
     }
 
@@ -310,7 +283,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     }
 
     protected StyleInfo mapStyle(String id, ResultSet rs) {
-        return resolveCached(id, StyleInfo.class, rs, this::loadStyle);
+        return resolveCached(id, StyleInfo.class, rs, this::mapStyle);
     }
 
     protected StyleInfo mapStyle(String id, String column, ResultSet rs) {
@@ -327,15 +300,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
      * workspace        | jsonb    |
      * }</pre>
      */
-    StoreInfo mapStore(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return mapStore(rs);
-        } catch (UncheckedSqlException e) {
-            throw e.getCause();
-        }
-    }
-
-    protected StoreInfo mapStore(ResultSet rs) {
+    StoreInfo mapStore(ResultSet rs) {
         StoreInfo store;
         try {
             store = decode(rs.getString("store"), StoreInfo.class);
@@ -351,7 +316,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     }
 
     protected StoreInfo mapStore(String id, ResultSet rs) {
-        return resolveCached(id, StoreInfo.class, rs, this::mapStore);
+        return resolveCached(id, StoreInfo.class, rs, k -> mapStore(rs));
     }
 
     /**
@@ -366,14 +331,6 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
      * namespace        | jsonb    |
      * }</pre>
      */
-    ResourceInfo mapResource(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return mapResource(rs);
-        } catch (UncheckedSqlException e) {
-            throw e.getCause();
-        }
-    }
-
     ResourceInfo mapResource(ResultSet rs) {
         ResourceInfo resource;
         try {
@@ -418,15 +375,15 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
      * defaultStyle     | jsonb    |
      * }</pre>
      *
-     * @see #mapLayer(ResultSet, int)
-     * @see #mapLayerGroup(ResultSet, int)
+     * @see #mapLayer(ResultSet)
+     * @see #mapLayerGroup(ResultSet)
      */
     @SuppressWarnings("unchecked")
-    <P extends PublishedInfo> P mapPublishedInfo(ResultSet rs, int rowNum) throws SQLException {
+    <P extends PublishedInfo> P mapPublishedInfo(ResultSet rs) throws SQLException {
         final String type = rs.getString("@type");
         return switch (type) {
-            case "LayerInfo" -> (P) mapLayer(rs, rowNum);
-            case "LayerGroupInfo" -> (P) mapLayerGroup(rs, rowNum);
+            case "LayerInfo" -> (P) mapLayer(rs);
+            case "LayerGroupInfo" -> (P) mapLayerGroup(rs);
             default -> throw new IllegalArgumentException("Unexpected value: " + type);
         };
     }
@@ -445,33 +402,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
      * defaultStyle     | jsonb    |
      * }</pre>
      */
-    LayerInfo mapLayer(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return mapLayer(rs);
-        } catch (UncheckedSqlException e) {
-            throw e.getCause();
-        }
-    }
-
-    /**
-     * Expects the following columns:
-     *
-     * <pre>{@code
-     *    Column        |   Type   |
-     * ----------------------+------
-     * publishedinfo    | jsonb    |
-     * workspace        | jsonb    |
-     * }</pre>
-     */
-    LayerGroupInfo mapLayerGroup(ResultSet rs, int rowNum) throws SQLException {
-        try {
-            return mapLayerGroup(rs);
-        } catch (UncheckedSqlException e) {
-            throw e.getCause();
-        }
-    }
-
-    protected LayerInfo mapLayer(ResultSet rs) {
+    LayerInfo mapLayer(ResultSet rs) {
         LayerInfo layer;
         try {
             layer = decode(rs.getString("publishedinfo"), LayerInfo.class);
@@ -494,6 +425,34 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
                 .map(s -> ModificationProxy.create(s, StyleInfo.class))
                 .toList();
         li.setStyles(new HashSet<>(styles));
+    }
+
+    /**
+     * Expects the following columns:
+     *
+     * <pre>{@code
+     *    Column        |   Type   |
+     * ----------------------+------
+     * publishedinfo    | jsonb    |
+     * workspace        | jsonb    |
+     * }</pre>
+     */
+    LayerGroupInfo mapLayerGroup(ResultSet rs) {
+        LayerGroupInfo layergroup;
+        try {
+            layergroup = decode(rs.getString("publishedinfo"), LayerGroupInfo.class);
+        } catch (SQLException e) {
+            throw UncheckedSqlException.of(e);
+        }
+        if (null != layergroup) {
+            WorkspaceInfo workspace = layergroup.getWorkspace();
+            if (null != workspace) {
+                String wsid = workspace.getId();
+                WorkspaceInfo ws = mapWorkspace(wsid, rs);
+                layergroup.setWorkspace(ModificationProxy.create(ws, WorkspaceInfo.class));
+            }
+        }
+        return layergroup;
     }
 
     private StyleInfo loadStyle(String id) {
@@ -527,30 +486,14 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
         }
     }
 
-    protected LayerGroupInfo mapLayerGroup(ResultSet rs) {
-        LayerGroupInfo layergroup;
-        try {
-            layergroup = decode(rs.getString("publishedinfo"), LayerGroupInfo.class);
-        } catch (SQLException e) {
-            throw UncheckedSqlException.of(e);
-        }
-        if (null != layergroup) {
-            WorkspaceInfo workspace = layergroup.getWorkspace();
-            if (null != workspace) {
-                String wsid = workspace.getId();
-                WorkspaceInfo ws = mapWorkspace(wsid, rs);
-                layergroup.setWorkspace(ModificationProxy.create(ws, WorkspaceInfo.class));
-            }
-        }
-        return layergroup;
-    }
-
     protected <V> V decode(ResultSet rs, String column, Class<V> valueType) throws SQLException {
         return decode(rs.getString(column), valueType);
     }
 
     protected <V> V decode(String encoded, Class<V> valueType) {
-        if (null == encoded) return null;
+        if (null == encoded) {
+            return null;
+        }
         try {
             return objectMapper.readValue(encoded, valueType);
         } catch (JsonProcessingException e) {

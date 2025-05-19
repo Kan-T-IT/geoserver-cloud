@@ -1,7 +1,8 @@
-/*
- * (c) 2023 Open Source Geospatial Foundation - all rights reserved This code is licensed under the
- * GPL 2.0 license, available at the root application directory.
+/* (c) 2023 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
  */
+
 package org.geoserver.cloud.config.catalog.backend.pgconfig;
 
 import java.util.function.Predicate;
@@ -23,6 +24,7 @@ import org.geoserver.config.GeoServerLoader;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.resource.LockProvider;
 import org.geoserver.platform.resource.ResourceStore;
+import org.geoserver.security.GeoServerSecurityManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
@@ -90,7 +92,7 @@ public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
 
     @Bean
     @Override
-    protected GeoServerLoader geoServerLoaderImpl() {
+    protected GeoServerLoader geoServerLoaderImpl(GeoServerSecurityManager securityManager) {
         log.debug("Creating GeoServerLoader {}", PgconfigGeoServerLoader.class.getSimpleName());
         return new PgconfigGeoServerLoader(resourceLoader(), configurationLock());
     }
@@ -113,8 +115,8 @@ public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
         FileSystemResourceStoreCache resourceStoreCache = pgconfigFileSystemResourceStoreCache();
         JdbcTemplate template = template();
         PgconfigLockProvider lockProvider = pgconfigLockProvider();
-        Predicate<String> ignoreDirs = PgconfigResourceStore.defaultIgnoredDirs();
-        return new PgconfigResourceStore(resourceStoreCache, template, lockProvider, ignoreDirs);
+        Predicate<String> localOnlyFilter = PgconfigResourceStore.defaultIgnoredResources();
+        return new PgconfigResourceStore(resourceStoreCache, template, lockProvider, localOnlyFilter);
     }
 
     @Bean
