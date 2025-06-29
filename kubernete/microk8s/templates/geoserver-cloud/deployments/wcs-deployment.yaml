@@ -40,7 +40,7 @@ spec:
             configMapKeyRef:
               key: SPRING_PROFILES_ACTIVE
               name: geoserver--env
-        image: geoservercloud/geoserver-cloud-wcs:2.26.2.0
+        image: geoservercloud/geoserver-cloud-wcs:GEOSERVER-CLOUD-VERSION
         imagePullPolicy: "IfNotPresent"
         name: wcs
         resources:

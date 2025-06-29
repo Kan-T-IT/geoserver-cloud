@@ -37,7 +37,7 @@ spec:
             configMapKeyRef:
               key: SPRING_PROFILES_ACTIVE
               name: geoserver--env
-        image: geoservercloud/geoserver-cloud-webui:2.26.2.0
+        image: geoservercloud/geoserver-cloud-webui:GEOSERVER-CLOUD-VERSION
         imagePullPolicy: "IfNotPresent"
         name: webui
         resources:

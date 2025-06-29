@@ -7,6 +7,8 @@ echo "Copy templates dir"
 
 cp -r ./templates workdir
 
+
+echo "--------------------------------------"
 echo "Check environment variable"
 echo "--------------------------------------"
 
@@ -18,7 +20,11 @@ echo "--------------------------------------"
 : "${ACL_PASSWORD:?Variable not defined in .env}"
 : "${GEOSERVER_PASSWORD:?Variable not defined in .env}"
 : "${SERVER_PUBLIC_IP:?Variable not defined in .env}"
+: "${GEOSERVER_CLOUD_VERSION:?Variable not defined in .env}"
+: "${GEOSERVER_ACL_VERSION:?Variable not defined in .env}"
 
+
+echo "--------------------------------------"
 echo "Remplace variable in the files"
 echo "--------------------------------------"
 
@@ -29,8 +35,12 @@ grep -rl CLUSTER-ISSUER-NAME ./workdir | xargs sed -i 's|CLUSTER-ISSUER-NAME|'"$
 grep -rl KUBERNETES-NAMESPACE ./workdir | xargs sed -i 's|KUBERNETES-NAMESPACE|'"$KUBERNETES_NAMESPACE"'|g'
 grep -rl ACL-PASSWORD ./workdir | xargs sed -i 's|ACL-PASSWORD|'"$ACL_PASSWORD"'|g'
 grep -rl GEOSERVER-PASSWORD ./workdir | xargs sed -i 's|GEOSERVER-PASSWORD|'"$GEOSERVER_PASSWORD"'|g'
-sed -i 's|SERVER-PUBLIC-IP|'"$SERVER_PUBLIC_IP"'|g' ./workdir/configs/metallb-configmap.yaml 
+grep -rl GEOSERVER-CLOUD-VERSION ./workdir | xargs sed -i 's|GEOSERVER-CLOUD-VERSION|'"$GEOSERVER_CLOUD_VERSION"'|g'
+grep -rl GEOSERVER-ACL-VERSION ./workdir | xargs sed -i 's|GEOSERVER-ACL-VERSION|'"$GEOSERVER_ACL_VERSION"'|g'
 
+sed -i 's|SERVER-PUBLIC-IP|'"$SERVER_PUBLIC_IP"'|g' ./workdir/configs/metallb-configmap.yaml
+
+echo "--------------------------------------"
 echo "create volume dir"
 echo "--------------------------------------"
 
@@ -38,7 +48,8 @@ mkdir -p $KUBERNETES_VOL_DIR/dbdata/
 mkdir -p $KUBERNETES_VOL_DIR/geowebcache-data/
 mkdir -p $KUBERNETES_VOL_DIR/rabbitmq-data/
 
-echo "Create namespace"
+echo "--------------------------------------"
+echo "Create namespace and deploy"
 echo "--------------------------------------"
 
 microk8s kubectl create namespace $KUBERNETES_NAMESPACE
@@ -48,7 +59,10 @@ microk8s enable metallb:$SERVER_PUBLIC_IP-$SERVER_PUBLIC_IP
 microk8s kubectl apply -R -f workdir/configs
 microk8s kubectl apply -R -f workdir/database
 
+echo "--------------------------------------"
 echo "Waiting for database to start"
+echo "--------------------------------------"
+
 
 tempgndb=`microk8s kubectl get pod -n $KUBERNETES_NAMESPACE -l component=database --no-headers`
 gnbd=( $tempgndb )
@@ -62,7 +76,10 @@ do
 done
 sleep 5
 
+echo "--------------------------------------"
 echo "Applying initial database configuration"
+echo "--------------------------------------"
+
 
 database=${gnbd[0]}
 # If not exist role, creation
@@ -100,8 +117,10 @@ EOF
 microk8s kubectl exec -n $KUBERNETES_NAMESPACE -it $database -- psql -U postgres $DATABASE_NAME -c 'CREATE EXTENSION IF NOT EXISTS postgis;'
 
 
-
+echo "--------------------------------------"
 echo "Starting remaining services"
+echo "--------------------------------------"
+
 
 microk8s kubectl apply -R -f workdir/geoserver-cloud
 
@@ -116,4 +135,6 @@ do
     webuistatus=${webui[2]}
 done
 
+echo "--------------------------------------"
 echo "Done."
+echo "--------------------------------------"

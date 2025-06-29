@@ -93,6 +93,9 @@ CLUSTER_ISSUER_NAME=      # created earlier in this guide
 SERVER_PUBLIC_IP=         # the public ipv4 of the server                 
 GEOSERVER_PASSWORD=       # password for admin geoserver
 ACL_PASSWORD=             # password for ACL module
+GEOSERVER_CLOUD_VERSION=  # geosever version for deploy
+GEOSERVER_ACL_VERSION=    # geoserver acl version for deploy, you have review the version in  
+                          #repository https://github.com/geoserver/geoserver-acl . You need valided for compatibility with Geoserver Cloud version.
 DATABASE_USER=            # database user for postgres
 DATABASE_NAME=            # database name for postgres 
 DATABASE_PASS=            # database password for postgres
@@ -100,7 +103,7 @@ KUBERNETES_NAMESPACE=     # i.e.: geoserver-cloud
 
 ```
 
-8. Run `./install.sh` and enjoy.
+8. Run `sudo bash install.sh` and enjoy.
 
 
 ---
