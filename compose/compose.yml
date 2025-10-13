@@ -1,9 +1,12 @@
+volumes:
+  # geowebcache tiles shared volume
+  geowebcache_data:
+  # geoserver data files shared volume (not datadir, data)
+  geoserver_data:
+
 include:
   - ./infra.yml
   
-volumes:
-  geowebcache_data:
-
 x-gs-dependencies: &gs-dependencies
   rabbitmq:
     condition: service_healthy
@@ -14,22 +17,33 @@ x-gs-dependencies: &gs-dependencies
   acl:
     condition: service_healthy
     required: true
-  postgis:
+  geodatabase:
     condition: service_started
+    required: true
+  init-test-data:
+    condition: service_completed_successfully
     required: true
 
 services:
+  init-test-data:
+    image: alpine:3.18.4
+    user: root
+    volumes:
+      - geoserver_data:/mnt/geoserver_data
+      - geowebcache_data:/mnt/geowebcache_data
+      - ./sampledata.tgz:/tmp/sampledata.tgz
+    command: sh -c "chown -R ${GS_USER} /mnt/geoserver_data /mnt/geowebcache_data && cd /mnt/geoserver_data && if [ ! -d sampledata ]; then tar xvzf /tmp/sampledata.tgz && chown -R ${GS_USER} sampledata; fi"
 
   acl:
     image: ${ACL_REPOSITORY}/geoserver-acl:${ACL_TAG}
     environment:
       # Override default values in the container's /etc/geoserver/acl-service.yml 
-      - PG_HOST=acldb
+      - PG_HOST=geodatabase
       - PG_PORT=5432
-      - PG_DB=acl
+      - PG_DB=geoserver
       - PG_SCHEMA=acl
-      - PG_USERNAME=acl
-      - PG_PASSWORD=acls3cr3t
+      - PG_USERNAME=geoserver
+      - PG_PASSWORD=geoserver
       - 'ACL_USERS_ADMIN_PASSWORD={noop}s3cr3t'
       - 'ACL_USERS_GEOSERVER_PASSWORD={noop}s3cr3t'
       - GEOSERVER_BUS_ENABLED=true
@@ -40,7 +54,7 @@ services:
       #- RABBITMQ_VHOST=""
       #- SPRING_PROFILES_ACTIVE=logging_debug,logging_debug_events
     depends_on:
-      acldb:
+      geodatabase:
         condition: service_started
         required: true
       rabbitmq:
@@ -65,9 +79,6 @@ services:
     volumes:
       # override with the local copy to test config changes during development
       - $PWD/../config:/etc/geoserver:ro
-    ports:
-      # not needed in production, exposed for local development
-      - 8888:8080
     deploy:
       resources:
         limits:
@@ -83,8 +94,6 @@ services:
     environment:
       JAVA_OPTS: "${JAVA_OPTS_DEFAULT}"
       SPRING_PROFILES_ACTIVE: "${DISCOVERY_SERVER_DEFAULT_PROFILES}"
-    ports:
-      - 8761:8761 # for development, so services can be run from localhost and find the discovery service running on docker
     restart: unless-stopped
     depends_on:
       - config
@@ -155,7 +164,7 @@ services:
           cpus: '4.0'
           memory: 2G
 
-  rest:
+  restconfig:
     extends:
       file: templates.yml
       service: gstemplate
