@@ -49,7 +49,7 @@ public abstract class GeoServerConfigModuleTest {
         }
     }
 
-    private ObjectMapper objectMapper;
+    protected ObjectMapper objectMapper;
 
     private Catalog catalog;
     private CatalogTestData testData;
@@ -104,7 +104,7 @@ public abstract class GeoServerConfigModuleTest {
     @Test
     void geoServerInfo() throws Exception {
         GeoServerInfo global = testData.global;
-        global.setJAI(null);
+        global.setImageProcessing(null);
         roundtripTest(global);
     }
 

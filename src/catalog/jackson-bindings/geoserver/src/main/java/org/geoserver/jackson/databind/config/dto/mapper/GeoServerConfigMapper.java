@@ -17,10 +17,11 @@ import org.geoserver.cog.CogSettingsStore;
 import org.geoserver.config.ContactInfo;
 import org.geoserver.config.CoverageAccessInfo;
 import org.geoserver.config.GeoServerInfo;
-import org.geoserver.config.JAIInfo;
+import org.geoserver.config.ImageProcessingInfo;
 import org.geoserver.config.LoggingInfo;
 import org.geoserver.config.ServiceInfo;
 import org.geoserver.config.SettingsInfo;
+import org.geoserver.config.UserDetailsDisplaySettingsInfo;
 import org.geoserver.config.impl.ServiceInfoImpl;
 import org.geoserver.gwc.wmts.WMTSInfo;
 import org.geoserver.gwc.wmts.WMTSInfoImpl;
@@ -33,7 +34,7 @@ import org.geoserver.jackson.databind.config.dto.ConfigInfoDto;
 import org.geoserver.jackson.databind.config.dto.Contact;
 import org.geoserver.jackson.databind.config.dto.CoverageAccess;
 import org.geoserver.jackson.databind.config.dto.GeoServer;
-import org.geoserver.jackson.databind.config.dto.JaiDto;
+import org.geoserver.jackson.databind.config.dto.ImageProcessingInfoDto;
 import org.geoserver.jackson.databind.config.dto.Logging;
 import org.geoserver.jackson.databind.config.dto.Service;
 import org.geoserver.jackson.databind.config.dto.Settings;
@@ -113,9 +114,15 @@ public interface GeoServerConfigMapper {
 
     @Mapping(target = "id", ignore = true) // set by factory method
     @Mapping(target = "clientProperties", ignore = true)
+    @Mapping(target = "useHeadersProxyURL", ignore = true) // deprecated
+    @Mapping(target = "xmlExternalEntitiesEnabled", ignore = true) // deprecated
     GeoServerInfo toInfo(GeoServer dto);
 
     GeoServer toDto(GeoServerInfo info);
+
+    UserDetailsDisplaySettingsInfo toInfo(GeoServer.UserDetailsDisplaySettings dto);
+
+    GeoServer.UserDetailsDisplaySettings toDto(UserDetailsDisplaySettingsInfo info);
 
     @Mapping(target = "id", ignore = true) // set by factory method
     @Mapping(target = "clientProperties", ignore = true)
@@ -124,10 +131,10 @@ public interface GeoServerConfigMapper {
     Settings toDto(SettingsInfo info);
 
     @Mapping(target = "tileCache", ignore = true)
-    @Mapping(target = "JAI", ignore = true)
-    JAIInfo jaiInfo(JaiDto dto);
+    @Mapping(target = "imageProcessing", ignore = true)
+    ImageProcessingInfo imageProcessingInfo(ImageProcessingInfoDto dto);
 
-    JaiDto jaiInfo(JAIInfo info);
+    ImageProcessingInfoDto imageProcessingInfo(ImageProcessingInfo info);
 
     @Mapping(target = "id", ignore = true) // set by factory method
     LoggingInfo toInfo(Logging dto);

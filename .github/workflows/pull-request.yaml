@@ -14,6 +14,7 @@ on:
       - "src/**"
       - "acceptance_tests/**"
       - "ci/**"
+      - "compose/**"
 
 # cancel in-progress jobs or runs for this workflow for the same pr or branch
 concurrency:
@@ -35,7 +36,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '25'
         cache: 'maven'
 
     - name: Validate pom formatting
@@ -58,7 +59,6 @@ jobs:
       fail-fast: false
       matrix:
         catalog: [ 'datadir', 'pgconfig' ]
-        #catalog: [ 'datadir', 'pgconfig', 'jdbcconfig' ]
     steps:
     - name: Checkout
       uses: actions/checkout@v4
@@ -69,7 +69,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '25'
         cache: 'maven'
 
     - name: Install packages
@@ -91,6 +91,16 @@ jobs:
     - name: Install CI dependencies
       id: installci
       run: python3 -m pip install --user --requirement=ci/requirements.txt
+
+    - name: Set up AWS credentials for acceptance tests
+      run: |
+        mkdir -p compose/secrets/aws
+        cat > compose/secrets/aws/credentials << 'EOF'
+        [default]
+        aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}
+        aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+        EOF
+        chmod 600 compose/secrets/aws/credentials
 
     - name: Launch ${{ matrix.catalog }} acceptance tests docker composition
       id: start

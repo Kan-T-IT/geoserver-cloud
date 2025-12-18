@@ -32,7 +32,7 @@ public class InstallDuckDBExtensions {
      *
      * @param args Command line arguments (not used)
      */
-    @SuppressWarnings("java:S4507") // printStackTrace() is ok in this class
+    @SuppressWarnings({"java:S4507", "java:S106"}) // printStackTrace() and System.out.println() are ok in this class
     public static void main(String[] args) {
         try {
             Class.forName("org.duckdb.DuckDBDriver");
@@ -49,6 +49,9 @@ public class InstallDuckDBExtensions {
 
                 stmt.execute("INSTALL spatial;");
                 System.out.println("Spatial extension installed");
+
+                stmt.execute("INSTALL aws;");
+                System.out.println("AWS extension installed");
             }
 
             System.out.println("All extensions successfully installed to " + System.getenv("HOME") + "/.duckdb");

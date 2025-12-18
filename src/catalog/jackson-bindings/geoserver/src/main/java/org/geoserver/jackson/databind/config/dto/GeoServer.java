@@ -5,11 +5,14 @@
 
 package org.geoserver.jackson.databind.config.dto;
 
+import com.fasterxml.jackson.annotation.JsonAlias;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 import org.geoserver.config.GeoServerInfo;
+import org.geoserver.config.UserDetailsDisplaySettingsInfo;
 import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
 
 /** DTO for {@link GeoServerInfo} */
@@ -17,6 +20,9 @@ import org.geoserver.jackson.databind.catalog.dto.MetadataMapDto;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeName("GeoServerInfo")
+// for backwards compatiblility, xmlExternalEntitiesEnabled removed in 2.28.0, might be present in a config JSON
+// document from an earler version
+@JsonIgnoreProperties("xmlExternalEntitiesEnabled")
 public class GeoServer extends ConfigInfoDto {
     public enum ResourceErrorHandling {
         OGC_EXCEPTION_REPORT,
@@ -30,7 +36,10 @@ public class GeoServer extends ConfigInfoDto {
     }
 
     private Settings settings;
-    private JaiDto JAI;
+
+    @JsonAlias({"jai", "JAI"})
+    private ImageProcessingInfoDto imageProcessing;
+
     private CoverageAccess coverageAccess;
     private MetadataMapDto metadata;
     private long updateSequence;
@@ -40,7 +49,6 @@ public class GeoServer extends ConfigInfoDto {
     private Boolean globalServices;
     private Boolean useHeadersProxyURL;
     private Integer xmlPostRequestLogBufferSize;
-    private Boolean xmlExternalEntitiesEnabled;
     private String lockProviderName;
     private WebUIMode webUIMode;
     private Boolean allowStoredQueriesPerWorkspace;
@@ -50,4 +58,38 @@ public class GeoServer extends ConfigInfoDto {
      * @since geoserver 2.24.0
      */
     private boolean trailingSlashMatch;
+
+    /**
+     * @since 2.28.1
+     */
+    private UserDetailsDisplaySettings userDetailsDisplaySettings;
+
+    /**
+     * DTO for {@link UserDetailsDisplaySettingsInfo}
+     * @since 2.28.1
+     */
+    @Data
+    public static class UserDetailsDisplaySettings {
+
+        public enum LoggedInUserDisplayMode {
+            USERNAME,
+            PREFERRED_USERNAME,
+            FULL_NAME,
+            FALLBACK
+        }
+
+        public enum EmailDisplayMode {
+            HIDDEN,
+            DOMAIN_ONLY,
+            MASKED,
+            FULL
+        }
+
+        // ignoring String id, this is not an entity but a value object
+
+        LoggedInUserDisplayMode loggedInUserDisplayMode;
+        boolean showProfileColumnsInUserList;
+        EmailDisplayMode emailDisplayMode;
+        boolean revealEmailAtClick;
+    }
 }

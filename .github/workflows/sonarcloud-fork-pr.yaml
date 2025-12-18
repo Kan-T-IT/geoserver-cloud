@@ -39,7 +39,7 @@ jobs:
       uses: actions/setup-java@v4
       with:
         distribution: 'temurin'
-        java-version: '21'
+        java-version: '25'
         cache: 'maven'
 
     - name: Cache SonarCloud packages
@@ -58,6 +58,7 @@ jobs:
         -Dcoverage \
         -Dsonar.projectKey=geoserver_geoserver-cloud \
         -Dsonar.organization=geoserver \
+        -Dsonar.scanner.skipJreProvisioning=true \
         -Dmaven.javadoc.skip=true \
         -ntp \
         -T1C

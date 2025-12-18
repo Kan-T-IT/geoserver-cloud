@@ -52,3 +52,8 @@ hs_err_pid*.log
 # Configuration files for Kubernetes
 kubernete/microk8s/workdir/
 kubernete/microk8s/.env
+
+node_modules
+package-lock.json
+package.json
+

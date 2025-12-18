@@ -9,7 +9,6 @@ import javax.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnAzureBlobstoreEnabled;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoServerWebUIEnabled;
-import org.geoserver.cloud.autoconfigure.gwc.blobstore.S3BlobstoreAutoConfiguration.GsWebUIAutoConfiguration;
 import org.geoserver.cloud.gwc.config.blobstore.AzureBlobstoreConfiguration;
 import org.geoserver.cloud.gwc.config.blobstore.AzureBlobstoreGsWebUIConfiguration;
 import org.geoserver.gwc.web.blob.BlobStorePage;
@@ -25,7 +24,7 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnAzureBlobstoreEnabled
-@Import({AzureBlobstoreConfiguration.class, GsWebUIAutoConfiguration.class})
+@Import({AzureBlobstoreConfiguration.class, AzureBlobstoreAutoConfiguration.GsWebUIAutoConfiguration.class})
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.gwc.blobstore")
 public class AzureBlobstoreAutoConfiguration {
 

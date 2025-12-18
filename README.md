@@ -23,7 +23,7 @@
 
 The following diagram shows the system’s general architecture.
 
-<img src="docs/img/gs_cloud_architecture_diagram.svg" alt="GeoServer Cloud Architecture Diagram" width="740" />
+<img src="docs/src/assets/images/gs_cloud_architecture_diagram.svg" alt="GeoServer Cloud Architecture Diagram" width="740" />
 
 *GeoServer Cloud* is designed to achieve [functional decomposition by business capability](https://microservices.io/patterns/decomposition/decompose-by-business-capability.html), adapting and extending *GeoServer* components to promote higher cohesion and lower coupling.
 
@@ -49,7 +49,6 @@ Only a curated selection of the extensive [GeoServer extensions](http://geoserve
 * **Catalog and Configuration**:
     * PGConfig
     * JDBC `jdbcconfig` and `jdbcstore` (deprecated)
-    * Optimized Catalog Data-Directory loader
 * **Security**:
     * GeoServer ACL
     * JDBC Security
@@ -63,6 +62,7 @@ Only a curated selection of the extensive [GeoServer extensions](http://geoserve
     * GeoPackage
     * GeoParquet
     * Cloud Optimized GeoTIFF
+    * PMTiles with vector tiles
     * Pre-generalized Features
     * ImagePyramid
 * **Output Formats**:
@@ -72,7 +72,9 @@ Only a curated selection of the extensive [GeoServer extensions](http://geoserve
 * **Tiling Extensions**:
     * S3 Tile Storage
     * Azure Blob Storage
+    * Google Cloud Storage Blob Storage
 * **Miscellaneous**:
+    * [Control flow](https://docs.geoserver.org/main/en/user/extensions/controlflow/index.html)
     * Importer
     * Resource Browser Tool
     * International Astronomical Union CRS authority
@@ -97,7 +99,7 @@ If you're looking for instructions to just get *GeoServer Cloud* up and running 
 
 ## Status
 
-`v2.27.2.0` released on top of GeoServer `2.27.2`.
+`v2.28.1.2` released on top of GeoServer `2.28.1`.
 
 Check out the full [Release Notes](https://github.com/geoserver/geoserver-cloud/releases) for a changelog.
 
@@ -120,7 +122,8 @@ If you encounter a bug, please check if it's reported as a GeoServer bug in JIRA
 
 Requirements:
 
- * Java 21 JDK
+ * Java 25 JDK
+ * Maven 3.9.11+ (included with the `mvnw` maven wrapper)
  * A recent [Docker](https://docs.docker.com/engine/install/) version with the [Compose](https://docs.docker.com/compose/) plugin.
  * [GNU Make](https://www.gnu.org/software/make/) (optional, recommended).
 
