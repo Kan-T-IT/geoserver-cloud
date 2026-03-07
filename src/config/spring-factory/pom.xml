@@ -3,7 +3,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.geoserver.cloud</groupId>
-    <artifactId>gs-cloud-config-parent</artifactId>
+    <artifactId>gs-cloud-config</artifactId>
     <version>${revision}</version>
   </parent>
   <artifactId>gs-cloud-spring-factory</artifactId>

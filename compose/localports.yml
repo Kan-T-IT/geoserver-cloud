@@ -11,6 +11,7 @@ services:
   acl:
     ports:
       - 9000:8080
+      - 8100:8081
   gateway:
     ports:
       - 9090:8080

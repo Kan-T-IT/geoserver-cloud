@@ -4,13 +4,19 @@
 
   <parent>
     <groupId>org.geoserver.cloud</groupId>
-    <artifactId>gs-cloud-parent</artifactId>
+    <artifactId>gs-cloud</artifactId>
     <version>${revision}</version>
   </parent>
+  <groupId>org.geoserver.cloud.build</groupId>
+  <artifactId>gs-cloud-build</artifactId>
+  <packaging>pom</packaging>
+  <name>GeoServer Cloud Build</name>
+  <description>Build tools and compile-time processors for GeoServer Cloud</description>
 
-  <artifactId>gs-cloud-build-tools</artifactId>
-  <name>GeoServer Cloud Build Tools</name>
-  <description>Centralized build configurations for GeoServer Cloud</description>
+  <modules>
+    <module>build-config</module>
+    <module>spring-config-transpiler</module>
+  </modules>
 
   <properties>
     <!-- Skip validation for this module to avoid circular dependency -->

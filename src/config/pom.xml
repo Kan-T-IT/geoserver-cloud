@@ -6,7 +6,7 @@
     <artifactId>gs-cloud</artifactId>
     <version>${revision}</version>
   </parent>
-  <artifactId>gs-cloud-config-parent</artifactId>
+  <artifactId>gs-cloud-config</artifactId>
   <packaging>pom</packaging>
   <name>Parent for Spring configuration modules</name>
   <modules>
