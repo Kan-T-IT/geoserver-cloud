@@ -6,7 +6,7 @@
     <artifactId>gs-cloud-infrastructure</artifactId>
     <version>${revision}</version>
   </parent>
-  <artifactId>gs-cloud-gateway</artifactId>
+  <artifactId>gs-cloud-gateway-webflux</artifactId>
   <name>API gateway service</name>
   <properties>
     <start-class>org.geoserver.cloud.gateway.GatewayApplication</start-class>

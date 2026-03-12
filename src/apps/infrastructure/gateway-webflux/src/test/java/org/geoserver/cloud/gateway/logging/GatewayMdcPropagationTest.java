@@ -120,6 +120,7 @@ class GatewayMdcPropagationTest {
     }
 
     @Test
+    @SuppressWarnings("java:S2925") // Thread.sleep
     void testMdcPropagationInRealRequest() throws Exception {
         // Ensure log directory exists
         java.io.File logDir = new java.io.File("target/test-logs");

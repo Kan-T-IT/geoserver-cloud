@@ -11,7 +11,8 @@
   <name>Infrastructure microservices</name>
   <modules>
     <module>config</module>
-    <module>gateway</module>
+    <module>gateway-webflux</module>
+    <module>gateway-webmvc</module>
   </modules>
   <dependencies>
     <dependency>

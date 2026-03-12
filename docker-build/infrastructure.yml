@@ -7,10 +7,20 @@ services:
     build:
       context: ../src/apps/infrastructure/config/
 
-  gateway:
+  gateway-webmvc:
     extends:
       file: templates.yml
       service: current-platform
     image: ${REPOSITORY}/geoserver-cloud-gateway:${TAG}
     build:
-      context: ../src/apps/infrastructure/gateway/
+      context: ../src/apps/infrastructure/gateway-webmvc/
+
+  # deprecated webflux SCG
+  gateway-webflux:
+    extends:
+      file: templates.yml
+      service: current-platform
+    image: ${REPOSITORY}/geoserver-cloud-gateway-webflux:${TAG}
+    build:
+      context: ../src/apps/infrastructure/gateway-webflux/
+

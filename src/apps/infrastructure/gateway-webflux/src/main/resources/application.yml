@@ -1,5 +1,5 @@
 spring:
-  application.name: gateway
+  application.name: gateway-webflux
   config:
     import:
       - classpath:geoserver_spring_boot_profiles.yml
@@ -53,8 +53,8 @@ logging:
     file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
 
 ---
-spring.config.activate.on-profile: "bootstrap-standalone"
-spring.config.import: ${standalone.config.location:file:/etc/geoserver/gateway.yml}
+spring.config.activate.on-profie: "bootstrap-standalone"
+spring.config.import: ${standalone.config.location:file:/etc/geoserver/gateway-webflux.yml}
 
 ---
 spring.config.activate.on-profile: "discovery-consul"
