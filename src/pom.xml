@@ -1116,7 +1116,24 @@
             <artifactId>annotations</artifactId>
             <version>23.0.0</version>
           </dependency>
-
+          <dependency>
+            <!--
+[ERROR] Dependency convergence error for org.codehaus.jettison:jettison:jar:1.5.4. Paths to dependency are:
+[ERROR] +-org.geoserver.cloud.gwc:gwc-cloud-core:jar:3.0.0-SNAPSHOT
+[ERROR]   +-org.geoserver:gs-gwc:jar:3.0.0-SNAPSHOT:compile
+[ERROR]     +-org.geoserver:gs-main:jar:3.0.0-SNAPSHOT:compile
+[ERROR]       +-org.codehaus.jettison:jettison:jar:1.5.4:compile
+[ERROR] and
+[ERROR] +-org.geoserver.cloud.gwc:gwc-cloud-core:jar:3.0.0-SNAPSHOT
+[ERROR]   +-org.geoserver:gs-gwc:jar:3.0.0-SNAPSHOT:compile
+[ERROR]     +-org.geowebcache:gwc-diskquota-jdbc:jar:2.0-SNAPSHOT:compile
+[ERROR]       +-org.geowebcache:gwc-diskquota-core:jar:2.0-SNAPSHOT:compile
+[ERROR]         +-org.codehaus.jettison:jettison:jar:1.5.5:compile
+          -->
+            <groupId>org.codehaus.jettison</groupId>
+            <artifactId>jettison</artifactId>
+            <version>1.5.5</version>
+          </dependency>
         </dependencies>
       </dependencyManagement>
       <build>
