@@ -286,6 +286,15 @@
         "fundingFinding",
         "projectManagement"
       ]
+    },
+    {
+      "login": "sgworld123",
+      "name": "Shreyansh",
+      "avatar_url": "https://avatars.githubusercontent.com/u/148178480?v=4",
+      "profile": "https://github.com/sgworld123",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,
