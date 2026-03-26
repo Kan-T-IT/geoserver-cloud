@@ -20,9 +20,7 @@ import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.vfny.geoserver.util.DataStoreUtils;
 
-/**
- * Tests for {@link DataAccessFactoryFilteringAutoConfiguration}.
- */
+/** Tests for {@link DataAccessFactoryFilteringAutoConfiguration}. */
 class DataAccessFactoryFilteringAutoConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
@@ -82,8 +80,8 @@ class DataAccessFactoryFilteringAutoConfigurationTest {
     }
 
     /**
-     * Test {@code DataStoreUtils.getAvailableDataStoreFactories()}, which is how
-     * GeoServer finds available factories, but saves them in a static cache
+     * Test {@code DataStoreUtils.getAvailableDataStoreFactories()}, which is how GeoServer finds available factories,
+     * but saves them in a static cache
      */
     @Test
     void testDataStoreUtils() {
@@ -92,7 +90,7 @@ class DataAccessFactoryFilteringAutoConfigurationTest {
                         "geotools.data.filtering.enabled=true",
                         "geotools.data.filtering.vector-formats.[PostGIS]=false",
                         "geotools.data.filtering.vector-formats.[Oracle NG]=false")
-                .run(context -> {
+                .run(_ -> {
                     Map<String, DataAccessFactory> dsUtilsReported =
                             DataStoreUtils.getAvailableDataStoreFactories().stream()
                                     .collect(Collectors.toMap(DataAccessFactory::getDisplayName, Function.identity()));

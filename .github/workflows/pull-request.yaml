@@ -49,6 +49,12 @@ jobs:
       run: |
         make test
 
+    - name: Remove project jars from cached repository
+      if: always()
+      run: |
+        rm -rf ~/.m2/repository/org/geoserver/cloud
+        find ~/.m2/repository -name "*SNAPSHOT*" -type d | xargs rm -rf {}
+
   acceptance:
     name: Acceptance
     if: github.repository == 'geoserver/geoserver-cloud'
@@ -94,13 +100,20 @@ jobs:
 
     - name: Set up AWS credentials for acceptance tests
       run: |
-        mkdir -p compose/secrets/aws
-        cat > compose/secrets/aws/credentials << 'EOF'
+        if [ -n "${{ secrets.AWS_ACCESS_KEY_ID }}" ] && [ -n "${{ secrets.AWS_SECRET_ACCESS_KEY }}" ]; then
+          echo "AWS credentials available, creating credentials file"
+          mkdir -p compose/secrets/aws
+          cat > compose/secrets/aws/credentials << EOF
         [default]
         aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}
         aws_secret_access_key = ${{ secrets.AWS_SECRET_ACCESS_KEY }}
         EOF
-        chmod 600 compose/secrets/aws/credentials
+          chmod 600 compose/secrets/aws/credentials
+        else
+          echo "GEOSERVER_ACCEPTANCE_RUN_AWS_S3_TESTS=false" >> $GITHUB_ENV
+          echo "AWS credentials not available, skipping credentials file creation"
+          echo "S3 integration tests will be skipped"
+        fi
 
     - name: Launch ${{ matrix.catalog }} acceptance tests docker composition
       id: start
@@ -124,5 +137,5 @@ jobs:
     - name: Remove project jars from cached repository
       if: always()
       run: |
-        rm -rf ~/.m2/repository/org/geoserver
+        rm -rf ~/.m2/repository/org/geoserver/cloud
         find ~/.m2/repository -name "*SNAPSHOT*" -type d | xargs rm -rf {}

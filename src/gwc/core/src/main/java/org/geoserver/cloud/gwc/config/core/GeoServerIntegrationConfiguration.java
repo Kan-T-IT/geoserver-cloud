@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.gwc.config.core;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.config.factory.ImportFilteredResource;
 import org.geoserver.cloud.gwc.event.ConfigChangeEvent;
@@ -48,9 +48,8 @@ public class GeoServerIntegrationConfiguration {
     }
 
     /**
-     * Overrides {@code gwcGeoServervConfigPersister} with a cluster-aware {@link
-     * GWCConfigPersister} that sends {@link ConfigChangeEvent}s upon {@link
-     * GWCConfigPersister#save(org.geoserver.gwc.config.GWCConfig)}
+     * Overrides {@code gwcGeoServervConfigPersister} with a cluster-aware {@link GWCConfigPersister} that sends
+     * {@link ConfigChangeEvent}s upon {@link GWCConfigPersister#save(org.geoserver.gwc.config.GWCConfig)}
      *
      * @param xsfp
      * @param resourceLoader

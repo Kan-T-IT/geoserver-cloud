@@ -5,15 +5,20 @@ services:
   config:
     ports:
       - 8888:8080 # not needed in production, exposed for local development
-  discovery:
+  consul:
     ports:
-      - 8761:8761 # for development, so services can be run from localhost and find the discovery service running on docker
+      - 8500:8500 # for development, so services can be run from localhost and find the discovery service running on docker
   acl:
     ports:
       - 9000:8080
+  gateway:
+    ports:
+      - 9090:8080
+      - 8190:8081
   wfs:
     ports:
       - 9101:8080
+      - 8101:8081
   wms:
     ports:
       - 9102:8080
@@ -21,12 +26,16 @@ services:
   wcs:
     ports:
       - 9103:8080
+      - 8103:8081
   restconfig:
     ports:
       - 9105:8080
+      - 8105:8081
   webui:
     ports:
       - 9106:8080
+      - 8106:8081
   gwc:
     ports:
       - 9107:8080
+      - 8107:8081

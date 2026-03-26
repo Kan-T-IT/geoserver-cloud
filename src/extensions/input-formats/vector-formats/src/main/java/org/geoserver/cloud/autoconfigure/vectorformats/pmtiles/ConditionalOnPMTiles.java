@@ -11,22 +11,22 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.geotools.data.geoparquet.GeoParquetDataStoreFactory;
+import org.geotools.pmtiles.store.PMTilesDataStoreFactory;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
  * Composite annotation that combines conditions required for PMTiles support.
  *
- * <p>
- * This conditional activates when:
+ * <p>This conditional activates when:
+ *
  * <ul>
- * <li>The {@code geoserver.extension.pmtiles.enabled} property is true (the default)
+ *   <li>The {@code geoserver.extension.pmtiles.enabled} property is true (the default)
+ *   <li>The {@code org.geotools.pmtiles.store.PMTilesDataStoreFactory} class is in the classpath
  * </ul>
  *
- * <p>
- * This annotation can be used on configuration classes or bean methods to make
- * them conditional on PMTiles being enabled.
+ * <p>This annotation can be used on configuration classes or bean methods to make them conditional on PMTiles being
+ * enabled.
  *
  * @see ConditionalOnProperty
  * @since 2.28.0
@@ -36,5 +36,5 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Documented
 @Inherited
 @ConditionalOnProperty(name = "geoserver.extension.pmtiles.enabled", havingValue = "true", matchIfMissing = true)
-@ConditionalOnClass(GeoParquetDataStoreFactory.class)
+@ConditionalOnClass(PMTilesDataStoreFactory.class)
 public @interface ConditionalOnPMTiles {}

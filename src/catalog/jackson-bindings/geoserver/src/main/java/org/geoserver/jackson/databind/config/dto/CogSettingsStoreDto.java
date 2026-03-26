@@ -9,8 +9,9 @@ import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
+import org.geoserver.cog.CogSettingsStore;
 
-/** */
+/** DTO for {@link CogSettingsStore} */
 @Data
 @EqualsAndHashCode(callSuper = true)
 @JsonTypeName("CogSettingsStore")

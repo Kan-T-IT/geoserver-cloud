@@ -20,15 +20,14 @@ import org.geoserver.cloud.backend.pgconfig.catalog.repository.LoggingTemplate;
 import org.geoserver.gwc.layer.CatalogConfiguration;
 import org.geoserver.gwc.layer.GeoServerTileLayerInfo;
 import org.geoserver.platform.resource.ResourceStore;
+import org.jspecify.annotations.Nullable;
 import org.springframework.dao.DataAccessException;
 import org.springframework.dao.EmptyResultDataAccessException;
 import org.springframework.jdbc.core.JdbcTemplate;
-import org.springframework.lang.Nullable;
 
 /**
  * Implementation of {@link TileLayerInfoRepository} for {@link CatalogConfiguration} to manage
- * {@link GeoServerTileLayerInfo}s directly from the database instead of going through {@link
- * ResourceStore}.
+ * {@link GeoServerTileLayerInfo}s directly from the database instead of going through {@link ResourceStore}.
  *
  * @since 1.7
  */
@@ -122,7 +121,8 @@ public class PgconfigTileLayerInfoRepository implements TileLayerInfoRepository 
         try {
             TileLayerInfo info = template.queryForObject(sql, mapper(), args);
             return Optional.of(info);
-        } catch (EmptyResultDataAccessException empty) {
+        } catch (EmptyResultDataAccessException _) {
+            log.trace("returning empty for {}", sql);
             return Optional.empty();
         }
     }
@@ -137,7 +137,7 @@ public class PgconfigTileLayerInfoRepository implements TileLayerInfoRepository 
     @Override
     public Set<String> findAllNames() throws DataAccessException {
         String query = "SELECT name FROM \"%s\"".formatted(tileLayersQueryTable);
-        try (var stream = template.queryForStream(query, (rs, rn) -> rs.getString(1))) {
+        try (var stream = template.queryForStream(query, (rs, _) -> rs.getString(1))) {
             return stream.collect(Collectors.toCollection(TreeSet::new));
         }
     }

@@ -18,7 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Documented
 @ConditionalOnGeoWebCacheEnabled
-@ConditionalOnClass(org.geowebcache.rest.controller.GWCController.class)
+@ConditionalOnClass(name = "org.geowebcache.rest.controller.GWCController")
 @ConditionalOnProperty(
         name = GeoWebCacheConfigurationProperties.RESTCONFIG_ENABLED,
         havingValue = "true",

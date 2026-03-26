@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.autoconfigure.gwc.core;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
 import org.geoserver.cloud.autoconfigure.gwc.core.CacheSeedingWebMapServiceAutoConfiguration.MinimalWebMapServiceAutoConfiguration;
@@ -21,8 +21,8 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * {@link EnableAutoConfiguration Auto configuration} to make sure a minimal {@link WebMapService}
- * and the GeoWebCache-specific decorator exist, as expected by {@link GeoServerTileLayer#seedTile}.
+ * {@link EnableAutoConfiguration Auto configuration} to make sure a minimal {@link WebMapService} and the
+ * GeoWebCache-specific decorator exist, as expected by {@link GeoServerTileLayer#seedTile}.
  *
  * @since 1.0
  */

@@ -10,38 +10,37 @@ import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import java.io.File;
-import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import org.geotools.geometry.jts.ReferencedEnvelope;
 import org.geotools.jackson.databind.filter.GeoToolsFilterModule;
-import org.geotools.jackson.databind.filter.dto.Literal;
+import org.geotools.jackson.databind.filter.dto.LiteralDto;
 import org.geotools.jackson.databind.geojson.GeoToolsGeoJsonModule;
 import org.geotools.referencing.CRS;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 
-/**
- * Tests for {@link ConnectionParameters} serialization and deserialization.
- */
+/** Tests for {@link ConnectionParameters} serialization and deserialization. */
 class ConnectionParametersSerializerTest {
 
     private ObjectMapper objectMapper;
 
     @BeforeEach
     void setUp() {
-        objectMapper = new ObjectMapper();
-        objectMapper.registerModule(new GeoServerCatalogModule());
-        objectMapper.registerModule(new GeoToolsGeoJsonModule());
-        objectMapper.registerModule(new GeoToolsFilterModule());
+        // In Jackson 3, ObjectMapper is immutable - use builder pattern
+        objectMapper = JsonMapper.builder()
+                .addModule(new GeoServerCatalogModule())
+                .addModule(new GeoToolsGeoJsonModule())
+                .addModule(new GeoToolsFilterModule())
+                .build();
     }
 
     @Test
-    void testSimpleTypesNotWrapped() throws IOException {
+    void testSimpleTypesNotWrapped() {
         ConnectionParameters params = new ConnectionParameters();
         params.put("string", "test");
         params.put("integer", 123);
@@ -139,7 +138,7 @@ class ConnectionParametersSerializerTest {
     void testAlreadyWrappedLiteral() throws Exception {
         // Create a ReferencedEnvelope already wrapped in a Literal
         ReferencedEnvelope envelope = new ReferencedEnvelope(-180, 180, -90, 90, CRS.decode("EPSG:4326", true));
-        Literal literal = Literal.valueOf(envelope);
+        LiteralDto literal = LiteralDto.valueOf(envelope);
 
         // Create test params
         ConnectionParameters params = new ConnectionParameters();
@@ -208,7 +207,7 @@ class ConnectionParametersSerializerTest {
         File file = new File("/tmp/testfile.txt");
         URI uri = new URI("http://example.com/data");
         URL url = new URI("http://example.com/data.json").toURL();
-        Path path = Paths.get("/tmp/testpath");
+        Path path = Path.of("/tmp/testpath");
 
         params.put("file", file);
         params.put("uri", uri);

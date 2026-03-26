@@ -13,9 +13,6 @@ import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertSame;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.HashMap;
@@ -62,13 +59,18 @@ import org.geoserver.config.GeoServerInfo;
 import org.geoserver.config.ImageProcessingInfo;
 import org.geoserver.config.ServiceInfo;
 import org.geoserver.config.SettingsInfo;
+import org.geoserver.config.UserDetailsDisplaySettingsInfo;
 import org.geoserver.config.impl.CoverageAccessInfoImpl;
+import org.geoserver.config.impl.UserDetailsDisplaySettingsInfoImpl;
 import org.geoserver.config.plugin.GeoServerImpl;
 import org.geoserver.jackson.databind.catalog.mapper.CatalogInfoMapper;
 import org.geoserver.jackson.databind.catalog.mapper.GeoServerValueObjectsMapper;
-import org.geoserver.jackson.databind.config.dto.mapper.GeoServerConfigMapper;
+import org.geoserver.jackson.databind.config.GeoServerConfigModule;
+import org.geoserver.jackson.databind.config.mapper.GeoServerConfigMapper;
 import org.geoserver.ows.util.OwsUtils;
 import org.geoserver.platform.GeoServerExtensionsHelper;
+import org.geoserver.security.decorators.DecoratingDataStoreInfo;
+import org.geoserver.security.decorators.DecoratingFeatureTypeInfo;
 import org.geoserver.wfs.WFSInfo;
 import org.geoserver.wms.WMSInfo;
 import org.geotools.api.coverage.grid.GridEnvelope;
@@ -92,11 +94,13 @@ import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import si.uom.SI;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectWriter;
 
 /**
- * Verifies that {@link Patch patches} can be JSON round-tripped. As a
- * reference, it should cover as much of {@link SharedMappers},
- * {@link GeoServerValueObjectsMapper}, {@link GeoServerConfigMapper}, and
+ * Verifies that {@link Patch patches} can be JSON round-tripped. As a reference, it should cover as much of
+ * {@link SharedMappers}, {@link GeoServerValueObjectsMapper}, {@link GeoServerConfigMapper}, and
  * {@link CatalogInfoMapper} as possible.
  */
 @Slf4j
@@ -466,6 +470,20 @@ public abstract class PatchSerializationTest {
         testPatch("global", forceProxy(data.global, GeoServerInfo.class));
     }
 
+    /**
+     * UserDetailsDisplaySettingsInfo is a value object, has no id, hence can't be encoded by reference, yet the webui
+     * is setting {@link GeoServerInfo#setUserDetailsDisplaySettings(UserDetailsDisplaySettingsInfo)} using a
+     * {@link ModificationProxy}
+     *
+     * <p>The solution is to ensure {@link GeoServerConfigModule} registers a de/serializer for the
+     * {@link UserDetailsDisplaySettingsInfo} interface
+     */
+    @Test
+    void modificationProxy_UserDetailsDisplaySettingsInfo() throws Exception {
+        UserDetailsDisplaySettingsInfo info = new UserDetailsDisplaySettingsInfoImpl();
+        testPatch("userDetailsDisplaySettingsInfo", forceProxy(info, UserDetailsDisplaySettingsInfo.class));
+    }
+
     @Test
     void modificationProxy_wmsInfo() throws Exception {
         testPatch("wmsService", forceProxy(data.wmsService, WMSInfo.class));
@@ -539,6 +557,31 @@ public abstract class PatchSerializationTest {
 
         for (AttributeTypeInfo att : rtripAtts) {
             assertModificationProxy(ft, att.getFeatureType());
+        }
+    }
+
+    @Test
+    void testResolvePatchUnwrapsDecorators() throws Exception {
+
+        FeatureTypeInfo ft = data.featureTypeA;
+        ft.setStore(new DecoratingDataStoreInfo(data.dataStoreA));
+        DecoratingFeatureTypeInfo decorated = new DecoratingFeatureTypeInfo(ft) {};
+
+        List<AttributeTypeInfo> attributes = createTestAttributes(decorated);
+
+        Patch patch = patch("attributes", attributes);
+        Patch resolved = proxyResolver.resolve(patch);
+
+        @SuppressWarnings("unchecked")
+        List<AttributeTypeInfo> resolvedAttributes =
+                (List<AttributeTypeInfo>) resolved.getValue("attributes").orElseThrow();
+
+        FeatureTypeInfo expectedFt = ModificationProxy.unwrap(ft);
+        DataStoreInfo expectedDs = ModificationProxy.unwrap(data.dataStoreA);
+        for (AttributeTypeInfo att : resolvedAttributes) {
+            FeatureTypeInfo featureType = att.getFeatureType();
+            assertSame(expectedFt, featureType);
+            assertSame(expectedDs, featureType.getStore());
         }
     }
 
@@ -697,7 +740,7 @@ public abstract class PatchSerializationTest {
         metadataMapWithCogSettings(cog, cogs);
     }
 
-    protected void metadataMapWithCogSettings(CogSettings cog, CogSettingsStore cogs) throws JsonProcessingException {
+    protected void metadataMapWithCogSettings(CogSettings cog, CogSettingsStore cogs) throws JacksonException {
 
         MetadataMap mdm = new MetadataMap(Map.of("cogSettings", cog, "cogSettingsStore", cogs));
 
@@ -728,14 +771,14 @@ public abstract class PatchSerializationTest {
         return testPatch(patch);
     }
 
-    private Patch testPatch(Patch patch) throws JsonProcessingException {
+    private Patch testPatch(Patch patch) throws JacksonException {
         Patch resolved = testPatchNoEquals(patch);
 
         assertEquals(patch, resolved);
         return resolved;
     }
 
-    private Patch testPatchNoEquals(Patch patch) throws JsonProcessingException {
+    private Patch testPatchNoEquals(Patch patch) throws JacksonException {
         Patch decoded = roundtrip(patch);
         Patch resolved = resolve(decoded);
         print("resolved: {}", resolved);
@@ -762,7 +805,7 @@ public abstract class PatchSerializationTest {
         return proxyResolver.resolve(decoded);
     }
 
-    private Patch roundtrip(Patch patch) throws JsonProcessingException {
+    private Patch roundtrip(Patch patch) throws JacksonException {
         Object patchValue = patch.getPatches().get(0).getValue();
         boolean encodeByReference = ProxyUtils.encodeByReference(patchValue);
 
@@ -788,7 +831,7 @@ public abstract class PatchSerializationTest {
         return decoded;
     }
 
-    protected String asJson(Patch patch) throws JsonProcessingException {
+    protected String asJson(Patch patch) throws JacksonException {
         ObjectWriter writer = objectMapper.writer();
         writer = writer.withDefaultPrettyPrinter();
         return writer.writeValueAsString(patch);

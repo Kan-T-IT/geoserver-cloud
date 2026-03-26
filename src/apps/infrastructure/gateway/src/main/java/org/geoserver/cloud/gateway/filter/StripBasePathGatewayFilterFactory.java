@@ -5,8 +5,6 @@
 
 package org.geoserver.cloud.gateway.filter;
 
-import static com.google.common.base.Preconditions.checkArgument;
-
 import java.util.List;
 import lombok.Data;
 import org.springframework.cloud.gateway.filter.GatewayFilter;
@@ -17,9 +15,8 @@ import org.springframework.http.server.reactive.ServerHttpRequest;
 import org.springframework.util.StringUtils;
 
 /**
- * See gateway's issue <a
- * href="https://github.com/spring-cloud/spring-cloud-gateway/issues/1759">#1759</a> "Webflux base
- * path does not work with Path predicates"
+ * See gateway's issue <a href="https://github.com/spring-cloud/spring-cloud-gateway/issues/1759">#1759</a> "Webflux
+ * base path does not work with Path predicates"
  */
 public class StripBasePathGatewayFilterFactory
         extends AbstractGatewayFilterFactory<StripBasePathGatewayFilterFactory.PrefixConfig> {
@@ -60,10 +57,10 @@ public class StripBasePathGatewayFilterFactory
     }
 
     private int resolvePartsToStrip(String basePath, String requestPath) {
-        if (null == basePath) return 0;
-        if (!requestPath.startsWith(basePath)) {
+        if (null == basePath || !requestPath.startsWith(basePath)) {
             return 0;
         }
+
         final int basePathSteps = StringUtils.countOccurrencesOf(basePath, "/");
         boolean isRoot = basePath.equals(requestPath);
         return isRoot ? basePathSteps - 1 : basePathSteps;
@@ -74,9 +71,15 @@ public class StripBasePathGatewayFilterFactory
 
         public void checkPreconditions() {
             if (prefix != null) {
-                checkArgument(prefix.startsWith("/"), "StripBasePath prefix must start with /");
+                if (!prefix.startsWith("/")) {
+                    throw new IllegalStateException(
+                            "StripBasePath prefix must start with '/', got '%s'".formatted(prefix));
+                }
 
-                checkArgument("/".equals(prefix) || !prefix.endsWith("/"), "StripBasePath prefix must not end with /");
+                if (!"/".equals(prefix) && prefix.endsWith("/")) {
+                    throw new IllegalStateException(
+                            "StripBasePath prefix must not end with '/', got '%s'".formatted(prefix));
+                }
             }
         }
     }

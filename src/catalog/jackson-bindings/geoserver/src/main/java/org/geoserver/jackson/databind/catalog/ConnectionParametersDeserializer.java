@@ -4,28 +4,25 @@
  */
 package org.geoserver.jackson.databind.catalog;
 
-import com.fasterxml.jackson.core.JsonParser;
-import com.fasterxml.jackson.core.JsonToken;
-import com.fasterxml.jackson.databind.DeserializationContext;
-import com.fasterxml.jackson.databind.JsonDeserializer;
-import java.io.IOException;
-import org.geotools.jackson.databind.filter.dto.Literal;
+import org.geotools.jackson.databind.filter.dto.LiteralDto;
+import tools.jackson.core.JsonParser;
+import tools.jackson.core.JsonToken;
+import tools.jackson.databind.DeserializationContext;
+import tools.jackson.databind.ValueDeserializer;
 
 /**
  * Custom deserializer for Store connection parameters.
  *
- * <p>
- * This deserializer handles Literal objects in the map, extracting their values.
- * </p>
+ * <p>This deserializer handles Literal objects in the map, extracting their values.
  */
-public class ConnectionParametersDeserializer extends JsonDeserializer<ConnectionParameters> {
+public class ConnectionParametersDeserializer extends ValueDeserializer<ConnectionParameters> {
 
     @Override
-    public ConnectionParameters deserialize(JsonParser p, DeserializationContext ctxt) throws IOException {
+    public ConnectionParameters deserialize(JsonParser p, DeserializationContext ctxt) {
         ConnectionParameters result = new ConnectionParameters();
 
         if (p.currentToken() != JsonToken.START_OBJECT) {
-            throw new IOException("Expected START_OBJECT token, got " + p.currentToken());
+            throw new IllegalStateException("Expected START_OBJECT token, got " + p.currentToken());
         }
 
         // Read all fields in the object
@@ -37,7 +34,7 @@ public class ConnectionParametersDeserializer extends JsonDeserializer<Connectio
             Object value = readValue(p, ctxt);
 
             // If it's a Literal, unwrap it
-            if (value instanceof Literal literal) {
+            if (value instanceof LiteralDto literal) {
                 result.put(fieldName, literal.getValue());
             } else {
                 result.put(fieldName, value);
@@ -47,12 +44,12 @@ public class ConnectionParametersDeserializer extends JsonDeserializer<Connectio
         return result;
     }
 
-    private Object readValue(JsonParser p, DeserializationContext ctxt) throws IOException {
+    private Object readValue(JsonParser p, DeserializationContext ctxt) {
         // For object values, try to parse as Literal
         if (p.currentToken() == JsonToken.START_OBJECT) {
             try {
                 // Try to deserialize as a Literal
-                return ctxt.readValue(p, Literal.class);
+                return ctxt.readValue(p, LiteralDto.class);
             } catch (Exception e) {
                 // If Literal deserialization fails, fall back to basic deserialization
                 // for simple types like Map

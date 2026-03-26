@@ -30,10 +30,10 @@ import org.junit.jupiter.api.Order;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.web.reactive.WebFluxAutoConfiguration.EnableWebFluxConfiguration;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -49,14 +49,16 @@ import org.springframework.web.server.session.WebSessionManager;
 import org.springframework.web.server.session.WebSessionStore;
 
 /**
- * Wiremock integration test for a running gateway with {@link GatewaySharedAuthenticationPreFilter}
- * and {@link GatewaySharedAuthenticationPostFilter}
+ * Wiremock integration test for a running gateway with {@link GatewaySharedAuthenticationPreFilter} and
+ * {@link GatewaySharedAuthenticationPostFilter}
  */
 @SpringBootTest(
         classes = GatewayApplication.class, //
         webEnvironment = WebEnvironment.RANDOM_PORT,
         properties = {"geoserver.security.gateway-shared-auth.enabled=true"})
-@ActiveProfiles("test") // bootstrap-test.yml disables config and discovery
+@ActiveProfiles("test")
+@AutoConfigureTestRestTemplate
+// bootstrap-test.yml disables config and discovery
 @WireMockTest
 // @TestMethodOrder is not really needed, just used to run tests in the workflow order, but tests
 // are isolated
@@ -91,8 +93,8 @@ class GatewaySharedAuthenticationTest {
             """;
 
     /**
-     * request stub for the webui returning an empty-string on the {@literal x-gsc-username}
-     * response header, meaning to log out (remove the user and roles from the session)
+     * request stub for the webui returning an empty-string on the {@literal x-gsc-username} response header, meaning to
+     * log out (remove the user and roles from the session)
      */
     private static final String WEB_LOGOUT_SPEC =
             """
@@ -154,8 +156,8 @@ class GatewaySharedAuthenticationTest {
     private static WireMockRuntimeInfo wmRuntimeInfo;
 
     /**
-     * Set up stub requests for the wiremock server. WireMock is running on a random port, so this
-     * method saves {@link #wmRuntimeInfo} for {@link #registerRoutes(DynamicPropertyRegistry)}
+     * Set up stub requests for the wiremock server. WireMock is running on a random port, so this method saves
+     * {@link #wmRuntimeInfo} for {@link #registerRoutes(DynamicPropertyRegistry)}
      */
     @BeforeAll
     static void saveWireMock(WireMockRuntimeInfo runtimeInfo) {
@@ -166,18 +168,19 @@ class GatewaySharedAuthenticationTest {
     @DynamicPropertySource
     static void registerRoutes(DynamicPropertyRegistry registry) {
         String targetUrl = wmRuntimeInfo.getHttpBaseUrl();
-        registry.add("spring.cloud.gateway.routes[0].id", () -> "wiremock");
-        registry.add("spring.cloud.gateway.routes[0].uri", () -> targetUrl);
-        registry.add("spring.cloud.gateway.routes[0].predicates[0]", () -> "Path=/**");
+        // Spring Cloud Gateway 5.0+ uses 'spring.cloud.gateway.server.webflux' namespace
+        registry.add("spring.cloud.gateway.server.webflux.routes[0].id", () -> "wiremock");
+        registry.add("spring.cloud.gateway.server.webflux.routes[0].uri", () -> targetUrl);
+        registry.add("spring.cloud.gateway.server.webflux.routes[0].predicates[0]", () -> "Path=/**");
     }
 
     @Autowired
     TestRestTemplate testRestTemplate;
 
     /**
-     * Concrete implementation of {@link WebSessionManager} as created by {@link
-     * EnableWebFluxConfiguration#webSessionManager()} so we can access {@link
-     * DefaultWebSessionManager#getSessionStore()}
+     * Concrete implementation of {@link WebSessionManager} as created by
+     * {@link EnableWebFluxConfiguration#webSessionManager()} so we can access
+     * {@link DefaultWebSessionManager#getSessionStore()}
      */
     @Autowired
     DefaultWebSessionManager webSessionManager;
@@ -188,6 +191,17 @@ class GatewaySharedAuthenticationTest {
 
     @BeforeEach
     void setUp(WireMockRuntimeInfo runtimeInfo) {
+        // Configure TestRestTemplate to not follow redirects
+        // The test verifies redirect responses with Location headers, but should not
+        // attempt to follow them (especially since they contain placeholder URLs like
+        // http://0.0.0.0:9090 that cannot be resolved)
+        testRestTemplate
+                .getRestTemplate()
+                .setRequestFactory(new org.springframework.http.client.HttpComponentsClientHttpRequestFactory(
+                        org.apache.hc.client5.http.impl.classic.HttpClients.custom()
+                                .disableRedirectHandling()
+                                .build()));
+
         StubMapping weblogin = buildFrom(WEB_LOGIN_SPEC);
         StubMapping weblogout = buildFrom(WEB_LOGOUT_SPEC);
         StubMapping wmscaps = buildFrom(WMS_GETCAPS);
@@ -204,9 +218,8 @@ class GatewaySharedAuthenticationTest {
     }
 
     /**
-     * Make a request where the caller is trying to impersonate a user with request headers {@code
-     * x-gsc-username} and {@code x-gsc-roles}, verify {@link GatewaySharedAuthenticationPreFilter}
-     * removes them from the proxy request
+     * Make a request where the caller is trying to impersonate a user with request headers {@code x-gsc-username} and
+     * {@code x-gsc-roles}, verify {@link GatewaySharedAuthenticationPreFilter} removes them from the proxy request
      */
     @Test
     @Order(1)
@@ -230,9 +243,9 @@ class GatewaySharedAuthenticationTest {
     }
 
     /**
-     * Make a request to the wms service, once the {@code x-gsc-username} and {@code x-gsc-roles}
-     * are stored in the the {@link WebSession}, verify {@link GatewaySharedAuthenticationPreFilter}
-     * appends them as request headers to the wms service proxied request
+     * Make a request to the wms service, once the {@code x-gsc-username} and {@code x-gsc-roles} are stored in the the
+     * {@link WebSession}, verify {@link GatewaySharedAuthenticationPreFilter} appends them as request headers to the
+     * wms service proxied request
      */
     @Test
     @Order(2)
@@ -269,9 +282,8 @@ class GatewaySharedAuthenticationTest {
     }
 
     /**
-     * Make a request to the webui that returns the {@code x-gsc-username} and {@code x-gsc-roles}
-     * response headers, verify {@link GatewaySharedAuthenticationPostFilter} saves them in the
-     * {@link WebSession}
+     * Make a request to the webui that returns the {@code x-gsc-username} and {@code x-gsc-roles} response headers,
+     * verify {@link GatewaySharedAuthenticationPostFilter} saves them in the {@link WebSession}
      */
     @Test
     @Order(3)
@@ -303,9 +315,8 @@ class GatewaySharedAuthenticationTest {
     }
 
     /**
-     * Make a call to the web-ui that returns {@code x-gsc-username} and {@code x-gsc-roles}
-     * headers, and verify {@link GatewaySharedAuthenticationPostFilter} does not propagate them to
-     * the response.
+     * Make a call to the web-ui that returns {@code x-gsc-username} and {@code x-gsc-roles} headers, and verify
+     * {@link GatewaySharedAuthenticationPostFilter} does not propagate them to the response.
      */
     @Test
     @Order(5)
@@ -313,11 +324,14 @@ class GatewaySharedAuthenticationTest {
     void postFilterRemovesOutgoingSharedAuthHeaders(WireMockRuntimeInfo runtimeInfo) {
         ResponseEntity<Void> response = login();
         HttpHeaders responseHeaders = response.getHeaders();
-        assertThat(responseHeaders)
+
+        assertThat(responseHeaders.get("x-gsc-username"))
                 .as("GatewaySharedAuhenticationGlobalFilter should have removed the x-gsc-username response header")
-                .doesNotContainKey("x-gsc-username")
+                .isNull();
+
+        assertThat(responseHeaders.get("x-gsc-roles"))
                 .as("GatewaySharedAuhenticationGlobalFilter should have removed the x-gsc-roles response header")
-                .doesNotContainKey("x-gsc-roles");
+                .isNull();
     }
 
     private String getGatewaySessionId(HttpHeaders responseHeaders) {
@@ -357,7 +371,7 @@ class GatewaySharedAuthenticationTest {
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         HttpHeaders headers = response.getHeaders();
 
-        assertThat(headers).containsEntry("Location", List.of("http://0.0.0.0:9090/geoserver/cloud/web"));
+        assertThat(headers.get("Location")).containsOnly("http://0.0.0.0:9090/geoserver/cloud/web");
 
         return response;
     }
@@ -371,8 +385,7 @@ class GatewaySharedAuthenticationTest {
 
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.FOUND);
         HttpHeaders headers = response.getHeaders();
-
-        assertThat(headers).containsEntry("Location", List.of("http://0.0.0.0:9090/geoserver/cloud/web"));
+        assertThat(headers.get("Location")).containsOnly("http://0.0.0.0:9090/geoserver/cloud/web");
 
         return response;
     }

@@ -5,21 +5,23 @@
 
 package org.geoserver.cloud.gwc.event;
 
+import java.io.Serial;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 import org.geoserver.gwc.layer.TileLayerCatalogListener;
+import org.jspecify.annotations.Nullable;
 import org.springframework.context.ApplicationContext;
-import org.springframework.lang.Nullable;
 
 /**
- * Local {@link ApplicationContext} event issued to replace the tightly coupled {@link
- * TileLayerCatalogListener} by loosely coupled application events
+ * Local {@link ApplicationContext} event issued to replace the tightly coupled {@link TileLayerCatalogListener} by
+ * loosely coupled application events
  *
  * @since 1.0
  */
 public class TileLayerEvent extends GeoWebCacheEvent {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private @NonNull @Getter @Setter String publishedId;

@@ -42,9 +42,7 @@ import org.springframework.web.context.WebApplicationContext;
 import org.xmlunit.assertj.XmlAssert;
 import org.xmlunit.builder.Input;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 class ResourceStoreTileLayerCatalogTest {
 
     private @TempDir File baseDirectory;
@@ -56,7 +54,10 @@ class ResourceStoreTileLayerCatalogTest {
     @BeforeEach
     void setUp() {
         resourceLoader = new GeoServerResourceLoader(baseDirectory);
-        new File(baseDirectory, "gwc-layers").mkdir();
+        File layersDir = new File(baseDirectory, "gwc-layers");
+        if (!layersDir.isDirectory()) {
+            assertTrue(layersDir.mkdir());
+        }
 
         WebApplicationContext context = mock(WebApplicationContext.class);
 
@@ -241,7 +242,7 @@ class ResourceStoreTileLayerCatalogTest {
         AtomicBoolean hasBeenModified = new AtomicBoolean(false);
         AtomicBoolean hasBeenDeleted = new AtomicBoolean(false);
 
-        catalog.addListener((layerId, type) -> {
+        catalog.addListener((_, type) -> {
             switch (type) {
                 case CREATE:
                     hasBeenCreated.set(true);

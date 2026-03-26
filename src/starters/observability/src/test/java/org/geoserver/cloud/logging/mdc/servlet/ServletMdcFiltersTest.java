@@ -10,17 +10,17 @@ import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpSession;
 import java.io.IOException;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.Map;
 import java.util.Optional;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.servlet.http.HttpSession;
 import org.geoserver.cloud.logging.mdc.config.AuthenticationMdcConfigProperties;
 import org.geoserver.cloud.logging.mdc.config.HttpRequestMdcConfigProperties;
 import org.geoserver.cloud.logging.mdc.config.SpringEnvironmentMdcConfigProperties;
@@ -37,13 +37,14 @@ import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
  * Tests for the Servlet-based MDC filters.
- * <p>
- * This test class covers the following MDC filter implementations:
+ *
+ * <p>This test class covers the following MDC filter implementations:
+ *
  * <ul>
- *   <li>{@link HttpRequestMdcFilter}</li>
- *   <li>{@link MDCCleaningFilter}</li>
- *   <li>{@link SpringEnvironmentMdcFilter}</li>
- *   <li>{@link MDCAuthenticationFilter}</li>
+ *   <li>{@link HttpRequestMdcFilter}
+ *   <li>{@link MDCCleaningFilter}
+ *   <li>{@link SpringEnvironmentMdcFilter}
+ *   <li>{@link MDCAuthenticationFilter}
  * </ul>
  */
 class ServletMdcFiltersTest {
@@ -128,7 +129,7 @@ class ServletMdcFiltersTest {
         // Execute filter and catch expected exception
         try {
             filter.doFilterInternal(request, response, failingChain);
-        } catch (ServletException e) {
+        } catch (ServletException _) {
             // Expected exception
         }
 
@@ -313,9 +314,7 @@ class ServletMdcFiltersTest {
         }
     }
 
-    /**
-     * Helper class to simulate a filter chain that throws an exception
-     */
+    /** Helper class to simulate a filter chain that throws an exception */
     private static class MockFilterChain implements FilterChain {
         private final Exception exception;
 
@@ -324,14 +323,14 @@ class ServletMdcFiltersTest {
         }
 
         @Override
-        public void doFilter(javax.servlet.ServletRequest request, javax.servlet.ServletResponse response)
+        public void doFilter(jakarta.servlet.ServletRequest request, jakarta.servlet.ServletResponse response)
                 throws IOException, ServletException {
-            if (exception instanceof ServletException) {
-                throw (ServletException) exception;
-            } else if (exception instanceof IOException) {
-                throw (IOException) exception;
-            } else if (exception instanceof RuntimeException) {
-                throw (RuntimeException) exception;
+            if (exception instanceof ServletException servletException) {
+                throw servletException;
+            } else if (exception instanceof IOException oException) {
+                throw oException;
+            } else if (exception instanceof RuntimeException runtimeException) {
+                throw runtimeException;
             } else {
                 throw new ServletException(exception);
             }

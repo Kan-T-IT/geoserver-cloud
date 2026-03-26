@@ -10,17 +10,17 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * @since 1.4
- */
+/** @since 1.4 */
 @Configuration
 @EnableConfigurationProperties(PgconfigBackendProperties.class)
 public class DatabaseMigrationConfiguration {
 
     @Bean
+    @DependsOnDatabaseInitialization
     Migrations pgconfigMigrations(
             PgconfigBackendProperties config, @Qualifier("pgconfigDataSource") DataSource dataSource) {
 

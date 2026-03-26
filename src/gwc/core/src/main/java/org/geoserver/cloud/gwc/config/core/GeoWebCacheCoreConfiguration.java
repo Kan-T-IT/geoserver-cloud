@@ -14,13 +14,6 @@ import java.nio.file.FileAlreadyExistsException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.function.Supplier;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.config.factory.ImportFilteredResource;
 import org.geoserver.cloud.gwc.repository.CloudDefaultStorageFinder;
@@ -41,16 +34,12 @@ import org.springframework.beans.FatalBeanException;
 import org.springframework.beans.InvalidPropertyException;
 import org.springframework.beans.factory.BeanInitializationException;
 import org.springframework.beans.factory.annotation.Qualifier;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.core.env.Environment;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 @Configuration(proxyBeanMethods = true)
 @EnableConfigurationProperties(GeoWebCacheConfigurationProperties.class)
 @ImportFilteredResource(
@@ -59,41 +48,33 @@ import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandl
 public class GeoWebCacheCoreConfiguration {
 
     /**
-     * @return a {@link GeoServerLockProvider} delegating the the {@link ResourceStore}, whose
-     *     {@link ResourceStore#getLockProvider()} is known to be cluster-capable
+     * @return a {@link GeoServerLockProvider} delegating the the {@link LockProvider}, which is known to be safe for
+     *     distributed locking
      */
     @Bean(name = AbstractGwcInitializer.GWC_LOCK_PROVIDER_BEAN_NAME)
-    LockProvider gwcLockProvider(@Qualifier("resourceStoreImpl") ResourceStore resourceStore) {
+    org.geowebcache.locks.LockProvider gwcLockProvider(org.geoserver.platform.resource.LockProvider lockProvider) {
         var provider = new GeoServerLockProvider();
-        provider.setDelegate(resourceStore);
+        provider.setDelegate(lockProvider);
         return provider;
     }
 
     @Bean
-    SetRequestPathInfoFilter setRequestPathInfoFilter() {
-        return new SetRequestPathInfoFilter();
-    }
-
-    @Bean
-    @ConditionalOnMissingBean(RequestMappingHandlerMapping.class)
-    RequestMappingHandlerMapping requestMappingHandlerMapping() {
-        return new RequestMappingHandlerMapping();
+    GwcRequestPathInfoFilter setRequestPathInfoFilter() {
+        return new GwcRequestPathInfoFilter();
     }
 
     /**
-     * There's only one way to set the default cache directory, through the {@code
-     * gwc.cache-directory} config property, following standard spring-boot externalized
-     * configuration rules.
+     * There's only one way to set the default cache directory, through the {@code gwc.cache-directory} config property,
+     * following standard spring-boot externalized configuration rules.
      *
-     * <p>The directory will be validated to be writable, or an attempt to create it will be made if
-     * it doesn't exist.
+     * <p>The directory will be validated to be writable, or an attempt to create it will be made if it doesn't exist.
      *
-     * <p>The {@literal GEOWEBCACHE_CACHE_DIR} System Property will be forced to the cache directory
-     * once validated, for interoperability with upstream's geowebcache lookup mechanism.
+     * <p>The {@literal GEOWEBCACHE_CACHE_DIR} System Property will be forced to the cache directory once validated, for
+     * interoperability with upstream's geowebcache lookup mechanism.
      *
      * @return
-     * @throws FatalBeanException if the {@code gwc.cache-directory} is not provided, is not a
-     *     writable directory, or can't be created
+     * @throws FatalBeanException if the {@code gwc.cache-directory} is not provided, is not a writable directory, or
+     *     can't be created
      */
     @Bean
     Path gwcDefaultCacheDirectory(GeoWebCacheConfigurationProperties config) {
@@ -115,19 +96,18 @@ public class GeoWebCacheCoreConfiguration {
     }
 
     /**
-     * Resolves the location of the global {@literal geowebcache.xml} configuration file by checking
-     * the {@literal gwc.config-directory} spring-boot configuration property from {@link
-     * GeoWebCacheConfigurationProperties}.
+     * Resolves the location of the global {@literal geowebcache.xml} configuration file by checking the
+     * {@literal gwc.config-directory} spring-boot configuration property from
+     * {@link GeoWebCacheConfigurationProperties}.
      *
-     * <p>This config setting is optional, and if unset defaults to the {@link ResourceStore}'s
-     * {@literal gwc/} directory.
+     * <p>This config setting is optional, and if unset defaults to the {@link ResourceStore}'s {@literal gwc/}
+     * directory.
      *
-     * <p>The {@literal GEOWEBCACHE_CONFIG_DIR} environment variable has no effect, as it's only
-     * used by upstream's {@link XMLFileResourceProvider}, which we replace by {@link
-     * #gwcXmlConfigResourceProvider}.
+     * <p>The {@literal GEOWEBCACHE_CONFIG_DIR} environment variable has no effect, as it's only used by upstream's
+     * {@link XMLFileResourceProvider}, which we replace by {@link #gwcXmlConfigResourceProvider}.
      *
-     * @throws BeanInitializationException if the directory supplied through the {@literal
-     *     gwc.config-directory} config property is invalid
+     * @throws BeanInitializationException if the directory supplied through the {@literal gwc.config-directory} config
+     *     property is invalid
      */
     private Supplier<Resource> gwcDefaultConfigDirectory(
             GeoWebCacheConfigurationProperties config, @Qualifier("resourceStoreImpl") ResourceStore resourceStore)
@@ -165,8 +145,7 @@ public class GeoWebCacheCoreConfiguration {
      * </bean>
      * }</pre>
      *
-     * With one that resolves the default {@literal geowebcache.xml} file from {@link
-     * #gwcDefaultConfigDirectory}
+     * With one that resolves the default {@literal geowebcache.xml} file from {@link #gwcDefaultConfigDirectory}
      */
     @Bean
     ConfigurationResourceProvider gwcXmlConfigResourceProvider(
@@ -200,10 +179,9 @@ public class GeoWebCacheCoreConfiguration {
     }
 
     /**
-     * Define {@code DefaultStorageFinder} in code, excluded from {@literal geowebcache-servlet.xml}
-     * in the {@code @ImportResource} declaration above, to make sure the cache directory
-     * environment variable or system property is set up beforehand (GWC doesn't look it up in the
-     * spring application context).
+     * Define {@code DefaultStorageFinder} in code, excluded from {@literal geowebcache-servlet.xml} in the
+     * {@code @ImportResource} declaration above, to make sure the cache directory environment variable or system
+     * property is set up beforehand (GWC doesn't look it up in the spring application context).
      *
      * @param defaultCacheDirectory
      * @param environment
@@ -214,9 +192,7 @@ public class GeoWebCacheCoreConfiguration {
         return new CloudDefaultStorageFinder(defaultCacheDirectory, environment);
     }
 
-    /**
-     * @param directory
-     */
+    /** @param directory */
     private void validateDirectory(Path directory, String configPropertyName) {
         if (!directory.isAbsolute()) {
             throw new BeanInitializationException(
@@ -226,7 +202,7 @@ public class GeoWebCacheCoreConfiguration {
             try {
                 Path created = Files.createDirectory(directory);
                 log.info("Created directory from config property {}: {}", configPropertyName, created);
-            } catch (FileAlreadyExistsException beatenByOtherInstance) {
+            } catch (FileAlreadyExistsException _) {
                 // continue
             } catch (IOException e) {
                 throw new BeanInitializationException(
@@ -238,66 +214,6 @@ public class GeoWebCacheCoreConfiguration {
         }
         if (!Files.isWritable(directory)) {
             throw new BeanInitializationException("%s is not writable: %s".formatted(configPropertyName, directory));
-        }
-    }
-
-    /**
-     * Servlet filter that proceeds with an {@link HttpServletRequestWrapper} decorator to return
-     * {@link HttpServletRequestWrapper#getPathInfo() getPathInfo()} built from {@link
-     * HttpServletRequestWrapper#getRequestURI() getRequestURI()}.
-     *
-     * <p>GWC makes heavy use of {@link HttpServletRequestWrapper#getPathInfo()}, but it returns
-     * {@code null} in a spring-boot application.
-     *
-     * @since 1.0
-     */
-    static class SetRequestPathInfoFilter implements Filter {
-
-        @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-                throws IOException, ServletException {
-
-            request = adaptRequest((HttpServletRequest) request);
-            chain.doFilter(request, response);
-        }
-
-        /**
-         *
-         *
-         * <ul>
-         *   <li>{@code contextPath} is usually empty, but it'll match the gateways
-         *       ${geoserver.base-path} if such is set, thanks to the
-         *       server.forward-headers-strategy=framework in the application's bootstrap.yml
-         *   <li>{@code pathInfo} is computed beforehand to avoid decorating the HttpServletRequest
-         *       if the request is not for gwc (e.g. an actuator endpoint)
-         *   <li>{@code suffix} is used to strip it out of requestURI and fake the pathInfo gwc
-         *       expects as it assumes the request is being handled by a Dispatcher mapped to /**
-         *   <li>yes, this is odd, the alternative is re-writing GWC without weird assumptions
-         * </ul>
-         */
-        protected ServletRequest adaptRequest(HttpServletRequest request) {
-            // full request URI (e.g. '/geoserver/cloud/{workspace}/gwc/service/tms/1.0.0',
-            // where
-            // '/geoserver/cloud' is the context path as given by the gateway's base uri,
-            // and
-            // '/{workspace}/gwc' the suffix after which comes the pathInfo
-            // '/service/tms/1.0.0')
-            final String requestURI = request.getRequestURI();
-
-            final String gwc = "/gwc";
-            final int gwcIdx = requestURI.indexOf(gwc);
-            if (gwcIdx > -1) {
-                final String pathToGwc = requestURI.substring(0, gwcIdx + gwc.length());
-                final String pathInfo = requestURI.substring(pathToGwc.length());
-
-                return new HttpServletRequestWrapper(request) {
-                    @Override
-                    public String getPathInfo() {
-                        return pathInfo;
-                    }
-                };
-            }
-            return request;
         }
     }
 }

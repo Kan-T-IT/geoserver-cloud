@@ -16,18 +16,15 @@ import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.gwc.event.ConfigChangeEvent;
 import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.config.util.XStreamPersisterFactory;
-import org.geoserver.gwc.ConfigurableBlobStore;
-import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.resource.Resource;
 import org.geoserver.platform.resource.Resource.Type;
 import org.geoserver.util.DimensionWarning;
-import org.geowebcache.storage.blobstore.memory.CacheConfiguration;
 import org.springframework.context.event.EventListener;
 
 /**
- * extends {@link GWCConfigPersister} to send {@link ConfigChangeEvent}s upon {@link
- * #save(org.geoserver.gwc.config.GWCConfig)}
+ * extends {@link GWCConfigPersister} to send {@link ConfigChangeEvent}s upon
+ * {@link #save(org.geoserver.gwc.config.GWCConfig)}
  */
 @Slf4j
 public class CloudGwcConfigPersister extends GWCConfigPersister {
@@ -46,8 +43,8 @@ public class CloudGwcConfigPersister extends GWCConfigPersister {
     }
 
     /**
-     * Override to get a hold to the config and be able of re-loading it upon {@link
-     * ConfigChangeEvent}, since super.config is private
+     * Override to get a hold to the config and be able of re-loading it upon {@link ConfigChangeEvent}, since
+     * super.config is private
      */
     @Override
     public GWCConfig getConfig() {
@@ -76,12 +73,6 @@ public class CloudGwcConfigPersister extends GWCConfigPersister {
             log.info("Reloading gwc configuration upon remote config change event");
             GWCConfig config = reload();
             this.configuration = config;
-
-            // Update ConfigurableBlobStore
-            ConfigurableBlobStore blobstore = GeoServerExtensions.bean(ConfigurableBlobStore.class);
-            if (blobstore != null) {
-                blobstore.setChanged(config, false);
-            }
         }
     }
 
@@ -106,9 +97,10 @@ public class CloudGwcConfigPersister extends GWCConfigPersister {
         xs.alias("defaultCoverageCacheFormats", HashSet.class);
         xs.alias("defaultVectorCacheFormats", HashSet.class);
         xs.alias("defaultOtherCacheFormats", HashSet.class);
-        xs.alias("InnerCacheConfiguration", CacheConfiguration.class);
         xs.alias("warning", DimensionWarning.WarningType.class);
-        xs.allowTypes(new Class[] {GWCConfig.class, CacheConfiguration.class, DimensionWarning.WarningType.class});
+        xs.ignoreUnknownElements("InnerCacheConfiguration");
+        xs.allowTypes(new Class[] {GWCConfig.class, DimensionWarning.WarningType.class});
         xs.addDefaultImplementation(LinkedHashSet.class, Set.class);
+        xs.ignoreUnknownElements();
     }
 }

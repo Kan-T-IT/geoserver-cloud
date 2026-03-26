@@ -14,14 +14,14 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.event.info.InfoEvent;
 import org.geoserver.cloud.gwc.event.TileLayerEvent;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.Cache;
 import org.springframework.context.event.EventListener;
 import org.springframework.dao.DataAccessException;
-import org.springframework.lang.Nullable;
 
 /**
- * {@link TileLayerInfoRepository} decorator cache {@link TileLayerInfo}s on demand, alleviating the
- * load on the delegate, especially under load.
+ * {@link TileLayerInfoRepository} decorator cache {@link TileLayerInfo}s on demand, alleviating the load on the
+ * delegate, especially under load.
  */
 @RequiredArgsConstructor
 @Slf4j(topic = "org.geoserver.cloud.gwc.backend.pgconfig.caching")
@@ -154,7 +154,7 @@ public class CachingTileLayerInfoRepository implements TileLayerInfoRepository {
     @Override
     public boolean exists(String workspace, @NonNull String layer) throws DataAccessException {
         return findCached(workspace, layer)
-                .map(tl -> {
+                .map(_ -> {
                     log.trace("returning exists=true from cache for layer {}", name(workspace, layer));
                     return true;
                 })

@@ -15,8 +15,9 @@ import org.springframework.context.annotation.Bean;
 
 /**
  * Simple test application to verify MDC logging.
- * <p>
- * Run with:
+ *
+ * <p>Run with:
+ *
  * <pre>
  * cd gateway
  * mvn spring-boot:run -Dspring-boot.run.profiles=json-logs -Dspring-boot.run.main-class=org.geoserver.cloud.gateway.logging.MdcPropagationTestCommand
@@ -34,7 +35,7 @@ public class MdcPropagationTestCommand {
 
     @Bean
     public CommandLineRunner testMdcLogging() {
-        return args -> {
+        return _ -> {
             // Log without MDC
             log.info("Logging without MDC");
 

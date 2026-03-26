@@ -5,12 +5,10 @@
 
 package org.geoserver.jackson.databind.config;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geotools.jackson.databind.util.ObjectMapperUtil;
+import tools.jackson.databind.ObjectMapper;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 class GeoSeververConfigModuleYamlTest extends GeoServerConfigModuleTest {
 
     protected @Override ObjectMapper newObjectMapper() {

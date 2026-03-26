@@ -25,14 +25,12 @@ import org.junit.jupiter.api.Test;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-/**
- * @since 1.4
- */
+/** @since 1.4 */
 @Testcontainers(disabledWithoutDocker = true)
 class PgconfigConfigRepositoryConformanceTest extends GeoServerConfigConformanceTest {
 
     @Container
-    static PgConfigTestContainer<?> container = new PgConfigTestContainer<>();
+    static PgConfigTestContainer container = new PgConfigTestContainer();
 
     @Override
     @BeforeEach

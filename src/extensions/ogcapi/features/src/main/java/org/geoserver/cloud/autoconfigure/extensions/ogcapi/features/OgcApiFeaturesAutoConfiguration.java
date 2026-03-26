@@ -13,14 +13,13 @@ import org.springframework.context.annotation.Import;
 
 /**
  * Auto-configuration for OGC API Features extension.
- * <p>
- * This auto-configuration class is designed to set up the OGC API Features
- * extension in GeoServer Cloud. It consists of:
+ *
+ * <p>This auto-configuration class is designed to set up the OGC API Features extension in GeoServer Cloud. It consists
+ * of:
+ *
  * <ul>
- * <li>Core configuration class that imports the core
- * applicationContext.xml</li>
- * <li>REST configuration class that imports the features
- * applicationContext.xml</li>
+ *   <li>Core configuration class that imports the core applicationContext.xml
+ *   <li>REST configuration class that imports the features applicationContext.xml
  * </ul>
  */
 @AutoConfiguration
@@ -29,12 +28,11 @@ import org.springframework.context.annotation.Import;
 @Import({OgcApiFeaturesConfiguration.class, OgcApiFeaturesWebUIConfiguration.class})
 public class OgcApiFeaturesAutoConfiguration {
 
-    /**
-     * Creates a ModuleStatus bean for OGC API Features.
-     */
+    /** Creates a ModuleStatus bean for OGC API Features. */
     @Bean
     ModuleStatus ogcApiFeatureStatus() {
         ModuleStatusImpl moduleStatus = new ModuleStatusImpl();
+        moduleStatus.setCategory(ModuleStatus.Category.EXTENSION);
         moduleStatus.setModule("gs-ogcapi-features");
         moduleStatus.setName("OGC API Features");
         moduleStatus.setAvailable(true);

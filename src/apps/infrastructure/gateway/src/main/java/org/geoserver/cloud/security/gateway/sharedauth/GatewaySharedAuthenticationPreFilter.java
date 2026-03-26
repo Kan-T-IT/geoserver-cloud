@@ -14,7 +14,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.neo4j.Neo4jProperties.Authentication;
 import org.springframework.cloud.gateway.filter.GatewayFilterChain;
 import org.springframework.cloud.gateway.filter.GlobalFilter;
 import org.springframework.core.Ordered;
@@ -27,31 +26,30 @@ import org.springframework.web.server.WebSession;
 import reactor.core.publisher.Mono;
 
 /**
- * {@link GlobalFilter} working in tandem with {@link GatewaySharedAuthenticationPostFilter} to
- * enable sharing the webui form-based authentication object with the other services.
+ * {@link GlobalFilter} working in tandem with {@link GatewaySharedAuthenticationPostFilter} to enable sharing the webui
+ * form-based authentication object with the other services.
  *
- * <p>When a user is logged in through the regular web ui's authentication form, the {@link
- * Authentication} object is held in the web ui's {@link WebSession}. Hence, further requests to
- * stateless services, as they're on separate containers, don't share the webui session, and hence
+ * <p>When a user is logged in through the regular web ui's authentication form, the
+ * {@code org.springframework.security.core.Authentication} object is held in the web ui's {@link WebSession}. Hence,
+ * further requests to stateless services, as they're on separate containers, don't share the webui session, and hence
  * are executed as anonymous.
  *
- * <p>This {@link GlobalFilter} enables a mechanism by which the authenticated user name and roles
- * can be shared with the stateless services through request and response headrers, using the
- * geoserver cloud gateway as the man in the middle.
+ * <p>This {@link GlobalFilter} enables a mechanism by which the authenticated user name and roles can be shared with
+ * the stateless services through request and response headrers, using the geoserver cloud gateway as the man in the
+ * middle.
  *
- * <p>The webui container will send a couple response headers with the authenticated user name and
- * roles. The gateway will store them in its own session, and forward them to all services as
- * request headers. The stateless services will intercept these request headers and impersonate the
- * authenticated user as a {@link PreAuthenticatedAuthenticationToken}.
+ * <p>The webui container will send a couple response headers with the authenticated user name and roles. The gateway
+ * will store them in its own session, and forward them to all services as request headers. The stateless services will
+ * intercept these request headers and impersonate the authenticated user as a
+ * {@code org.springframework.security.web.authentication.preauth.PreAuthenticatedAuthenticationToken}.
  *
- * <p>At the same time, the gateway will take care of removing the webui response headers from the
- * responses sent to the clients, and from incoming client requests.
+ * <p>At the same time, the gateway will take care of removing the webui response headers from the responses sent to the
+ * clients, and from incoming client requests.
  *
- * <p>This is the pre-filter in the above mentioned workflow, taking care of avoiding external
- * impresonation attempts by removing the {@literal x-gsc-username} and {@literal x-gsc-roles}
- * headers from incoming requests, and appending them to proxied requests using the values taken
- * from the {@link WebSession}, if present (as stored by the {@link
- * GatewaySharedAuthenticationPostFilter post-filter}.
+ * <p>This is the pre-filter in the above mentioned workflow, taking care of avoiding external impresonation attempts by
+ * removing the {@literal x-gsc-username} and {@literal x-gsc-roles} headers from incoming requests, and appending them
+ * to proxied requests using the values taken from the {@link WebSession}, if present (as stored by the
+ * {@link GatewaySharedAuthenticationPostFilter post-filter}.
  *
  * @since 1.9
  * @see GatewaySharedAuthenticationPostFilter
@@ -60,8 +58,8 @@ import reactor.core.publisher.Mono;
 public class GatewaySharedAuthenticationPreFilter implements GlobalFilter, Ordered {
 
     /**
-     * @return {@link Ordered#HIGHEST_PRECEDENCE}, being a pre-filter, means it'll run the first for
-     *     pre-processing before the request executed
+     * @return {@link Ordered#HIGHEST_PRECEDENCE}, being a pre-filter, means it'll run the first for pre-processing
+     *     before the request executed
      */
     @Override
     public int getOrder() {
@@ -76,8 +74,8 @@ public class GatewaySharedAuthenticationPreFilter implements GlobalFilter, Order
     }
 
     /**
-     * Before proceeding with the filter chain, if the username and roles are stored in the session,
-     * apply the request headers for the proxied service
+     * Before proceeding with the filter chain, if the username and roles are stored in the session, apply the request
+     * headers for the proxied service
      */
     private Mono<ServerWebExchange> addHeadersFromSession(ServerWebExchange exchange) {
         return exchange.getSession().map(session -> addHeadersFromSession(session, exchange));
@@ -158,6 +156,6 @@ public class GatewaySharedAuthenticationPreFilter implements GlobalFilter, Order
 
     private boolean impersonationAttempt(ServerWebExchange exchange) {
         HttpHeaders headers = exchange.getRequest().getHeaders();
-        return headers.containsKey(X_GSCLOUD_USERNAME) || headers.containsKey(X_GSCLOUD_ROLES);
+        return headers.containsHeader(X_GSCLOUD_USERNAME) || headers.containsHeader(X_GSCLOUD_ROLES);
     }
 }

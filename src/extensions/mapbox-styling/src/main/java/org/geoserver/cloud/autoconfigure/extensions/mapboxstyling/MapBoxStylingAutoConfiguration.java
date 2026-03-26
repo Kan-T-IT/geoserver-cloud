@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.mapboxstyling;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.config.factory.ImportFilteredResource;
 import org.geoserver.community.mbstyle.MBStyleHandler;
@@ -22,8 +22,7 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * Auto-configuration for MapBox Styling extension that provides a style handler
- * for MapBox stylesheets.
+ * Auto-configuration for MapBox Styling extension that provides a style handler for MapBox stylesheets.
  *
  * @since 2.27.0
  */
@@ -56,6 +55,7 @@ public class MapBoxStylingAutoConfiguration {
         @Bean(name = "MBStyleExtension")
         ModuleStatus mbStyleDisabledModuleStatus() {
             ModuleStatusImpl mod = new ModuleStatusImpl();
+            mod.setCategory(ModuleStatus.Category.EXTENSION);
             mod.setAvailable(true);
             mod.setEnabled(false);
             mod.setMessage(

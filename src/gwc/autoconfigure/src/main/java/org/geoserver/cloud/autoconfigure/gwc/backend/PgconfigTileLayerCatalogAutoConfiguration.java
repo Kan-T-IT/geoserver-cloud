@@ -5,10 +5,10 @@
 
 package org.geoserver.cloud.autoconfigure.gwc.backend;
 
+import jakarta.annotation.PostConstruct;
 import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Consumer;
-import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
@@ -23,7 +23,6 @@ import org.geoserver.cloud.gwc.backend.pgconfig.PgconfigTileLayerInfoRepository;
 import org.geoserver.cloud.gwc.backend.pgconfig.TileLayerInfoRepository;
 import org.geoserver.cloud.gwc.event.TileLayerEvent;
 import org.geoserver.cloud.gwc.repository.GeoServerTileLayerConfiguration;
-import org.geoserver.gwc.ConfigurableBlobStore;
 import org.geoserver.gwc.config.GWCConfigPersister;
 import org.geoserver.gwc.config.GWCInitializer;
 import org.geoserver.gwc.layer.TileLayerCatalog;
@@ -38,10 +37,10 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.jdbc.core.JdbcTemplate;
 
 /**
- * {@link AutoConfiguration @AutoConfiguration} to set up the GeoServer {@link TileLayerCatalog}
- * @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
- * using the "pgconfig" module implementation to store the tile layer configuration as part of the
- * GeoServer Catalog in the Postgres database;
+ * {@link AutoConfiguration @AutoConfiguration} to set up the GeoServer
+ * {@link TileLayerCatalog} @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be
+ * public using the "pgconfig" module implementation to store the tile layer configuration as part of the GeoServer
+ * Catalog in the Postgres database;
  *
  * @since 1.7
  * @see ConditionalOnPgconfigBackendEnabled
@@ -65,12 +64,8 @@ public class PgconfigTileLayerCatalogAutoConfiguration {
      * @param configLock
      */
     @Bean
-    PgconfigGwcInitializer gwcInitializer(
-            GWCConfigPersister configPersister,
-            ConfigurableBlobStore blobStore,
-            GeoServerTileLayerConfiguration tileLayerCatalog,
-            GeoServerConfigurationLock configLock) {
-        return new PgconfigGwcInitializer(configPersister, blobStore, tileLayerCatalog, configLock);
+    PgconfigGwcInitializer gwcInitializer(GWCConfigPersister configPersister, GeoServerConfigurationLock configLock) {
+        return new PgconfigGwcInitializer(configPersister, configLock);
     }
 
     @Bean(name = "gwcCatalogConfiguration")

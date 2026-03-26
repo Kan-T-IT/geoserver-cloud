@@ -16,6 +16,7 @@ import org.geoserver.config.util.XStreamPersister;
 import org.geoserver.config.util.XStreamPersisterFactory;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.junit.jupiter.api.Disabled;
+import org.junit.jupiter.api.Test;
 
 class XmlCatalogInfoLookupConformanceTest extends CatalogConformanceTest {
 
@@ -55,9 +56,15 @@ class XmlCatalogInfoLookupConformanceTest extends CatalogConformanceTest {
             returned ft/ft2 where mockito is not throwing the expected exception
             """)
     @Override
-    public void testSaveDataStoreRollbacksBothStoreAndResources() {}
+    @Test
+    protected void testSaveDataStoreRollbacksBothStoreAndResources() {
+        super.testSaveDataStoreRollbacksBothStoreAndResources();
+    }
 
     @Disabled("don't care it can't save the resourceinfo when saving a layer, it's just a demo implementation")
     @Override
-    public void testEnableLayer() {}
+    @Test
+    protected void testEnableLayer() {
+        super.testEnableLayer();
+    }
 }

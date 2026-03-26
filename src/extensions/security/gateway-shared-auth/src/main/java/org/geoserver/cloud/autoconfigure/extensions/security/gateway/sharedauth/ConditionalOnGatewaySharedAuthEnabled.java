@@ -11,22 +11,20 @@ import java.lang.annotation.Inherited;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.geoserver.cloud.autoconfigure.security.ConditionalOnGeoServerSecurityEnabled;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
 /**
  * Meta-annotation to conditionally register beans only when Gateway Shared Auth is enabled.
  *
- * <p>This conditional annotation is used to enable configuration classes or beans
- * only when the Gateway Shared Authentication feature is enabled. It checks the
- * following condition:
+ * <p>This conditional annotation is used to enable configuration classes or beans only when the Gateway Shared
+ * Authentication feature is enabled. It checks the following condition:
  *
  * <pre>
  * geoserver.extension.security.gateway-shared-auth.enabled = true
  * </pre>
  *
- * <p>Note that the Gateway service must also be configured with the same property
- * to enable the shared authentication mechanism to work end-to-end.
+ * <p>Note that the Gateway service must also be configured with the same property to enable the shared authentication
+ * mechanism to work end-to-end.
  *
  * @see GatewaySharedAuthConfigProperties
  * @see ConditionalOnGatewaySharedAuthDisabled
@@ -36,7 +34,6 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Documented
 @Inherited
-@ConditionalOnGeoServerSecurityEnabled
 @ConditionalOnProperty(
         name = GatewaySharedAuthConfigProperties.ENABLED_PROP,
         havingValue = "true",

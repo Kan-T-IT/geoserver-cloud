@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.autoconfigure.gwc.service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
 import org.geoserver.cloud.gwc.config.services.WebMapServiceConfiguration;
@@ -14,9 +14,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Import;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 @AutoConfiguration
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnProperty(

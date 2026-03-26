@@ -5,6 +5,7 @@
 
 package org.geoserver.cloud.web.ui;
 
+import java.io.Serial;
 import org.apache.wicket.Component;
 import org.apache.wicket.behavior.AttributeAppender;
 import org.apache.wicket.markup.html.basic.Label;
@@ -15,11 +16,10 @@ import org.geoserver.web.wicket.GeoServerDataProvider.Property;
 import org.geoserver.web.wicket.GeoServerTablePanel;
 import org.geoserver.web.wicket.SimpleExternalLink;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 public class ServiceRegistryPage extends GeoServerSecuredPage {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public ServiceRegistryPage() {
@@ -31,6 +31,7 @@ public class ServiceRegistryPage extends GeoServerSecuredPage {
     }
 
     static class ServiceRegistryTable extends GeoServerTablePanel<ServiceInstance> {
+        @Serial
         private static final long serialVersionUID = 1L;
 
         public ServiceRegistryTable(String id) {

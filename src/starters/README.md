@@ -46,7 +46,7 @@ gs-cloud-starter-webmvc
 
 ## gs-cloud-spring-cloud-starter dependencies
 gs-cloud-spring-cloud-starter
-├── Spring Cloud dependencies (eureka, config client, etc.)
+├── Spring Cloud dependencies (consul, config client, etc.)
 └── gs-cloud-catalog-event-bus (bridges catalog events to Spring Cloud Bus)
 
 ## gs-cloud-starter-extensions dependencies
@@ -63,7 +63,6 @@ gs-cloud-starter-output-formats
 
 # Independent starters (no starter dependencies)
 gs-cloud-spring-boot-starter
-gs-cloud-spring-boot3-starter
 gs-cloud-starter-catalog-backend
 gs-cloud-starter-data-formats
 gs-cloud-starter-security
@@ -98,7 +97,7 @@ A typical GeoServer microservice needs these key starters:
    - Service ID filtering
 
 2. **`gs-cloud-spring-cloud-starter`**: Provides Spring Cloud capabilities:
-   - Service discovery (Eureka client)
+   - Service discovery (Consul client)
    - Configuration management (Config client)
    - Event bus integration
    - Catalog events bridging to Spring Cloud Bus

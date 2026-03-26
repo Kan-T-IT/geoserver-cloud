@@ -13,9 +13,10 @@ import org.geoserver.cloud.autoconfigure.extensions.test.ConditionalTestAutoConf
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
@@ -25,6 +26,7 @@ import org.xmlunit.assertj3.XmlAssert;
 
 @SpringBootTest(classes = WpsApplication.class, webEnvironment = WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("test")
+@AutoConfigureTestRestTemplate
 class WpsApplicationTest {
 
     static @TempDir Path datadir;
@@ -59,22 +61,19 @@ class WpsApplicationTest {
     /**
      * Tests the service-specific conditional annotations.
      *
-     * <p>
-     * Verifies that only the WPS conditional bean is activated in this service,
-     * based on the geoserver.service.wps.enabled=true property set in bootstrap.yml.
-     * This test relies on the ConditionalTestAutoConfiguration class from the
-     * extensions-core test-jar, which contains beans conditionally activated
-     * based on each GeoServer service type.
+     * <p>Verifies that only the WPS conditional bean is activated in this service, based on the
+     * geoserver.service.wps.enabled=true property set in bootstrap.yml. This test relies on the
+     * ConditionalTestAutoConfiguration class from the extensions-core test-jar, which contains beans conditionally
+     * activated based on each GeoServer service type.
      */
     @Test
     void testServiceConditionalAnnotations() {
         // This should exist in WPS service
         assertThat(context.containsBean("wpsConditionalBean")).isTrue();
-        if (context.containsBean("wpsConditionalBean")) {
-            ConditionalTestAutoConfiguration.ConditionalTestBean bean =
-                    context.getBean("wpsConditionalBean", ConditionalTestAutoConfiguration.ConditionalTestBean.class);
-            assertThat(bean.getServiceName()).isEqualTo("WPS");
-        }
+
+        ConditionalTestAutoConfiguration.ConditionalTestBean bean =
+                context.getBean("wpsConditionalBean", ConditionalTestAutoConfiguration.ConditionalTestBean.class);
+        assertThat(bean.getServiceName()).isEqualTo("WPS");
 
         // These should not exist in WPS service
         assertThat(context.containsBean("wfsConditionalBean")).isFalse();

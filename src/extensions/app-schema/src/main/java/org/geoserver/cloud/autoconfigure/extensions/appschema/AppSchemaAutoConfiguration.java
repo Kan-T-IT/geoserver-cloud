@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.appschema;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.platform.ModuleStatus;
 import org.geoserver.platform.ModuleStatusImpl;
@@ -17,8 +17,8 @@ import org.springframework.context.annotation.Import;
 /**
  * Auto-configuration for the GeoServer App-Schema extension.
  *
- * <p>This extension enables complex feature mapping using XML-based application schemas. It allows
- * GeoServer to serve complex features by mapping simple features to complex schemas.
+ * <p>This extension enables complex feature mapping using XML-based application schemas. It allows GeoServer to serve
+ * complex features by mapping simple features to complex schemas.
  *
  * <p>The extension is disabled by default and can be enabled with:
  *
@@ -47,8 +47,7 @@ public class AppSchemaAutoConfiguration {
      *
      * <p>Equivalent to the following XML configuration:
      *
-     * <pre>
-     * {@code
+     * <pre>{@code
      * <bean id="appSchemaExtension" class=
      * "org.geoserver.platform.ModuleStatusImpl">
      *  <property name="module" value="gs-app-schema-core" />
@@ -66,6 +65,7 @@ public class AppSchemaAutoConfiguration {
     ModuleStatus appSchemaExtension(AppSchemaConfigProperties config) {
         ModuleStatusImpl mod =
                 new ModuleStatusImpl("gs-app-schema-core", "App Schema Core Extension", "App Schema Core extension");
+        mod.setCategory(ModuleStatus.Category.EXTENSION);
         mod.setAvailable(true);
         mod.setEnabled(config.isEnabled());
         if (config.isEnabled()) {

@@ -8,21 +8,23 @@ package org.geoserver.cloud.autoconfigure.wms;
 import org.geoserver.cloud.config.factory.ImportFilteredResource;
 import org.geoserver.cloud.wms.controller.kml.KMLIconsController;
 import org.geoserver.cloud.wms.controller.kml.KMLReflectorController;
-import org.geoserver.community.mbstyle.MBStyleHandler;
+import org.geoserver.kml.WFSKMLOutputFormat;
 import org.geoserver.ows.Dispatcher;
 import org.geoserver.wms.icons.IconService;
 import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
-import org.springframework.context.annotation.Configuration;
 
 /**
+ * TODO: move kml to extensions
+ *
  * @since 1.0
  */
-@Configuration(proxyBeanMethods = false)
+@AutoConfiguration
 @ConditionalOnProperty(name = "geoserver.wms.kml.enabled", havingValue = "true", matchIfMissing = true)
-@ConditionalOnClass(MBStyleHandler.class)
+@ConditionalOnClass(WFSKMLOutputFormat.class)
 @ImportFilteredResource("jar:gs-kml-.*!/applicationContext.xml#name=^(?!WFSKMLOutputFormat|kmlURLMapping).*$")
 public class KMLAutoConfiguration {
 

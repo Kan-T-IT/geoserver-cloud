@@ -39,9 +39,7 @@ import org.geowebcache.layer.TileLayer;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-/**
- * @since 1.7
- */
+/** @since 1.7 */
 class PgconfigTileLayerCatalogTest {
 
     private PgconfigTileLayerInfoRepository repository;
@@ -201,7 +199,7 @@ class PgconfigTileLayerCatalogTest {
         List<GeoServerTileLayer> actual = tlCatalog.getLayers();
         assertThat(actual).hasSameSizeAs(tileLayerInfos);
 
-        assertTileLayer(l1, actual.get(0));
+        assertTileLayer(l1, actual.getFirst());
         assertTileLayer(l2, actual.get(1));
         assertTileLayer(l3, actual.get(2));
     }

@@ -5,9 +5,6 @@
 
 package org.geoserver.cloud.backend.pgconfig.catalog.repository;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import java.io.UncheckedIOException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.HashMap;
@@ -18,7 +15,9 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.function.Function;
 import lombok.extern.slf4j.Slf4j;
+import org.geoserver.catalog.AttributeTypeInfo;
 import org.geoserver.catalog.CatalogInfo;
+import org.geoserver.catalog.FeatureTypeInfo;
 import org.geoserver.catalog.LayerGroupInfo;
 import org.geoserver.catalog.LayerInfo;
 import org.geoserver.catalog.NamespaceInfo;
@@ -31,10 +30,9 @@ import org.geoserver.catalog.impl.ClassMappings;
 import org.geoserver.catalog.impl.LayerInfoImpl;
 import org.geoserver.catalog.impl.ModificationProxy;
 import org.springframework.jdbc.core.RowMapper;
+import tools.jackson.databind.ObjectMapper;
 
-/**
- * @since 1.4
- */
+/** @since 1.4 */
 @Slf4j(topic = "org.geoserver.cloud.backend.pgconfig.catalog.repository.rowmapper")
 public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMapper<T> {
 
@@ -210,8 +208,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
     /**
      * {@link RowMapper} function for {@link WorkspaceInfo}
      *
-     * <p>
-     * Expects the following columns:
+     * <p>Expects the following columns:
      *
      * <pre>{@code
      *    Column        |   Type   |
@@ -341,6 +338,15 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
         if (null != resource) {
             setStore(resource, rs);
             setNamespace(rs, resource);
+        }
+        if (resource instanceof FeatureTypeInfo ft) {
+            List<AttributeTypeInfo> attributes = ft.getAttributes();
+            if (attributes != null && !attributes.isEmpty()) {
+                FeatureTypeInfo mproxy = ModificationProxy.create(ft, FeatureTypeInfo.class);
+                for (AttributeTypeInfo att : attributes) {
+                    att.setFeatureType(mproxy);
+                }
+            }
         }
         return resource;
     }
@@ -494,11 +500,7 @@ public final class CatalogInfoRowMapper<T extends CatalogInfo> implements RowMap
         if (null == encoded) {
             return null;
         }
-        try {
-            return objectMapper.readValue(encoded, valueType);
-        } catch (JsonProcessingException e) {
-            throw new UncheckedIOException(e);
-        }
+        return objectMapper.readValue(encoded, valueType);
     }
 
     public static <I extends CatalogInfo> CatalogInfoRowMapper<I> newInstance() {

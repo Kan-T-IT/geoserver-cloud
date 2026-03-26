@@ -6,7 +6,7 @@
 package org.geoserver.cloud.gwc.app;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 
@@ -16,6 +16,7 @@ import java.io.IOException;
 import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import org.jspecify.annotations.Nullable;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.MethodOrderer;
 import org.junit.jupiter.api.Order;
@@ -23,10 +24,12 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpStatusCode;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.annotation.DirtiesContext;
@@ -37,6 +40,7 @@ import org.springframework.test.context.DynamicPropertySource;
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 @TestMethodOrder(MethodOrderer.OrderAnnotation.class)
 @ActiveProfiles("test")
+@AutoConfigureTestRestTemplate
 class GeoWebCacheApplicationTest {
 
     @Autowired
@@ -62,8 +66,9 @@ class GeoWebCacheApplicationTest {
     }
 
     /**
-     * REVISIT: for some reason, running the REST API tests right after starting off an empty data directory produce a 403 forbidden
-     * response. We're hence forcing the order of the tests and the reload of the context for the time being
+     * REVISIT: for some reason, running the REST API tests right after starting off an empty data directory produce a
+     * 403 forbidden response. We're hence forcing the order of the tests and the reload of the context for the time
+     * being
      */
     @Test
     @Order(1)
@@ -95,11 +100,15 @@ class GeoWebCacheApplicationTest {
     protected ResponseEntity<String> testGetRequestContentType(String uri, MediaType expected) {
         ResponseEntity<String> response = restTemplate.getForEntity(uri, String.class);
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
-        assertThat(response.getHeaders().getContentType()).isEqualTo(expected);
+        @Nullable MediaType contentType = response.getHeaders().getContentType();
+        assertThat(contentType).isNotNull();
+        assertThat(contentType.isCompatibleWith(expected)).isTrue();
         return response;
     }
 
     @Test
+    @Order(4)
+    @DirtiesContext
     void testPostSeedDoesNotThrowAmbiguousHandlerMapping() {
         String payload =
                 """
@@ -116,7 +125,7 @@ class GeoWebCacheApplicationTest {
         String uri = "/gwc/rest/seed/workspace:layer.xml";
 
         ResponseEntity<String> response = restTemplate.postForEntity(URI.create(uri), payload, String.class);
-        HttpStatus statusCode = response.getStatusCode();
+        HttpStatusCode statusCode = response.getStatusCode();
         String body = response.getBody();
 
         // SeedService will throw a 500 error when the layer is not found

@@ -4,7 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.extensions.ogcapi.features;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWFS;
 import org.geoserver.cloud.config.factory.ImportFilteredResource;
@@ -12,9 +12,7 @@ import org.geoserver.cloud.configuration.ogcapi.core.OgcApiCoreConfiguration;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-/**
- * Configuration class for OGC API Features, conditional on WFS service.
- */
+/** Configuration class for OGC API Features, conditional on WFS service. */
 @Configuration
 @ConditionalOnOgcApiFeatures
 @ConditionalOnGeoServerWFS

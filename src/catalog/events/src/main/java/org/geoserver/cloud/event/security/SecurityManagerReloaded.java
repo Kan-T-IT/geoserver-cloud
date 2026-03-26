@@ -5,6 +5,7 @@
 
 package org.geoserver.cloud.event.security;
 
+import java.io.Serial;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.ToString;
@@ -12,17 +13,17 @@ import org.geoserver.security.GeoServerSecurityManager;
 import org.springframework.context.ApplicationEvent;
 
 /**
- * Event fired after a {@link GeoServerSecurityManager} has successfully completed its reload
- * process.
+ * Event fired after a {@link GeoServerSecurityManager} has successfully completed its reload process.
  *
- * <p>This event indicates that the security manager has fully initialized or reloaded its
- * configuration, and it's safe to make further security configuration changes.
+ * <p>This event indicates that the security manager has fully initialized or reloaded its configuration, and it's safe
+ * to make further security configuration changes.
  *
  * @since 1.9
  */
 @ToString(callSuper = true)
 public class SecurityManagerReloaded extends ApplicationEvent {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     /** The update sequence at the time this event was created. */

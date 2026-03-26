@@ -54,11 +54,10 @@ import org.geowebcache.storage.blobstore.file.FilePathUtils;
 import org.springframework.web.context.WebApplicationContext;
 
 /**
- * {@link TileLayerCatalog} compatible with {@link DefaultTileLayerCatalog} in that it'll read from
- * and save to the same XML resources, but instead of caching {@code GeoServerTileLayerInfo}s
- * itself, fully delegates to the {@link ResourceStore}, leaving the responsibility of caching
- * {@link GeoServerTileLayerInfo}s to the caller to implement through composition with a decorator
- * or any other means.
+ * {@link TileLayerCatalog} compatible with {@link DefaultTileLayerCatalog} in that it'll read from and save to the same
+ * XML resources, but instead of caching {@code GeoServerTileLayerInfo}s itself, fully delegates to the
+ * {@link ResourceStore}, leaving the responsibility of caching {@link GeoServerTileLayerInfo}s to the caller to
+ * implement through composition with a decorator or any other means.
  *
  * @since 1.0
  */
@@ -69,8 +68,8 @@ public class ResourceStoreTileLayerCatalog implements TileLayerCatalog {
     private final @NonNull ResourceStore resourceStore;
 
     /**
-     * Used by {@link XMLConfiguration#getConfiguredXStreamWithContext}, at {@link #initialize()},
-     * to lookup implementations of {@link org.geowebcache.config.XMLConfigurationProvider}, such as
+     * Used by {@link XMLConfiguration#getConfiguredXStreamWithContext}, at {@link #initialize()}, to lookup
+     * implementations of {@link org.geowebcache.config.XMLConfigurationProvider}, such as
      * {@code S3BlobStoreConfigProvider}, etc. This could be improved.
      */
     private final Optional<WebApplicationContext> applicationContext;
@@ -166,7 +165,7 @@ public class ResourceStoreTileLayerCatalog implements TileLayerCatalog {
         checkInitialized();
         GeoServerTileLayerInfo info = null;
         Optional<Resource> resource = findFile(tileLayerId);
-        if (!resource.isPresent()) {
+        if (resource.isEmpty()) {
             return null;
         }
         final Resource file = resource.get();
@@ -205,8 +204,8 @@ public class ResourceStoreTileLayerCatalog implements TileLayerCatalog {
     }
 
     /**
-     * Precondition check all public methods should make before proceeding to ensure they've been
-     * called on an initialized state
+     * Precondition check all public methods should make before proceeding to ensure they've been called on an
+     * initialized state
      *
      * @throws IllegalStateException if this layer catalog has not been initialized yet
      */
@@ -299,7 +298,7 @@ public class ResourceStoreTileLayerCatalog implements TileLayerCatalog {
     private void closeSilently(DirectoryStream<Path> directoryStream) {
         try {
             directoryStream.close();
-        } catch (IOException e) {
+        } catch (IOException _) {
             log.warn("Error closing directory stream for {}", baseDirectory);
         }
     }
@@ -323,12 +322,17 @@ public class ResourceStoreTileLayerCatalog implements TileLayerCatalog {
         listeners.forEach(l -> notify(l, layerId, eventType));
     }
 
-    private void notify(TileLayerCatalogListener l, String layerId, Type eventType) {
+    private void notify(@NonNull TileLayerCatalogListener listener, String layerId, Type eventType) {
         try {
-            l.onEvent(layerId, eventType);
+            listener.onEvent(layerId, eventType);
         } catch (RuntimeException e) {
-            String listener = l == null ? null : l.getClass().getCanonicalName();
-            log.warn("Error notifying listener of {} change event for TileLayer {}", listener, eventType, layerId, e);
+            String listenerType = listener.getClass().getCanonicalName();
+            log.warn(
+                    "Error notifying listener {} of {} change event for TileLayer {}",
+                    listenerType,
+                    eventType,
+                    layerId,
+                    e);
         }
     }
 
@@ -340,6 +344,8 @@ public class ResourceStoreTileLayerCatalog implements TileLayerCatalog {
         xstream.allowTypes(new String[] {"java.util.Collections$UnmodifiableSet"});
         xstream.addDefaultImplementation(LinkedHashSet.class, Set.class);
         xstream.alias("warning", DimensionWarning.WarningType.class);
+        xstream.ignoreUnknownElements();
+
         return xstream;
     }
 }

@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.security.authkey;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.config.factory.ImportFilteredResource;
 import org.geoserver.platform.ModuleStatus;
@@ -33,8 +33,8 @@ import org.springframework.context.annotation.Import;
  *         enabled: false
  * }</pre>
  *
- * <p>The externalized configuration in config/geoserver.yml provides backward compatibility
- * with the older property through property placeholders:
+ * <p>The externalized configuration in config/geoserver.yml provides backward compatibility with the older property
+ * through property placeholders:
  *
  * <pre>{@code
  * geoserver:
@@ -63,6 +63,7 @@ public class AuthKeyAutoConfiguration {
     @Bean(name = "authKeyExtension")
     ModuleStatus authKeyExtension(AuthKeyConfigProperties config) {
         ModuleStatusImpl module = new ModuleStatusImpl();
+        module.setCategory(ModuleStatus.Category.EXTENSION);
         module.setName("Authkey Extension");
         module.setModule("gs-authkey");
         module.setComponent("Authkey extension");
@@ -74,9 +75,7 @@ public class AuthKeyAutoConfiguration {
         return module;
     }
 
-    /**
-     * Configuration for the core AuthKey components.
-     */
+    /** Configuration for the core AuthKey components. */
     @ConditionalOnAuthKey
     @ImportFilteredResource(Enabled.INCLUDE)
     static @Configuration class Enabled {
@@ -88,9 +87,7 @@ public class AuthKeyAutoConfiguration {
         }
     }
 
-    /**
-     * Configuration for the AuthKey Web UI components.
-     */
+    /** Configuration for the AuthKey Web UI components. */
     @ConditionalOnAuthKey
     @ConditionalOnClass(AuthenticationFilterPanel.class)
     @ImportFilteredResource(WebUI.INCLUDE)

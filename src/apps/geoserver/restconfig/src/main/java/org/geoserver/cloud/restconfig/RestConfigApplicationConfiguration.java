@@ -5,39 +5,42 @@
 
 package org.geoserver.cloud.restconfig;
 
-import java.io.IOException;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import org.geoserver.rest.RequestInfo;
+import java.util.Arrays;
+import java.util.List;
+import org.geoserver.rest.PutIgnoringExtensionContentNegotiationStrategy;
 import org.geoserver.rest.RestConfiguration;
+import org.geoserver.rest.RestControllerAdvice;
+import org.geoserver.rest.SuffixStripFilter;
 import org.geoserver.rest.catalog.AdminRequestCallback;
-import org.geoserver.rest.resources.ResourceController;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.format.support.FormattingConversionService;
-import org.springframework.web.accept.ContentNegotiationManager;
-import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.mvc.method.annotation.RequestMappingHandlerMapping;
-import org.springframework.web.servlet.resource.ResourceUrlProvider;
+import org.springframework.context.annotation.FilterType;
+import org.springframework.http.MediaType;
 
+/**
+ * Core Spring configuration for the GeoServer Cloud REST microservice.
+ *
+ * <p>This class extends the standard GeoServer {@link RestConfiguration} to adapt the Spring MVC environment for
+ * cloud-native microservices. It is responsible for:
+ *
+ * <ul>
+ *   <li>Setting up component scanning for GeoServer REST controllers.
+ *   <li>Registering specialized filters like {@link RestRequestPathInfoFilter} and {@link NpeAwareSuffixStripFilter} to
+ *       ensure the REST API receives requests in the expected format (servlet path and path info).
+ *   <li>Providing {@link RestControllerAdvice} for consistent REST error handling and translation of internal
+ *       exceptions to appropriate HTTP status codes.
+ *   <li>Configuring content negotiation strategies, specifically addressing cases where URI extensions (e.g.,
+ *       {@code .sld}) should not interfere with the desired response format during PUT/POST operations.
+ * </ul>
+ */
 @Configuration
-@ComponentScan(basePackageClasses = org.geoserver.rest.AbstractGeoServerController.class)
-@SuppressWarnings("deprecation")
+@ComponentScan(
+        basePackageClasses = org.geoserver.rest.AbstractGeoServerController.class,
+        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SuffixStripFilter.class))
 public class RestConfigApplicationConfiguration extends RestConfiguration {
-
-    @Override
-    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-        super.configureContentNegotiation(configurer);
-        configurer.favorPathExtension(true);
-    }
 
     @Bean
     @ConditionalOnMissingBean
@@ -46,68 +49,49 @@ public class RestConfigApplicationConfiguration extends RestConfiguration {
     }
 
     /**
-     * "Deprecate use of path extensions in request mapping and content negotiation" {@code
-     * https://github.com/spring-projects/spring-framework/issues/24179}
+     * Since we use a restricted component scan, we need a {@link RestControllerAdvice} explicitly to handle http error
+     * code translations.
      */
     @Bean
-    @Override
-    public RequestMappingHandlerMapping requestMappingHandlerMapping(
-            @Qualifier("mvcContentNegotiationManager") ContentNegotiationManager contentNegotiationManager,
-            @Qualifier("mvcConversionService") FormattingConversionService conversionService,
-            @Qualifier("mvcResourceUrlProvider") ResourceUrlProvider resourceUrlProvider) {
-
-        RequestMappingHandlerMapping handlerMapping =
-                super.requestMappingHandlerMapping(contentNegotiationManager, conversionService, resourceUrlProvider);
-
-        handlerMapping.setUseSuffixPatternMatch(true);
-        handlerMapping.setUseRegisteredSuffixPatternMatch(true);
-
-        return handlerMapping;
-    }
-
-    @Bean
-    SetRequestPathInfoFilter setRequestPathInfoFilter() {
-        return new SetRequestPathInfoFilter();
+    RestControllerAdvice restControllerAdvice() {
+        return new RestControllerAdvice();
     }
 
     /**
-     * GeoSever REST API always expect the {@link HttpServletRequest#getServletPath()} to be
-     * {@literal /rest}, and {@link HttpServletRequest#getPathInfo()} whatever comes after in the
-     * request URI.
-     *
-     * <p>for example: {@link RequestInfo} constructor, {@link ResourceController#resource}, etc.
+     * Provides the {@link RestRequestPathInfoFilter} bean, which is responsible for adapting incoming request paths to
+     * meet the GeoServer REST API's expectations for servlet path and path info.
      */
-    static class SetRequestPathInfoFilter implements Filter {
+    @Bean
+    RestRequestPathInfoFilter restRequestPathInfoFilter() {
+        return new RestRequestPathInfoFilter();
+    }
 
-        @Override
-        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
-                throws IOException, ServletException {
+    /**
+     * Override of {@link SuffixStripFilter} making sure getPathInfo() does not return null
+     *
+     * @return SuffixStripFilter as required by {@link RestConfiguration#configureContentNegotiation}'s call to
+     *     {@code GeoServerExtensions.bean(SuffixStripFilter.class)}
+     */
+    @Bean
+    SuffixStripFilter suffixStripFilter(ApplicationContext appContext) {
+        return new NpeAwareSuffixStripFilter(appContext);
+    }
 
-            request = adaptRequest((HttpServletRequest) request);
-            chain.doFilter(request, response);
-        }
-
-        protected ServletRequest adaptRequest(HttpServletRequest request) {
-            final String requestURI = request.getRequestURI();
-            final String restBasePath = "/rest";
-            final int restIdx = requestURI.indexOf(restBasePath);
-            if (restIdx > -1) {
-                final String pathToRest = requestURI.substring(0, restIdx + restBasePath.length());
-                final String pathInfo = requestURI.substring(pathToRest.length());
-
-                return new HttpServletRequestWrapper(request) {
-                    @Override
-                    public String getServletPath() {
-                        return restBasePath;
-                    }
-
-                    @Override
-                    public String getPathInfo() {
-                        return pathInfo;
-                    }
-                };
-            }
-            return request;
-        }
+    /**
+     * Workaround to support regular response content type when extension is in path.
+     *
+     * <p>Without this, a PUT request to {@code /styles/{styleName}.sld} would be interpreted by Spring's content
+     * negotiation as asking for an {@code application/vnd.ogc.sld+xml} response, which the controller does not produce,
+     * resulting in a 406 Not Acceptable error.
+     *
+     * <p>This bean is typically provided by an inner class in {@code StyleController}'s
+     * {@code StyleControllerConfiguration} inner configuration class, but since we use a restricted component scan, we
+     * must declare it explicitly.
+     */
+    @Bean
+    PutIgnoringExtensionContentNegotiationStrategy stylePutContentNegotiationStrategy() {
+        return new PutIgnoringExtensionContentNegotiationStrategy(
+                List.of("/rest/styles/{styleName}", "/rest/workspaces/{workspaceName}/styles/{styleName}"),
+                Arrays.asList(MediaType.APPLICATION_JSON, MediaType.APPLICATION_XML, MediaType.TEXT_HTML));
     }
 }

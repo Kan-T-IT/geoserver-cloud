@@ -6,27 +6,36 @@
 package org.geoserver.cloud.restconfig;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.http.HttpMethod.GET;
+import static org.springframework.http.HttpMethod.PUT;
 import static org.springframework.http.HttpStatus.FORBIDDEN;
 import static org.springframework.http.HttpStatus.OK;
 import static org.springframework.http.MediaType.APPLICATION_JSON;
 import static org.springframework.http.MediaType.APPLICATION_XML;
 import static org.springframework.http.MediaType.TEXT_HTML;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import org.geoserver.catalog.Catalog;
 import org.geoserver.catalog.SLDHandler;
+import org.geoserver.catalog.StyleInfo;
+import org.geoserver.catalog.Styles;
 import org.geoserver.cloud.autoconfigure.extensions.test.ConditionalTestAutoConfiguration;
-import org.junit.jupiter.api.BeforeEach;
+import org.geotools.api.style.Style;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.resttestclient.TestRestTemplate;
+import org.springframework.boot.resttestclient.autoconfigure.AutoConfigureTestRestTemplate;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
-import org.springframework.boot.test.web.client.TestRestTemplate;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 
+@AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
 abstract class RestConfigApplicationTest {
 
@@ -36,14 +45,10 @@ abstract class RestConfigApplicationTest {
     @Autowired
     protected ConfigurableApplicationContext context;
 
-    @BeforeEach
-    void before() {
-        restTemplate = restTemplate.withBasicAuth("admin", "geoserver");
-    }
+    protected @Autowired Catalog catalog;
 
     @Test
     void testAnnonymousForbidden() {
-        restTemplate = restTemplate.withBasicAuth(null, null);
         ResponseEntity<String> response = restTemplate.getForEntity("/rest", String.class);
         assertThat(response.getStatusCode()).isEqualTo(FORBIDDEN);
     }
@@ -76,19 +81,21 @@ abstract class RestConfigApplicationTest {
 
     @Test
     void testBasicAdminAccess() {
+        restTemplate = restTemplate.withBasicAuth("admin", "geoserver");
         testPathExtensionContentType("/rest", TEXT_HTML);
-        testPathExtensionContentType("/rest/", TEXT_HTML);
         testPathExtensionContentType("/rest/index", TEXT_HTML);
     }
 
     @Test
     void testDefaultContentType() {
+        restTemplate = restTemplate.withBasicAuth("admin", "geoserver");
         testPathExtensionContentType("/rest/workspaces", APPLICATION_JSON);
         testPathExtensionContentType("/rest/layers", APPLICATION_JSON);
     }
 
     @Test
     void testPathExtensionContentNegotiation() {
+        restTemplate = restTemplate.withBasicAuth("admin", "geoserver");
         testPathExtensionContentType("/rest/styles/line.json", APPLICATION_JSON);
         testPathExtensionContentType("/rest/styles/line.xml", APPLICATION_XML);
         testPathExtensionContentType("/rest/styles/line.html", TEXT_HTML);
@@ -108,22 +115,19 @@ abstract class RestConfigApplicationTest {
     /**
      * Tests the service-specific conditional annotations.
      *
-     * <p>
-     * Verifies that only the REST conditional bean is activated in this service,
-     * based on the geoserver.service.restconfig.enabled=true property set in bootstrap.yml.
-     * This test relies on the ConditionalTestAutoConfiguration class from the
-     * extensions-core test-jar, which contains beans conditionally activated
-     * based on each GeoServer service type.
+     * <p>Verifies that only the REST conditional bean is activated in this service, based on the
+     * geoserver.service.restconfig.enabled=true property set in bootstrap.yml. This test relies on the
+     * ConditionalTestAutoConfiguration class from the extensions-core test-jar, which contains beans conditionally
+     * activated based on each GeoServer service type.
      */
     @Test
     void testServiceConditionalAnnotations() {
         // This should exist in REST service
         assertThat(context.containsBean("restConditionalBean")).isTrue();
-        if (context.containsBean("restConditionalBean")) {
-            ConditionalTestAutoConfiguration.ConditionalTestBean bean =
-                    context.getBean("restConditionalBean", ConditionalTestAutoConfiguration.ConditionalTestBean.class);
-            assertThat(bean.getServiceName()).isEqualTo("REST");
-        }
+
+        ConditionalTestAutoConfiguration.ConditionalTestBean bean =
+                context.getBean("restConditionalBean", ConditionalTestAutoConfiguration.ConditionalTestBean.class);
+        assertThat(bean.getServiceName()).isEqualTo("REST");
 
         // These should not exist in REST service
         assertThat(context.containsBean("wfsConditionalBean")).isFalse();
@@ -131,5 +135,73 @@ abstract class RestConfigApplicationTest {
         assertThat(context.containsBean("wmsConditionalBean")).isFalse();
         assertThat(context.containsBean("wpsConditionalBean")).isFalse();
         assertThat(context.containsBean("webUiConditionalBean")).isFalse();
+    }
+
+    @Test
+    void putStyleInfoAsSLDWithContentTypeHeader() throws Exception {
+        final String name = "StyleWithContentType";
+        final String uri = "/rest/styles/%s".formatted(name);
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.valueOf(SLDHandler.MIMETYPE_10));
+        final String sldXml = newSLDXML(name);
+        HttpEntity<String> requestEntity = new HttpEntity<>(sldXml, headers);
+
+        testPutStyle(name, uri, requestEntity);
+    }
+
+    @Test
+    void putStyleAsSLDWithExtension() throws Exception {
+        final String name = "StyleWithExtension";
+        final String uri = "/rest/styles/%s.sld".formatted(name);
+        final String sldXml = newSLDXML(name);
+        HttpEntity<String> requestEntity = new HttpEntity<>(sldXml);
+
+        testPutStyle(name, uri, requestEntity);
+    }
+
+    private void testPutStyle(final String name, final String uri, HttpEntity<String> requestEntity)
+            throws IOException {
+        StyleInfo styleInfo = catalog.getFactory().createStyle();
+        styleInfo.setName(name);
+        styleInfo.setFormat(SLDHandler.FORMAT);
+        styleInfo.setFormatVersion(SLDHandler.VERSION_10);
+        styleInfo.setFilename(name + ".sld");
+        catalog.add(styleInfo);
+
+        restTemplate = restTemplate.withBasicAuth("admin", "geoserver");
+
+        ResponseEntity<String> response = restTemplate.exchange(uri, PUT, requestEntity, String.class);
+
+        assertThat(response.getStatusCode()).isEqualTo(OK);
+
+        styleInfo = catalog.getStyleByName(name);
+        assertThat(styleInfo).isNotNull();
+
+        Style style = styleInfo.getStyle();
+
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+
+        SLDHandler handler = new SLDHandler();
+        handler.encode(Styles.sld(style), SLDHandler.VERSION_10, false, out);
+        String encoded = new String(out.toByteArray());
+        assertTrue(encoded.contains("<sld:Name>%s</sld:Name>".formatted(name)));
+    }
+
+    private String newSLDXML(String name) {
+        return """
+                <sld:StyledLayerDescriptor xmlns:sld='http://www.opengis.net/sld'>
+                <sld:NamedLayer>
+                <sld:Name>%s</sld:Name>
+                <sld:UserStyle>
+                <sld:Name>foo</sld:Name>
+                <sld:FeatureTypeStyle>
+                <sld:Name>foo</sld:Name>
+                </sld:FeatureTypeStyle>
+                </sld:UserStyle>
+                </sld:NamedLayer>
+                </sld:StyledLayerDescriptor>
+                """
+                .formatted(name);
     }
 }

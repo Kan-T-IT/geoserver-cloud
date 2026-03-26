@@ -6,47 +6,51 @@
 package org.geoserver.cloud.gwc.config.services;
 
 import org.geoserver.catalog.Catalog;
+import org.geoserver.cloud.gwc.config.core.CloudGwcUrlHandlerMapping;
 import org.geoserver.gwc.controller.GwcUrlHandlerMapping;
 import org.geoserver.gwc.layer.GWCGeoServerRESTConfigurationProvider;
-import org.geowebcache.rest.controller.SeedController;
+import org.geoserver.rest.RestControllerAdvice;
 import org.geowebcache.rest.converter.GWCConverter;
 import org.geowebcache.util.ApplicationContextProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ComponentScan;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.FilterType;
+import org.springframework.core.Ordered;
 
 /**
- * The original {@literal geowebcache-rest-context.xml}:
+ * The original {@literal gs-gwc-rest.jar!applicationContext.xml}:
  *
  * <pre>{@code
- * <!-- Used by org.geoserver.rest.RestConfiguration when setting up converters -->
- * <bean id="gwcConverter" class="org.geowebcache.rest.converter.GWCConverter">
- * <constructor-arg ref="gwcAppCtx" />
- * </bean>
+ *   <!-- Used by org.geoserver.rest.RestConfiguration when setting up converters -->
+ *   <bean id="gwcConverter" class="org.geowebcache.rest.converter.GWCConverter">
+ *     <constructor-arg ref="gwcAppCtx" />
+ *   </bean>
  *
- * <bean id="GWCGeoServerRESTConfigurationProvider" class="org.geoserver.gwc.layer.GWCGeoServerRESTConfigurationProvider">
- * <description>
- * XmlConfiguration contributor to set up XStream with GeoServer provided configuration objects for GWC's REST API
- * </description>
- * <constructor-arg ref="catalog"/>
- * </bean>
+ *   <bean id="GWCGeoServerRESTConfigurationProvider" class="org.geoserver.gwc.layer.GWCGeoServerRESTConfigurationProvider">
+ *     <description>
+ *       XmlConfiguration contributor to set up XStream with GeoServer provided configuration objects for GWC's REST API
+ *     </description>
+ *     <constructor-arg ref="catalog"/>
+ *   </bean>
  *
- * <!-- Specific URL mapping for GWC WMTS REST API -->
- * <bean id="gwcWmtsRestUrlHandlerMapping" class="org.geoserver.gwc.controller.GwcUrlHandlerMapping">
- * <constructor-arg ref="catalog" />
- * <constructor-arg type="java.lang.String" value="/gwc/rest/wmts" />
- * <property name="alwaysUseFullPath" value="true" />
- * <property name="order" value="10" />
- * </bean>
+ *   <!-- Specific URL mapping for GWC WMTS REST API -->
+ *   <bean id="gwcWmtsRestUrlHandlerMapping" class="org.geoserver.gwc.controller.GwcUrlHandlerMapping">
+ *     <constructor-arg ref="catalog" />
+ *     <constructor-arg type="java.lang.String" value="/gwc/rest/wmts" />
+ *     <property name="alwaysUseFullPath" value="true" />
+ *     <property name="order" value="10" />
+ *   </bean>
  *
- * <context:component-scan base-package="org.geowebcache.rest, org.geowebcache.diskquota.rest.controller" />
+ *   <context:component-scan base-package="org.geowebcache.rest, org.geowebcache.diskquota.rest.controller" />
+ *
+ * </beans>
+ *
  * }</pre>
  *
- * <p>scans too much. We're only scanning {@literal org.geowebcache.rest}. {@literal
- * org.geowebcache.diskquota.rest.controller} is up to {@link DiskQuotaAutoConfiguration}, and is
- * omitted, I can't find any {@code @Controller} in there, might need to revisit;
+ * <p>scans too much. We're only scanning {@literal org.geowebcache.rest}.
+ * {@literal org.geowebcache.diskquota.rest.controller} is up to {@link DiskQuotaAutoConfiguration}, and is omitted, I
+ * can't find any {@code @Controller} in there, might need to revisit;
  *
  * <p>Conditionals: see {@link ConditionalOnGeoWebCacheRestConfigEnabled}
  *
@@ -54,20 +58,19 @@ import org.springframework.context.annotation.FilterType;
  */
 @Configuration(proxyBeanMethods = false)
 @ConditionalOnClass(GWCConverter.class)
-@ComponentScan(
-        basePackages = "org.geowebcache.rest",
-        // exclude org.geowebcache.controller.SeedController from component scan, provide an alternative that works with
-        // spring cloud below
-        excludeFilters = @ComponentScan.Filter(type = FilterType.ASSIGNABLE_TYPE, classes = SeedController.class))
+@ComponentScan(basePackages = "org.geowebcache.rest")
 public class RESTConfigConfiguration {
 
     /**
-     * Replacement for {@link SeedController#doPost(javax.servlet.http.HttpServletRequest, java.io.InputStream, String, java.util.Map)}
-     * working with spring-boot's stricter path pattern matching
+     * Since we don't scan the {@literal org.geowebcache.rest}, we need a {@link RestControllerAdvice} explicitly to
+     * handle http error code translations.
+     *
+     * <p>For example, it ensures that {@code org.geoserver.rest.ResourceNotFoundException} is correctly mapped to a 404
+     * response instead of a default 500 error.
      */
     @Bean
-    org.geoserver.cloud.gwc.config.services.SeedControllerOverride seedController() {
-        return new org.geoserver.cloud.gwc.config.services.SeedControllerOverride();
+    RestControllerAdvice restControllerAdvice() {
+        return new RestControllerAdvice();
     }
 
     /**
@@ -102,7 +105,8 @@ public class RESTConfigConfiguration {
      *
      * @param catalog
      */
-    @Bean
+    @Bean(name = "GWCGeoServerRESTConfigurationProvider")
+    @SuppressWarnings("java:S6830")
     GWCGeoServerRESTConfigurationProvider gwcGeoServerRESTConfigurationProvider(Catalog catalog) {
         return new GWCGeoServerRESTConfigurationProvider(catalog);
     }
@@ -121,13 +125,13 @@ public class RESTConfigConfiguration {
      * }</pre>
      *
      * @param catalog
-     * @param catalog
      */
     @Bean
+    @SuppressWarnings({"deprecation", "java:S1874"})
     GwcUrlHandlerMapping gwcWmtsRestUrlHandlerMapping(Catalog catalog) {
-        GwcUrlHandlerMapping handler = new GwcUrlHandlerMapping(catalog, "/gwc/rest/wmts");
+        GwcUrlHandlerMapping handler = new CloudGwcUrlHandlerMapping(catalog, "/gwc/rest/wmts");
         handler.setAlwaysUseFullPath(true);
-        handler.setOrder(10);
+        handler.setOrder(Ordered.HIGHEST_PRECEDENCE);
         return handler;
     }
 }

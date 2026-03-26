@@ -14,7 +14,7 @@ import org.geoserver.config.GeoServerFacade;
 import org.geoserver.config.plugin.GeoServerImpl;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
-import org.springframework.boot.autoconfigure.cache.CacheAutoConfiguration;
+import org.springframework.boot.cache.autoconfigure.CacheAutoConfiguration;
 import org.springframework.boot.context.annotation.UserConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
@@ -22,6 +22,7 @@ import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 class GeoServerBackendCacheConfigurationTest {
 
     private final ApplicationContextRunner contextRunner = new ApplicationContextRunner()
+            .withPropertyValues("spring.cache.type: caffeine")
             .withAllowBeanDefinitionOverriding(true)
             .withBean("rawCatalog", CatalogPlugin.class)
             .withBean("geoServer", GeoServerImpl.class)

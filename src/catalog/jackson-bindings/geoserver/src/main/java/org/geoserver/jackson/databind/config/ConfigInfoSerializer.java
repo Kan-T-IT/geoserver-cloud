@@ -5,13 +5,15 @@
 
 package org.geoserver.jackson.databind.config;
 
+import java.io.Serial;
 import org.geoserver.catalog.Info;
 import org.geoserver.jackson.databind.config.dto.ConfigInfoDto;
-import org.geoserver.jackson.databind.config.dto.mapper.GeoServerConfigMapper;
+import org.geoserver.jackson.databind.config.mapper.GeoServerConfigMapper;
 import org.geotools.jackson.databind.util.MapperSerializer;
 import org.mapstruct.factory.Mappers;
 
 public class ConfigInfoSerializer<T extends Info> extends MapperSerializer<T, ConfigInfoDto> {
+    @Serial
     private static final long serialVersionUID = -4772839273787523779L;
 
     private static final GeoServerConfigMapper mapper = Mappers.getMapper(GeoServerConfigMapper.class);

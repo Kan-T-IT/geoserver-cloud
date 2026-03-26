@@ -34,9 +34,7 @@ import org.geowebcache.grid.BoundingBox;
 import org.geowebcache.grid.GridSetBroker;
 import org.mapstruct.factory.Mappers;
 
-/**
- * @since 1.7
- */
+/** @since 1.7 */
 class TileLayerMocking {
 
     private @Getter GridSetBroker gridsets;
@@ -77,7 +75,7 @@ class TileLayerMocking {
     public TileLayerInfo pgLayerInfo(PublishedInfo info) {
         List<XMLGridSubset> defaultXmlGridSubsets =
                 List.copyOf(TileLayerInfoUtil.create(new GWCConfig()).getGridSubsets());
-        XMLGridSubset set1 = defaultXmlGridSubsets.get(0);
+        XMLGridSubset set1 = defaultXmlGridSubsets.getFirst();
         set1.setExtent(new BoundingBox(-180, -90, 0, 0));
         set1.setMinCachedLevel(3);
         set1.setMaxCachedLevel(12);
@@ -104,7 +102,6 @@ class TileLayerMocking {
                 .setGutter(5)
                 .setExpireCacheList(List.of(new TileLayerInfo.ExpirationRule(12, 100)))
                 .setMimeFormats(Set.of("image/png", "image/jpeg"))
-                .setInMemoryCached(false)
                 .setGridSubsets(gridSubsets);
     }
 

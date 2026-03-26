@@ -5,6 +5,7 @@
 
 package org.geoserver.cloud.config.catalog.backend.pgconfig;
 
+import java.time.Duration;
 import java.util.function.Predicate;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
@@ -21,45 +22,111 @@ import org.geoserver.cloud.backend.pgconfig.resource.PgconfigResourceStore;
 import org.geoserver.cloud.config.catalog.backend.core.GeoServerBackendConfigurer;
 import org.geoserver.cloud.config.catalog.backend.pgconfig.DatabaseMigrationConfiguration.Migrations;
 import org.geoserver.config.GeoServerLoader;
-import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.resource.LockProvider;
-import org.geoserver.platform.resource.ResourceStore;
-import org.geoserver.security.GeoServerSecurityManager;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.sql.init.dependency.DependsOnDatabaseInitialization;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 import org.springframework.integration.jdbc.lock.LockRepository;
 import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.jdbc.core.JdbcTemplate;
+import org.springframework.transaction.PlatformTransactionManager;
 import org.springframework.util.StringUtils;
 
 /**
+ * Spring configuration for GeoServer Cloud's PostgreSQL-based catalog and configuration backend.
+ *
+ * <h2>Overview</h2>
+ *
+ * <p>This configuration provides a fully database-backed GeoServer implementation that stores all catalog,
+ * configuration, and resource data in PostgreSQL. Unlike the traditional data directory backend, this implementation
+ * enables true cloud-native deployments with:
+ *
+ * <ul>
+ *   <li>Stateless application servers (no local filesystem dependencies)
+ *   <li>Horizontal scalability without shared filesystem requirements
+ *   <li>ACID guarantees for catalog and configuration changes
+ *   <li>Centralized resource storage with file system cache for performance
+ * </ul>
+ *
+ * <h2>Storage Architecture</h2>
+ *
+ * <ul>
+ *   <li><b>Catalog</b> - PostgreSQL-backed catalog facade ({@link PgconfigBackendBuilder})
+ *   <li><b>Configuration</b> - PostgreSQL repository ({@link PgconfigConfigRepository},
+ *       {@link PgconfigGeoServerFacade})
+ *   <li><b>Resources</b> - Hybrid storage with PostgreSQL backend and local filesystem cache
+ *       ({@link PgconfigResourceStore})
+ *   <li><b>Locking</b> - Database-backed distributed locks via Spring Integration JDBC locks ({@link JdbcLockRegistry})
+ *   <li><b>Update Sequence</b> - Database-tracked version for WMS/WFS capabilities caching
+ *       ({@link PgconfigUpdateSequence})
+ * </ul>
+ *
+ * <h2>Distributed Locking</h2>
+ *
+ * <p>Provides cluster-wide coordination through {@link DefaultLockRepository} with:
+ *
+ * <ul>
+ *   <li>Instance-specific lock identification via {@code info.instance-id} property
+ *   <li>Custom table prefix {@code RESOURCE_} (instead of default {@code INT_})
+ *   <li>300-second lock timeout for dead lock recovery
+ *   <li>Explicit initialization to ensure transaction template creation in all Spring contexts
+ * </ul>
+ *
+ * <h2>Database Schema</h2>
+ *
+ * <p>Requires database schema initialization via {@link DatabaseMigrationConfiguration}, which this configuration
+ * depends on through constructor injection. Migrations create tables for:
+ *
+ * <ul>
+ *   <li>Catalog entities (workspaces, namespaces, stores, layers, styles, etc.)
+ *   <li>Configuration objects (services, settings, logging)
+ *   <li>Resource storage (binary content with metadata)
+ *   <li>Distributed locks ({@code RESOURCE_LOCK} table)
+ * </ul>
+ *
+ * <h2>Configuration</h2>
+ *
+ * <p>Backend behavior is controlled through configuration properties:
+ *
+ * <pre>
+ * geoserver.backend.pgconfig.enabled=true
+ * geoserver.backend.pgconfig.datasource.url=jdbc:postgresql://host:5432/geoserver
+ * geoserver.backend.pgconfig.datasource.username=geoserver
+ * geoserver.backend.pgconfig.datasource.password=secret
+ * info.instance-id=${HOSTNAME:}  # For distributed locking identifier
+ * </pre>
+ *
+ * <h2>Bean Dependencies</h2>
+ *
+ * <p>This configuration uses {@code @Configuration(proxyBeanMethods = false)} for optimal performance and flexibility,
+ * allowing bean methods to declare their dependencies as method parameters rather than calling other {@code @Bean}
+ * methods directly. This enables proper dependency injection and avoids issues with CGLIB proxies.
+ *
  * @since 1.4
+ * @see GeoServerBackendConfigurer
+ * @see DatabaseMigrationConfiguration
+ * @see PgconfigBackendBuilder
+ * @see PgconfigResourceStore
+ * @see JdbcLockRegistry
  */
-@Configuration(proxyBeanMethods = true)
+@Configuration(proxyBeanMethods = false)
 @Slf4j(topic = "org.geoserver.cloud.config.catalog.backend.pgconfig")
-public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
-
-    private String instanceId;
-    private DataSource dataSource;
+public class PgconfigBackendConfiguration implements GeoServerBackendConfigurer {
 
     /**
-     * @param instanceId used as client-id for the {@link #pgconfigLockRepository() LockRepository}
-     * @param dataSource DataSource for {@link #template()}, {@link #pgconfigLockRepository()}, and
-     *     {@link #updateSequence()}
-     * @param catalogProperties properties for {@link #rawCatalog()}
-     * @param migrations required to make sure the migrations ran before this configuration takes
-     *     place
+     * Constructs the PostgreSQL backend configuration.
+     *
+     * <p>The {@link Migrations} parameter ensures that database schema initialization has completed before this
+     * configuration creates any beans that depend on database tables.
+     *
+     * @param migrations database migration tracker that confirms schema is ready
      */
-    PgconfigBackendConfiguration(
-            @Value("${info.instance-id:}") String instanceId,
-            @Qualifier("pgconfigDataSource") DataSource dataSource,
-            Migrations migrations) {
-        this.instanceId = instanceId;
-        this.dataSource = dataSource;
+    PgconfigBackendConfiguration(Migrations migrations) {
         log.info(
                 "Loading geoserver config backend with {}. {}",
                 PgconfigBackendConfiguration.class.getSimpleName(),
@@ -67,54 +134,66 @@ public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
     }
 
     @Bean
-    @Override
-    protected ExtendedCatalogFacade catalogFacade() {
+    ExtendedCatalogFacade catalogFacade(@Qualifier("pgconfigDataSource") DataSource dataSource) {
         return new PgconfigBackendBuilder(dataSource).createCatalogFacade();
     }
 
     @Bean(name = "pcconfigJdbcTemplate")
-    JdbcTemplate template() {
+    JdbcTemplate pcconfigJdbcTemplate(@Qualifier("pgconfigDataSource") DataSource dataSource) {
         return new JdbcTemplate(dataSource);
     }
 
     @Bean
-    @Override
-    protected GeoServerConfigurationLock configurationLock() {
-        LockProvider lockProvider = pgconfigLockProvider();
+    GeoServerConfigurationLock configurationLock(@Qualifier("pgconfigLockProvider") LockProvider lockProvider) {
         return new LockProviderGeoServerConfigurationLock(lockProvider);
     }
 
+    @Primary
     @Bean
-    @Override
-    protected PgconfigUpdateSequence updateSequence() {
-        return new PgconfigUpdateSequence(dataSource, geoserverFacade());
+    @DependsOnDatabaseInitialization
+    PgconfigUpdateSequence updateSequence(
+            PgconfigGeoServerFacade geoserverFacade, @Qualifier("pgconfigDataSource") DataSource dataSource) {
+        return new PgconfigUpdateSequence(dataSource, geoserverFacade);
     }
 
     @Bean
-    @Override
-    protected GeoServerLoader geoServerLoaderImpl(GeoServerSecurityManager securityManager) {
+    GeoServerLoader geoServerLoaderImpl(
+            PgconfigGeoServerResourceLoader resourceLoader, GeoServerConfigurationLock configurationLock) {
         log.debug("Creating GeoServerLoader {}", PgconfigGeoServerLoader.class.getSimpleName());
-        return new PgconfigGeoServerLoader(resourceLoader(), configurationLock());
+        return new PgconfigGeoServerLoader(resourceLoader, configurationLock);
     }
 
     @Bean
-    PgconfigConfigRepository configRepository() {
-        return new PgconfigConfigRepository(template());
+    PgconfigConfigRepository configRepository(@Qualifier("pcconfigJdbcTemplate") JdbcTemplate template) {
+        return new PgconfigConfigRepository(template);
     }
 
     @Bean
-    @Override
-    protected PgconfigGeoServerFacade geoserverFacade() {
-        return new PgconfigGeoServerFacade(configRepository());
+    PgconfigGeoServerFacade geoserverFacade(PgconfigConfigRepository configRepository) {
+        return new PgconfigGeoServerFacade(configRepository);
     }
 
+    /**
+     * Creates the {@link PgconfigResourceStore} bean.
+     *
+     * <p>The return type is the concrete class rather than the {@link org.geoserver.platform.resource.ResourceStore
+     * ResourceStore} interface because {@link PgconfigGeoServerResourceLoader} needs access to
+     * {@link PgconfigResourceStore#getLockProvider()}, which is not part of the {@code ResourceStore} contract. This
+     * works because
+     * {@link org.geoserver.cloud.autoconfigure.catalog.backend.pgconfig.PgconfigTransactionManagerAutoConfiguration
+     * PgconfigTransactionManagerAutoConfiguration} enables CGLIB proxying (via
+     * {@code @EnableTransactionManagement(proxyTargetClass = true)}), ensuring the transaction proxy preserves the
+     * concrete type.
+     *
+     * @see PgconfigGeoServerResourceLoader#getLockProvider()
+     */
     @Bean
-    @Override
-    protected ResourceStore resourceStoreImpl() {
+    PgconfigResourceStore resourceStoreImpl(
+            @Qualifier("pgconfigLockProvider") PgconfigLockProvider lockProvider,
+            FileSystemResourceStoreCache resourceStoreCache,
+            @Qualifier("pcconfigJdbcTemplate") JdbcTemplate template) {
+
         log.debug("Creating ResourceStore {}", PgconfigResourceStore.class.getSimpleName());
-        FileSystemResourceStoreCache resourceStoreCache = pgconfigFileSystemResourceStoreCache();
-        JdbcTemplate template = template();
-        PgconfigLockProvider lockProvider = pgconfigLockProvider();
         Predicate<String> localOnlyFilter = PgconfigResourceStore.defaultIgnoredResources();
         return new PgconfigResourceStore(resourceStoreCache, template, lockProvider, localOnlyFilter);
     }
@@ -124,43 +203,56 @@ public class PgconfigBackendConfiguration extends GeoServerBackendConfigurer {
         return FileSystemResourceStoreCache.newTempDirInstance();
     }
 
+    /**
+     * Creates the {@link PgconfigGeoServerResourceLoader} bean.
+     *
+     * <p>Injects the concrete {@link PgconfigResourceStore} (not the
+     * {@link org.geoserver.platform.resource.ResourceStore ResourceStore} interface) because
+     * {@link PgconfigGeoServerResourceLoader} needs {@link PgconfigResourceStore#getLockProvider()} to provide the lock
+     * provider to {@link PgconfigGeoServerLoader}.
+     *
+     * @see #resourceStoreImpl
+     */
     @Bean
-    @Override
-    protected GeoServerResourceLoader resourceLoader() {
+    PgconfigGeoServerResourceLoader resourceLoader(
+            @Qualifier("resourceStoreImpl") PgconfigResourceStore resourceStore) {
         log.debug("Creating GeoServerResourceLoader {}", PgconfigGeoServerResourceLoader.class.getSimpleName());
-        ResourceStore resourceStore = resourceStoreImpl();
         return new PgconfigGeoServerResourceLoader(resourceStore);
     }
 
     @Bean
-    PgconfigLockProvider pgconfigLockProvider() {
+    PgconfigLockProvider pgconfigLockProvider(
+            @Qualifier("pgconfigLockRegistry") JdbcLockRegistry pgconfigLockRegistry) {
         log.debug("Creating {}", PgconfigLockProvider.class.getSimpleName());
-        return new PgconfigLockProvider(pgconfigLockRegistry());
-    }
-
-    /**
-     * @return
-     */
-    private LockRegistry pgconfigLockRegistry() {
-        log.debug("Creating {}", LockRegistry.class.getSimpleName());
-        return new JdbcLockRegistry(pgconfigLockRepository());
+        return new PgconfigLockProvider(pgconfigLockRegistry);
     }
 
     @Bean
-    LockRepository pgconfigLockRepository() {
-        log.debug("Creating {} for instance {}", LockRepository.class.getSimpleName(), this.instanceId);
-        String id = this.instanceId;
+    JdbcLockRegistry pgconfigLockRegistry(@Qualifier("pgconfigLockRepository") LockRepository pgconfigLockRepository) {
+        log.debug("Creating {}", LockRegistry.class.getSimpleName());
+        Duration ttl = Duration.ofSeconds(30);
+        return new JdbcLockRegistry(pgconfigLockRepository, ttl);
+    }
+
+    @Bean
+    LockRepository pgconfigLockRepository(
+            @Qualifier("pgconfigDataSource") DataSource dataSource,
+            @Value("${info.instance-id:}") String instanceId,
+            @Qualifier("pgconfigTransactionManager") PlatformTransactionManager pgconfigTransactionManager) {
+
+        log.debug("Creating {} for instance {}", LockRepository.class.getSimpleName(), instanceId);
         DefaultLockRepository lockRepository;
-        if (StringUtils.hasLength(id)) {
-            lockRepository = new DefaultLockRepository(dataSource, id);
+        if (StringUtils.hasLength(instanceId)) {
+            lockRepository = new DefaultLockRepository(dataSource, instanceId);
         } else {
             lockRepository = new DefaultLockRepository(dataSource);
         }
+        lockRepository.setTransactionManager(pgconfigTransactionManager);
         // override default table prefix "INT" by "RESOURCE_" (matching table definition
         // RESOURCE_LOCK in init.XXX.sql
         lockRepository.setPrefix("RESOURCE_");
-        // time in ms to expire dead locks (10k is the default)
-        lockRepository.setTimeToLive(300_000);
+        // Explicitly initialize the lock repository to ensure transaction template is created
+        lockRepository.afterSingletonsInstantiated();
         return lockRepository;
     }
 }

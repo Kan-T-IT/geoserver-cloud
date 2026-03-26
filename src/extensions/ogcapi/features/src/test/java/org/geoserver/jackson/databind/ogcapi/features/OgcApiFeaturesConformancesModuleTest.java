@@ -9,20 +9,19 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.geoserver.ogcapi.v1.features.CQL2Conformance;
 import org.geoserver.ogcapi.v1.features.ECQLConformance;
 import org.geoserver.ogcapi.v1.features.FeatureConformance;
-import org.geotools.jackson.databind.filter.dto.Literal;
+import org.geotools.jackson.databind.filter.dto.LiteralDto;
 import org.geotools.jackson.databind.util.ObjectMapperUtil;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import tools.jackson.core.JacksonException;
+import tools.jackson.databind.ObjectMapper;
 
 /**
- * Tests for the OgcApiFeaturesConformancesModule, particularly focused on
- * ensuring the serialization works correctly for all supported conformance
- * classes.
+ * Tests for the OgcApiFeaturesConformancesModule, particularly focused on ensuring the serialization works correctly
+ * for all supported conformance classes.
  */
 class OgcApiFeaturesConformancesModuleTest {
 
@@ -35,7 +34,7 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testSerializeDeserializeCQL2Conformance() throws JsonProcessingException {
+    void testSerializeDeserializeCQL2Conformance() throws JacksonException {
 
         CQL2Conformance original = new CQL2Conformance();
         original.setText(true);
@@ -56,7 +55,7 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testCQL2ConformanceWithNullAdvanced() throws JsonProcessingException {
+    void testCQL2ConformanceWithNullAdvanced() throws JacksonException {
 
         CQL2Conformance conf = new CQL2Conformance();
         conf.setText(true);
@@ -69,7 +68,7 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testCQL2ConformanceWithNonNullAdvanced() throws JsonProcessingException {
+    void testCQL2ConformanceWithNonNullAdvanced() throws JacksonException {
 
         CQL2Conformance conf = new CQL2Conformance();
         conf.setCql2Advanced(true);
@@ -84,18 +83,18 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testCQL2ConformanceInLiteral() throws JsonProcessingException {
+    void testCQL2ConformanceInLiteral() throws JacksonException {
         CQL2Conformance conf = new CQL2Conformance();
         conf.setText(true);
         conf.setJSON(false);
         conf.setBasic(true);
 
-        Literal literal = new Literal();
+        LiteralDto literal = new LiteralDto();
         literal.setValue(conf);
 
         String json = mapper.writeValueAsString(literal);
 
-        Literal deserializedLiteral = mapper.readValue(json, Literal.class);
+        LiteralDto deserializedLiteral = mapper.readValue(json, LiteralDto.class);
         assertNotNull(deserializedLiteral);
 
         Object value = deserializedLiteral.getValue();
@@ -108,7 +107,7 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testSerializeDeserializeECQLConformance() throws JsonProcessingException {
+    void testSerializeDeserializeECQLConformance() throws JacksonException {
         ECQLConformance original = new ECQLConformance();
         original.setText(true);
 
@@ -120,16 +119,16 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testECQLConformanceInLiteral() throws JsonProcessingException {
+    void testECQLConformanceInLiteral() throws JacksonException {
         ECQLConformance conf = new ECQLConformance();
         conf.setText(true);
 
-        Literal literal = new Literal();
+        LiteralDto literal = new LiteralDto();
         literal.setValue(conf);
 
         String json = mapper.writeValueAsString(literal);
 
-        Literal deserializedLiteral = mapper.readValue(json, Literal.class);
+        LiteralDto deserializedLiteral = mapper.readValue(json, LiteralDto.class);
         assertNotNull(deserializedLiteral);
 
         Object value = deserializedLiteral.getValue();
@@ -140,7 +139,7 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testSerializeDeserializeFeatureConformance() throws JsonProcessingException {
+    void testSerializeDeserializeFeatureConformance() throws JacksonException {
 
         FeatureConformance original = new FeatureConformance();
         original.setCore(true);
@@ -164,7 +163,7 @@ class OgcApiFeaturesConformancesModuleTest {
     }
 
     @Test
-    void testFeatureConformanceInLiteral() throws JsonProcessingException {
+    void testFeatureConformanceInLiteral() throws JacksonException {
 
         FeatureConformance original = new FeatureConformance();
         original.setCore(true);
@@ -172,12 +171,12 @@ class OgcApiFeaturesConformancesModuleTest {
         original.setQueryables(true);
         original.setFilter(true);
 
-        Literal literal = new Literal();
+        LiteralDto literal = new LiteralDto();
         literal.setValue(original);
 
         String json = mapper.writeValueAsString(literal);
 
-        Literal deserializedLiteral = mapper.readValue(json, Literal.class);
+        LiteralDto deserializedLiteral = mapper.readValue(json, LiteralDto.class);
         assertNotNull(deserializedLiteral);
 
         Object value = deserializedLiteral.getValue();

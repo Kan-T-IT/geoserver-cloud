@@ -17,21 +17,18 @@ import org.geoserver.platform.AdvancedDispatchFilter;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
-import org.springframework.boot.autoconfigure.security.servlet.SecurityAutoConfiguration;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.context.ApplicationContext;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.web.context.request.RequestContextListener;
 
 /**
- * Smoke test to check geoserver servlet context related spring beans are not loaded if the
- * auto-configuration is disabled through {@code geoserver.servlet.enabled=false}
+ * Smoke test to check geoserver servlet context related spring beans are not loaded if the auto-configuration is
+ * disabled through {@code geoserver.servlet.enabled=false}
  */
 @SpringBootTest(
         classes = TestConfiguration.class,
         properties = {"geoserver.servlet.enabled=false"})
-@EnableAutoConfiguration(exclude = SecurityAutoConfiguration.class)
 @ActiveProfiles("test")
 class ServletContextDisabledSmokeTest extends DataDirectoryTempSupport {
 

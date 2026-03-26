@@ -22,7 +22,7 @@ import org.springframework.context.annotation.Import;
         name = "enabled",
         havingValue = "true",
         matchIfMissing = true)
-@ImportFilteredResource("jar:gs-web-demo-.*!/applicationContext.xml#name=layerListDemo2")
+@ImportFilteredResource("jar:gs-web-demo-.*!/applicationContext.xml#name=layerListDemo")
 @Import({
     OpenLayersCommonFormatsConfiguration.class,
     GmlCommonFormatsConfiguration.class,

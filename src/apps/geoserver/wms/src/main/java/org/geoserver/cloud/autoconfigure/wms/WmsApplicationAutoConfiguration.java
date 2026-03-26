@@ -9,12 +9,8 @@ import java.util.List;
 import org.geoserver.catalog.Catalog;
 import org.geoserver.cloud.autoconfigure.gwc.integration.WMSIntegrationAutoConfiguration;
 import org.geoserver.cloud.config.factory.ImportFilteredResource;
-import org.geoserver.cloud.virtualservice.VirtualServiceVerifier;
 import org.geoserver.cloud.wms.app.StatusCodeWmsExceptionHandler;
-import org.geoserver.cloud.wms.controller.GetMapReflectorController;
-import org.geoserver.cloud.wms.controller.WMSController;
 import org.geoserver.config.GeoServer;
-import org.geoserver.ows.Dispatcher;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.Service;
 import org.geoserver.wfs.xml.FeatureTypeSchemaBuilder;
@@ -26,7 +22,6 @@ import org.geoserver.wms.capabilities.LegendSample;
 import org.geoserver.wms.capabilities.LegendSampleImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.core.env.PropertyResolver;
 
@@ -35,8 +30,13 @@ import org.springframework.core.env.PropertyResolver;
 @AutoConfiguration(before = WMSIntegrationAutoConfiguration.class)
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ImportFilteredResource({
-    "jar:gs-wms-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WMS_BEANS_BLACKLIST,
-    "jar:gs-wfs-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WFS_BEANS_WHITELIST
+    "jar:gs-wms-core-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WMS_BEANS_BLACKLIST,
+    "jar:gs-wms1_1-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WMS_BEANS_BLACKLIST,
+    "jar:gs-wms1_3-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WMS_BEANS_BLACKLIST,
+    "jar:gs-wms-gml-.*!/applicationContext.xml",
+    "jar:gs-wfs-core-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WFS_BEANS_WHITELIST,
+    "jar:gs-wfs1_x-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WFS_BEANS_WHITELIST,
+    "jar:gs-wfs2_x-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WFS_BEANS_WHITELIST
 })
 public class WmsApplicationAutoConfiguration {
 
@@ -62,15 +62,16 @@ public class WmsApplicationAutoConfiguration {
             """
             ^(?!\
             legendSample\
-            |wmsExceptionHandler\
+            |wms11ExceptionHandler\
+            |wms13ExceptionHandler\
             ).*$\
             """;
 
     /**
      * Required by {@link GetCapabilitiesTransformer}, excluded from gs-wms.jar
      *
-     * @param catalog using {@code rawCatalog} instead of {@code catalog}, to avoid
-     *                the local workspace and secured catalog decorators
+     * @param catalog using {@code rawCatalog} instead of {@code catalog}, to avoid the local workspace and secured
+     *     catalog decorators
      */
     @Bean
     LegendSample legendSample(@Qualifier("rawCatalog") Catalog catalog, GeoServerResourceLoader loader) {
@@ -83,35 +84,22 @@ public class WmsApplicationAutoConfiguration {
         return new WFSConfiguration(geoServer, schemaBuilder, new WFS(schemaBuilder));
     }
 
-    @Bean
-    WMSController webMapServiceController(
-            Dispatcher geoserverDispatcher,
-            org.geoserver.ows.ClasspathPublisher classPathPublisher,
-            VirtualServiceVerifier virtualServiceVerifier) {
-        return new WMSController(geoserverDispatcher, classPathPublisher, virtualServiceVerifier);
-    }
-
-    @Bean
-    VirtualServiceVerifier virtualServiceVerifier(@Qualifier("rawCatalog") Catalog catalog) {
-        return new VirtualServiceVerifier(catalog);
-    }
-
-    @ConditionalOnProperty(
-            prefix = "geoserver.wms",
-            name = "reflector.enabled",
-            havingValue = "true",
-            matchIfMissing = true)
-    @Bean
-    GetMapReflectorController getMapReflectorController(Dispatcher geoserverDispatcher) {
-        return new GetMapReflectorController(geoserverDispatcher);
-    }
-
+    // TODO: make it configurable again
+    //    @ConditionalOnProperty(
+    //            prefix = "geoserver.wms",
+    //            name = "reflector.enabled",
+    //            havingValue = "true",
+    //            matchIfMissing = true)
+    //    @Bean
+    //    GetMapReflectorController getMapReflectorController(Dispatcher geoserverDispatcher) {
+    //        return new GetMapReflectorController(geoserverDispatcher);
+    //    }
+    //
     /**
-     * Overrides the {@link #WMS_BEANS_BLACKLIST excluded wmsExceptionHandler} bean
-     * with a {@link StatusCodeWmsExceptionHandler} to support setting a non 200
-     * status code on http responses.
-     * <p>
-     * The original bean definition is as follows, which this bean method respects:
+     * Overrides the {@link #WMS_BEANS_BLACKLIST excluded wms11ExceptionHandler and wms13ExceptionHandler} bean with a
+     * {@link StatusCodeWmsExceptionHandler} to support setting a non 200 status code on http responses.
+     *
+     * <p>The original bean definition is as follows, which this bean method respects:
      *
      * <pre>
      * <code>
@@ -128,8 +116,8 @@ public class WmsApplicationAutoConfiguration {
      *  </bean>
      * </code>
      * </pre>
-     * @param propertyResolver
      *
+     * @param propertyResolver
      * @return
      */
     @Bean

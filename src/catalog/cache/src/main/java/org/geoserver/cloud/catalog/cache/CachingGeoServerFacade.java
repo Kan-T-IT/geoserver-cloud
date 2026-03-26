@@ -7,7 +7,6 @@ package org.geoserver.cloud.catalog.cache;
 
 import java.util.Collection;
 import java.util.List;
-import javax.annotation.Nullable;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.catalog.WorkspaceInfo;
@@ -18,6 +17,7 @@ import org.geoserver.config.LoggingInfo;
 import org.geoserver.config.ServiceInfo;
 import org.geoserver.config.SettingsInfo;
 import org.geoserver.config.plugin.forwarding.ForwardingGeoServerFacade;
+import org.jspecify.annotations.Nullable;
 import org.springframework.cache.Cache;
 import org.springframework.cache.Cache.ValueWrapper;
 import org.springframework.cache.CacheManager;
@@ -58,8 +58,8 @@ public class CachingGeoServerFacade extends ForwardingGeoServerFacade {
     /**
      * Clears the whole config cache upon any {@link UpdateSequenceEvent}.
      *
-     * <p>{@link UpdateSequenceEvent} is the root event for the ones that change something in the
-     * catalog or the configuration.
+     * <p>{@link UpdateSequenceEvent} is the root event for the ones that change something in the catalog or the
+     * configuration.
      */
     @EventListener(classes = UpdateSequenceEvent.class)
     void onUpdateSequenceEvent(UpdateSequenceEvent event) {
@@ -272,9 +272,7 @@ public class CachingGeoServerFacade extends ForwardingGeoServerFacade {
         return services;
     }
 
-    /**
-     * Method used to build a cache key for the {@link SettingsInfo settings} of a given workspace
-     */
+    /** Method used to build a cache key for the {@link SettingsInfo settings} of a given workspace */
     public static Object settingsKey(WorkspaceInfo ws) {
         return "settings@" + ws.getId();
     }

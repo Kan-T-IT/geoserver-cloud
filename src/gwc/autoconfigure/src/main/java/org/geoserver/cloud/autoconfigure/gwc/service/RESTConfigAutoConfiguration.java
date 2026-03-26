@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.autoconfigure.gwc.service;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheRestConfigEnabled;
 import org.geoserver.cloud.autoconfigure.gwc.core.DiskQuotaAutoConfiguration;
@@ -28,9 +28,9 @@ import org.springframework.context.annotation.Import;
  * "org.geowebcache.rest, org.geowebcache.diskquota.rest.controller, org.geowebcache.service.wmts" />
  * }</pre>
  *
- * <p>scans too much. We're only scanning {@literal org.geowebcache.rest}. {@literal
- * org.geowebcache.diskquota.rest.controller} is up to {@link DiskQuotaAutoConfiguration}, and is
- * omitted, I can't find any {@code @Controller} in there, might need to revisit;
+ * <p>scans too much. We're only scanning {@literal org.geowebcache.rest}.
+ * {@literal org.geowebcache.diskquota.rest.controller} is up to {@link DiskQuotaAutoConfiguration}, and is omitted, I
+ * can't find any {@code @Controller} in there, might need to revisit;
  *
  * <p>Conditionals: see {@link ConditionalOnGeoWebCacheRestConfigEnabled}
  *

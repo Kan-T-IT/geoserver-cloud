@@ -5,9 +5,9 @@
 
 package org.geoserver.cloud.wms.controller.kml;
 
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletRequestWrapper;
-import javax.servlet.http.HttpServletResponse;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequestWrapper;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.geoserver.kml.KMLReflector;
@@ -20,9 +20,8 @@ import org.springframework.web.bind.annotation.GetMapping;
  *
  * <p>Replaces {@code kmlURLMapping} in {@literal gs-kml.jar!/applicationContext.xml}
  *
- * <p>Note the upstream URL mappings for {@literal /kml} and {@literal /kml/**} seem to be not used
- * at all, as all kml service requests are actually handled by the {@link KMLReflector}, so we're
- * not adding those endpoints here.
+ * <p>Note the upstream URL mappings for {@literal /kml} and {@literal /kml/**} seem to be not used at all, as all kml
+ * service requests are actually handled by the {@link KMLReflector}, so we're not adding those endpoints here.
  *
  * @since 1.0
  */
@@ -48,8 +47,8 @@ public class KMLIconsController {
     }
 
     /**
-     * {@link IconService} requires {@link HttpServletRequest#getPathInfo()} to be non-null, but
-     * it's always null in spring-boot
+     * {@link IconService} requires {@link HttpServletRequest#getPathInfo()} to be non-null, but it's always null in
+     * spring-boot
      */
     private HttpServletRequest adaptRequest(HttpServletRequest request) {
         final String requestURI = request.getRequestURI();

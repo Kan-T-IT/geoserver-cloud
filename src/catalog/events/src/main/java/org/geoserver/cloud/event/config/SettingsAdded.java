@@ -5,22 +5,21 @@
 
 package org.geoserver.cloud.event.config;
 
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.EqualsAndHashCode;
 import org.geoserver.config.GeoServer;
 import org.geoserver.config.SettingsInfo;
 
-/**
- * Remote event sent when {@link GeoServer#add(org.geoserver.config.SettingsInfo)} is called on a
- * node
- */
+/** Remote event sent when {@link GeoServer#add(org.geoserver.config.SettingsInfo)} is called on a node */
 @JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.WRAPPER_OBJECT)
 @JsonTypeName("SettingsAdded")
 @EqualsAndHashCode(callSuper = true)
 @SuppressWarnings("serial")
 public class SettingsAdded extends ConfigInfoAdded<SettingsInfo> implements ConfigInfoEvent {
 
+    @JsonCreator
     protected SettingsAdded() {
         // default constructor, needed for deserialization
     }

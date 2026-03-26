@@ -34,7 +34,7 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class PgconfigDataSourceAutoConfigurationTest {
 
     @Container
-    static PgConfigTestContainer<?> container = new PgConfigTestContainer<>();
+    static PgConfigTestContainer container = new PgConfigTestContainer();
 
     private ApplicationContextRunner runner = new ApplicationContextRunner()
             .withConfiguration(AutoConfigurations.of(PgconfigDataSourceAutoConfiguration.class));
@@ -51,8 +51,8 @@ class PgconfigDataSourceAutoConfigurationTest {
     }
 
     /**
-     * Test method for {@link
-     * org.geoserver.cloud.config.catalog.backend.pgconfig.PconfigDataSourceConfiguration#dataSource()}.
+     * Test method for
+     * {@link org.geoserver.cloud.config.catalog.backend.pgconfig.PconfigDataSourceConfiguration#dataSource()}.
      */
     @Test
     void testDataSource() {
@@ -68,8 +68,8 @@ class PgconfigDataSourceAutoConfigurationTest {
     }
 
     /**
-     * Test method for {@link
-     * org.geoserver.cloud.config.catalog.backend.pgconfig.PconfigDataSourceConfiguration#jndiDataSource()}.
+     * Test method for
+     * {@link org.geoserver.cloud.config.catalog.backend.pgconfig.PconfigDataSourceConfiguration#jndiDataSource()}.
      */
     @Test
     void testJndiDataSource() {

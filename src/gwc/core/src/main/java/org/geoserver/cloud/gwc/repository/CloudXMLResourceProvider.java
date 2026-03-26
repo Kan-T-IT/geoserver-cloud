@@ -17,15 +17,11 @@ import java.util.function.Supplier;
 import lombok.NonNull;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.platform.resource.Resource;
-import org.geoserver.platform.resource.ResourceStore;
 import org.geoserver.platform.resource.Resources;
 import org.geoserver.util.IOUtils;
-import org.geowebcache.config.ConfigurationException;
 import org.geowebcache.config.ConfigurationResourceProvider;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 @Slf4j(topic = "org.geoserver.cloud.gwc.repository")
 public class CloudXMLResourceProvider implements ConfigurationResourceProvider {
 
@@ -34,11 +30,7 @@ public class CloudXMLResourceProvider implements ConfigurationResourceProvider {
     private Supplier<Resource> configDirectory;
     private @NonNull String configFileName = "geowebcache.xml";
 
-    /**
-     * @param resourceStore where to {@link ResourceStore#get(String) get} the config directory from
-     * @param configFileName name of the core gwc config file (e.g. {@literal geowebcache.xml})
-     * @throws ConfigurationException
-     */
+    /** @param configDirectory supplier for the core gwc config file (e.g. {@literal geowebcache.xml}) */
     public CloudXMLResourceProvider(@NonNull Supplier<Resource> configDirectory) {
         this.configDirectory = configDirectory;
     }
@@ -95,10 +87,10 @@ public class CloudXMLResourceProvider implements ConfigurationResourceProvider {
             log.warn(
                     "Found no configuration file in config directory, will create one at '{}' from template {}",
                     xmlFile.path(),
-                    getClass().getResource(templateLocation).toExternalForm());
+                    CloudXMLResourceProvider.class.getResource(templateLocation).toExternalForm());
             // grab template from classpath
             try {
-                IOUtils.copy(getClass().getResourceAsStream(templateLocation), xmlFile.out());
+                IOUtils.copy(CloudXMLResourceProvider.class.getResourceAsStream(templateLocation), xmlFile.out());
             } catch (IOException e) {
                 throw new IOException("Error copying template config to " + xmlFile.path(), e);
             }
@@ -125,7 +117,7 @@ public class CloudXMLResourceProvider implements ConfigurationResourceProvider {
         final int maxBackups = 10;
         if (previousBackUps.size() > maxBackups) {
             Collections.sort(previousBackUps, (o1, o2) -> (int) (o1.lastmodified() - o2.lastmodified()));
-            Resource oldest = previousBackUps.get(0);
+            Resource oldest = previousBackUps.getFirst();
             log.debug("Deleting oldest config backup {} to keep a maximum of {} backups.", oldest, maxBackups);
             oldest.delete();
         }
@@ -139,7 +131,7 @@ public class CloudXMLResourceProvider implements ConfigurationResourceProvider {
     public boolean hasInput() {
         try {
             return Resources.exists(findOrCreateConfFile());
-        } catch (IOException e) {
+        } catch (IOException _) {
             return false;
         }
     }

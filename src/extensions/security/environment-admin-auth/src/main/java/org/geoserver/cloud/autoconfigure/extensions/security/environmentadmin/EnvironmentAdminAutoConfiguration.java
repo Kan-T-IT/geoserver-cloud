@@ -5,27 +5,27 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.security.environmentadmin;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.security.GeoServerSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
+import org.springframework.security.authentication.AuthenticationProvider;
 
 /**
  * Auto-configuration for the Environment Admin Authentication extension.
  *
- * <p>
- * This auto-configuration class enables the Environment Admin Authentication extension in GeoServer Cloud,
- * allowing administrators to set the admin username and password through environment variables or
- * configuration properties. It will be activated when the following conditions are met:
+ * <p>This auto-configuration class enables the Environment Admin Authentication extension in GeoServer Cloud, allowing
+ * administrators to set the admin username and password through environment variables or configuration properties. It
+ * will be activated when the following conditions are met:
+ *
  * <ul>
- *   <li>GeoServer security is enabled (the default)</li>
- *   <li>The geoserver.extension.security.environment-admin.enabled property is true (the default)</li>
+ *   <li>GeoServer security is enabled (the default)
+ *   <li>The geoserver.extension.security.environment-admin.enabled property is true (the default)
  * </ul>
  *
- * <p>
- * This extension is particularly useful in containerized environments where you want to set admin credentials
+ * <p>This extension is particularly useful in containerized environments where you want to set admin credentials
  * without modifying the security configuration XML files.
  *
  * @since 2.27.0
@@ -47,14 +47,13 @@ public class EnvironmentAdminAutoConfiguration {
     /**
      * Creates the EnvironmentAdminAuthenticationProvider bean.
      *
-     * <p>
-     * This provider allows administrators to set the admin username and password through environment variables
-     * or configuration properties, bypassing the need to modify security configuration XML files.
+     * <p>This provider allows administrators to set the admin username and password through environment variables or
+     * configuration properties, bypassing the need to modify security configuration XML files.
      *
      * @return the EnvironmentAdminAuthenticationProvider instance
      */
     @Bean
-    EnvironmentAdminAuthenticationProvider environmentAdminAuthenticationProvider() {
+    AuthenticationProvider environmentAdminAuthenticationProvider() {
         return new EnvironmentAdminAuthenticationProvider();
     }
 }

@@ -1,0 +1,79 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+  external_labels:
+    monitor: 'geoserver-cloud'
+
+scrape_configs:
+  # Consul-based service discovery
+  # This discovers ALL registered instances in Consul, including all replicas
+  # All GeoServer Cloud services register with Consul automatically
+
+  - job_name: 'geoserver-cloud-services'
+    metrics_path: '/actuator/prometheus'
+    consul_sd_configs:
+      - server: 'consul:8500'
+        refresh_interval: 30s
+    relabel_configs:
+      # Consul returns port 8080 (app port), but actuator is on 8081
+      # So we need to replace the port in the address
+      - source_labels: [__address__]
+        regex: '([^:]+):.*'
+        target_label: __tmp_host
+        replacement: '${1}'
+      - source_labels: [__tmp_host]
+        target_label: __address__
+        replacement: '${1}:8081'
+      # Use the application name from Consul as the service label
+      - source_labels: [__meta_consul_service]
+        regex: '(.+)-service'
+        target_label: service
+        replacement: '${1}'
+      # If no '-service' suffix, use as-is
+      - source_labels: [__meta_consul_service]
+        target_label: service
+      # Use service ID from Consul
+      - source_labels: [__meta_consul_service_id]
+        target_label: instance_id
+      # Keep the node name
+      - source_labels: [__meta_consul_node]
+        target_label: node
+      # Add application label (full name from Consul)
+      - source_labels: [__meta_consul_service]
+        target_label: application
+
+  # Discovery service (Consul)
+  - job_name: 'discovery'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['consul:8500']
+        labels:
+          service: 'discovery'
+          application: 'consul'
+
+  # Config service (not registered in Consul by default)
+  - job_name: 'config'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['config:8081']
+        labels:
+          service: 'config'
+          application: 'geoserver-cloud-config'
+
+  # ACL service (separate application, may not be in Consul or uses different port)
+  - job_name: 'acl'
+    metrics_path: '/actuator/prometheus'
+    static_configs:
+      - targets: ['acl:8080']
+        labels:
+          service: 'acl'
+          application: 'geoserver-acl'
+
+  # RabbitMQ (built-in metrics endpoint)
+  - job_name: 'rabbitmq'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['rabbitmq:15692']
+        labels:
+          service: 'rabbitmq'
+          application: 'rabbitmq'

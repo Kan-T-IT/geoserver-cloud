@@ -8,17 +8,17 @@ package org.geoserver.cloud.security.gateway.sharedauth;
 import static com.google.common.collect.Streams.stream;
 
 import com.google.common.collect.Streams;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.util.Collection;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
-import javax.servlet.http.Cookie;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import lombok.AccessLevel;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
@@ -42,18 +42,19 @@ import org.springframework.util.StringUtils;
  * Authentication filter that enables shared authentication across GeoServer Cloud microservices.
  *
  * <p>This filter provides two operational modes:
+ *
  * <ul>
- *   <li><b>Server mode</b>: Used in the WebUI service to add authentication headers to responses
- *       when a user is authenticated. These headers contain the username and roles.
- *   <li><b>Client mode</b>: Used in all other services to process authentication headers from
- *       incoming requests that have been forwarded by the gateway.
+ *   <li><b>Server mode</b>: Used in the WebUI service to add authentication headers to responses when a user is
+ *       authenticated. These headers contain the username and roles.
+ *   <li><b>Client mode</b>: Used in all other services to process authentication headers from incoming requests that
+ *       have been forwarded by the gateway.
  * </ul>
  *
- * <p>The filter relies on the API Gateway to act as an intermediary, storing the authentication
- * information from the WebUI service responses and adding it to requests to other services.
+ * <p>The filter relies on the API Gateway to act as an intermediary, storing the authentication information from the
+ * WebUI service responses and adding it to requests to other services.
  *
- * <p><strong>IMPORTANT:</strong> The package name must not be changed as it's used in XStream
- * serialization of security configuration.
+ * <p><strong>IMPORTANT:</strong> The package name must not be changed as it's used in XStream serialization of security
+ * configuration.
  *
  * @see GatewaySharedAuthenticationProvider
  * @since 1.9
@@ -69,12 +70,11 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
     /**
      * Configuration class for the {@link GatewaySharedAuthenticationFilter}.
      *
-     * <p>This class is serialized by GeoServer's security subsystem using XStream, so its
-     * package name and class name must remain stable to maintain backward compatibility.</p>
+     * <p>This class is serialized by GeoServer's security subsystem using XStream, so its package name and class name
+     * must remain stable to maintain backward compatibility.
      *
-     * <p>The filter configuration is simple and doesn't require any custom properties
-     * as the operational mode (server/client/disabled) is determined at runtime by the
-     * Spring configuration.</p>
+     * <p>The filter configuration is simple and doesn't require any custom properties as the operational mode
+     * (server/client/disabled) is determined at runtime by the Spring configuration.
      */
     @SuppressWarnings("serial")
     public static class Config extends SecurityFilterConfig implements SecurityAuthFilterConfig {
@@ -86,27 +86,21 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
 
     private final @NonNull GeoServerSecurityFilter delegate;
 
-    /**
-     * @return a {@link GatewaySharedAuthenticationFilter} proxy filter with a {@link ServerFilter}
-     *     delegate
-     */
+    /** @return a {@link GatewaySharedAuthenticationFilter} proxy filter with a {@link ServerFilter} delegate */
     public static GeoServerSecurityFilter server() {
         return new GatewaySharedAuthenticationFilter(new ServerFilter());
     }
 
-    /**
-     * @return a {@link GatewaySharedAuthenticationFilter} proxy filter with a {@link ClientFilter}
-     *     delegate
-     */
+    /** @return a {@link GatewaySharedAuthenticationFilter} proxy filter with a {@link ClientFilter} delegate */
     public static GeoServerSecurityFilter client() {
         return new GatewaySharedAuthenticationFilter(new ClientFilter());
     }
 
     /**
-     * @return a {@link GatewaySharedAuthenticationFilter} proxy filter with a
-     *     <strong>no-op</strong> {@link DisabledFilter} delegate. This prevents startup failures
-     *     and WebUI security settings editing failures, when the filter has been disabled through
-     *     {@code geoserver.security.gateway-shared-auth.enabled=false} after it's been enabled.
+     * @return a {@link GatewaySharedAuthenticationFilter} proxy filter with a <strong>no-op</strong>
+     *     {@link DisabledFilter} delegate. This prevents startup failures and WebUI security settings editing failures,
+     *     when the filter has been disabled through {@code geoserver.security.gateway-shared-auth.enabled=false} after
+     *     it's been enabled.
      */
     public static GeoServerSecurityFilter disabled() {
         return new GatewaySharedAuthenticationFilter(new DisabledFilter());
@@ -132,13 +126,12 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
     /**
      * Client-side implementation of the Gateway Shared Authentication filter.
      *
-     * <p>This implementation extends {@link GeoServerRequestHeaderAuthenticationFilter} to process
-     * authentication headers from incoming requests. It extracts the username from the
-     * {@link #X_GSCLOUD_USERNAME} header and roles from the {@link #X_GSCLOUD_ROLES} headers
-     * to authenticate the user.</p>
+     * <p>This implementation extends {@link GeoServerRequestHeaderAuthenticationFilter} to process authentication
+     * headers from incoming requests. It extracts the username from the {@link #X_GSCLOUD_USERNAME} header and roles
+     * from the {@link #X_GSCLOUD_ROLES} headers to authenticate the user.
      *
-     * <p>This filter is used in all services except the WebUI to receive authentication
-     * information that was originally set by the WebUI and forwarded by the API Gateway.</p>
+     * <p>This filter is used in all services except the WebUI to receive authentication information that was originally
+     * set by the WebUI and forwarded by the API Gateway.
      */
     @SuppressWarnings("java:S110")
     static class ClientFilter extends GeoServerRequestHeaderAuthenticationFilter {
@@ -166,11 +159,13 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
                     String postUsername = post == null ? null : post.getName();
                     String reqHeaders = getHeaders(req);
                     String gatewaySessionId = getGatewaySessionId(req);
+                    String method = sanitizeMethod(req.getMethod());
+                    String requestURI = sanitizeUri(req.getRequestURI());
                     log.debug(
                             "[gateway session: {}] {} {}\n user pre: {}\n user post: {}\n headers: \n{}",
                             gatewaySessionId,
-                            req.getMethod(),
-                            req.getRequestURI(),
+                            method,
+                            requestURI,
                             preUsername,
                             postUsername,
                             reqHeaders);
@@ -186,8 +181,8 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
         }
 
         /**
-         * Override to handle multi-valued roles header, the super-class assumes a single-valued
-         * header with a delimiter to handle multiple values
+         * Override to handle multi-valued roles header, the super-class assumes a single-valued header with a delimiter
+         * to handle multiple values
          */
         @Override
         protected Collection<GeoServerRole> getRoles(HttpServletRequest request, String principal) throws IOException {
@@ -205,13 +200,13 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
     /**
      * Server-side implementation of the Gateway Shared Authentication filter.
      *
-     * <p>This implementation is used in the WebUI service to add authentication headers to responses
-     * when a user is authenticated. It extracts the username and roles from the current
-     * {@link SecurityContextHolder} and adds them as response headers.</p>
+     * <p>This implementation is used in the WebUI service to add authentication headers to responses when a user is
+     * authenticated. It extracts the username and roles from the current {@link SecurityContextHolder} and adds them as
+     * response headers.
      *
-     * <p>These headers are then captured by the API Gateway and associated with the user's session.
-     * When the same user makes requests to other services, the gateway adds these headers to the
-     * forwarded requests, enabling the client-side filter to authenticate the user.</p>
+     * <p>These headers are then captured by the API Gateway and associated with the user's session. When the same user
+     * makes requests to other services, the gateway adds these headers to the forwarded requests, enabling the
+     * client-side filter to authenticate the user.
      */
     static class ServerFilter extends GeoServerSecurityFilter {
 
@@ -236,20 +231,21 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
         }
 
         /**
-         * Sets the {@link #X_GSCLOUD_USERNAME} request header to the empty string, the gateway
-         * requires for it to be explicitly set to clear it out from its session, just removing the
-         * header wouldn't work.
+         * Sets the {@link #X_GSCLOUD_USERNAME} request header to the empty string, the gateway requires for it to be
+         * explicitly set to clear it out from its session, just removing the header wouldn't work.
          */
         private void setEmptyUserResponseHeader(HttpServletRequest req, HttpServletResponse response) {
             response.setHeader(X_GSCLOUD_USERNAME, "");
             if (log.isDebugEnabled()) {
                 String gatewaySessionId = getGatewaySessionId(req);
+                String method = sanitizeMethod(req.getMethod());
+                String requestURI = sanitizeUri(req.getRequestURI());
                 log.debug(
                         "[gateway session: {}] sending empty {} response header for {} {}",
                         gatewaySessionId,
                         X_GSCLOUD_USERNAME,
-                        req.getMethod(),
-                        req.getRequestURI());
+                        method,
+                        requestURI);
             }
         }
 
@@ -262,6 +258,8 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
                         .forEach(authority -> response.addHeader(X_GSCLOUD_ROLES, authority.getAuthority()));
                 if (log.isDebugEnabled()) {
                     String gatewaySessionId = getGatewaySessionId(req);
+                    String method = sanitizeMethod(req.getMethod());
+                    String requestURI = sanitizeUri(req.getRequestURI());
                     log.debug(
                             "[gateway session: {}] appended response headers {}: {}, {}: {} for {} {}",
                             gatewaySessionId,
@@ -269,8 +267,8 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
                             response.getHeader(X_GSCLOUD_USERNAME),
                             X_GSCLOUD_ROLES,
                             response.getHeaders(X_GSCLOUD_ROLES),
-                            req.getMethod(),
-                            req.getRequestURI());
+                            method,
+                            requestURI);
                 }
             }
         }
@@ -291,13 +289,13 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
     /**
      * No-op implementation of the Gateway Shared Authentication filter when the feature is disabled.
      *
-     * <p>This implementation simply passes the request through to the next filter in the chain
-     * without performing any authentication processing. It's used when the Gateway Shared
-     * Authentication feature is explicitly disabled through configuration.</p>
+     * <p>This implementation simply passes the request through to the next filter in the chain without performing any
+     * authentication processing. It's used when the Gateway Shared Authentication feature is explicitly disabled
+     * through configuration.
      *
-     * <p>Having this disabled implementation is important for backward compatibility when the filter
-     * has been previously enabled and then disabled. It prevents startup failures and WebUI security
-     * settings editing failures by providing a valid but inactive filter implementation.</p>
+     * <p>Having this disabled implementation is important for backward compatibility when the filter has been
+     * previously enabled and then disabled. It prevents startup failures and WebUI security settings editing failures
+     * by providing a valid but inactive filter implementation.
      */
     static class DisabledFilter extends GeoServerSecurityFilter {
 
@@ -307,5 +305,18 @@ public class GatewaySharedAuthenticationFilter extends GeoServerSecurityFilter
             log.debug("gateway shared auth filter pass-through, functionality disabled");
             chain.doFilter(request, response);
         }
+    }
+
+    static String sanitizeMethod(String method) {
+        // validate the HTTP Method against an allow-list
+        if (method == null || !method.matches("^[A-Z]+$")) {
+            method = "INVALID_METHOD";
+        }
+        return method;
+    }
+
+    static String sanitizeUri(String requestURI) {
+        // sanitize the URI to remove line breaks
+        return (requestURI == null) ? "" : requestURI.replaceAll("[\\n\\r\\t]", "_");
     }
 }

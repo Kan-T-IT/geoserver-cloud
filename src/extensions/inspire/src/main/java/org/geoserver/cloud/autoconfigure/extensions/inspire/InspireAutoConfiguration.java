@@ -4,7 +4,7 @@
  */
 package org.geoserver.cloud.autoconfigure.extensions.inspire;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.platform.ModuleStatus;
 import org.geoserver.platform.ModuleStatusImpl;
@@ -15,9 +15,8 @@ import org.springframework.context.annotation.Bean;
 /**
  * Auto-configuration for the GeoServer INSPIRE extension.
  *
- * <p>This extension enables some INSPIRE metadata features. It allows
- * GeoServer to configure INSPIRE metadata that can be served by
- * in GetCapabilities.
+ * <p>This extension enables some INSPIRE metadata features. It allows GeoServer to configure INSPIRE metadata that can
+ * be served by in GetCapabilities.
  *
  * <p>The extension is disabled by default and can be enabled with:
  *
@@ -45,8 +44,7 @@ public class InspireAutoConfiguration {
      *
      * <p>Equivalent to the following XML configuration:
      *
-     * <pre>
-     * {@code
+     * <pre>{@code
      * <bean id="inspireExtension" class=
      * "org.geoserver.platform.ModuleStatusImpl">
      *  <property name="module" value="gs-inspire" />
@@ -63,6 +61,7 @@ public class InspireAutoConfiguration {
     @Bean
     ModuleStatus inspireExtension(InspireConfigProperties config) {
         ModuleStatusImpl mod = new ModuleStatusImpl("gs-inspire", "INSPIRE Extension", "INSPIRE extension");
+        mod.setCategory(ModuleStatus.Category.EXTENSION);
         mod.setAvailable(true);
         mod.setEnabled(config.isEnabled());
         if (config.isEnabled()) {

@@ -5,7 +5,7 @@
 
 package org.geoserver.cloud.autoconfigure.gwc.blobstore;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoServerWebUIEnabled;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnS3BlobstoreEnabled;
@@ -18,9 +18,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 @AutoConfiguration
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnS3BlobstoreEnabled

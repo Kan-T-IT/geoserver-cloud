@@ -5,15 +5,16 @@
 
 package org.geoserver.cloud.autoconfigure.extensions;
 
+import static org.mockito.Mockito.mock;
+
 import org.geoserver.wps.DefaultWebProcessingService;
+import org.geoserver.wps.resource.WPSResourceManager;
 import org.junit.jupiter.api.Test;
 import org.mockito.Mockito;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
-/**
- * Tests for {@link ConditionalOnGeoServerWPS}.
- */
+/** Tests for {@link ConditionalOnGeoServerWPS}. */
 class ConditionalOnGeoServerWPSTest extends AbstractConditionalTest {
 
     // No setup needed
@@ -21,7 +22,9 @@ class ConditionalOnGeoServerWPSTest extends AbstractConditionalTest {
     @Test
     void testConditionalActivation() {
         verifyConditionalActivation(
-                createContextRunner().withUserConfiguration(WpsTestConfiguration.class),
+                createContextRunner()
+                        .withBean("wpsResourceManager", WPSResourceManager.class, () -> mock(WPSResourceManager.class))
+                        .withUserConfiguration(WpsTestConfiguration.class),
                 "geoserver.service.wps.enabled",
                 ConditionalTestComponent.class);
     }

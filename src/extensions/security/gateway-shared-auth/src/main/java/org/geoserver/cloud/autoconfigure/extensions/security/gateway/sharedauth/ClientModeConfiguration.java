@@ -7,7 +7,7 @@ package org.geoserver.cloud.autoconfigure.extensions.security.gateway.sharedauth
 
 import static org.geoserver.cloud.security.gateway.sharedauth.GatewaySharedAuthenticationProvider.Mode.CLIENT;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.security.gateway.sharedauth.GatewaySharedAuthenticationProvider;
 import org.springframework.context.annotation.Bean;
@@ -16,17 +16,16 @@ import org.springframework.context.annotation.Configuration;
 /**
  * Spring configuration for the Gateway Shared Authentication system in client mode.
  *
- * <p>This configuration is automatically activated when running in any service other than the WebUI.
- * It creates a {@link GatewaySharedAuthenticationProvider} in CLIENT mode, which is designed for all
- * services except WebUI.</p>
+ * <p>This configuration is automatically activated when running in any service other than the WebUI. It creates a
+ * {@link GatewaySharedAuthenticationProvider} in CLIENT mode, which is designed for all services except WebUI.
  *
- * <p>In client mode, the authentication filter reads authentication headers from incoming requests
- * that have been forwarded by the API Gateway. These headers contain the authenticated username and roles
- * that were originally set by the WebUI service when the user logged in.</p>
+ * <p>In client mode, the authentication filter reads authentication headers from incoming requests that have been
+ * forwarded by the API Gateway. These headers contain the authenticated username and roles that were originally set by
+ * the WebUI service when the user logged in.
  *
  * <p>Note: Previously, this was controlled by the configuration property
- * {@code geoserver.extension.security.gateway-shared-auth.server=false}, but now the mode
- * is automatically determined based on the application type.
+ * {@code geoserver.extension.security.gateway-shared-auth.server=false}, but now the mode is automatically determined
+ * based on the application type.
  *
  * @see GatewaySharedAuthenticationFilter.ClientFilter
  * @see ServerModeConfiguration

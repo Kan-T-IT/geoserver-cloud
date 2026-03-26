@@ -6,13 +6,11 @@
 package org.geoserver.cloud.config.catalog.backend.pgconfig;
 
 import lombok.Data;
-import org.springframework.boot.autoconfigure.jdbc.DataSourceProperties;
 import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
 import org.springframework.util.StringUtils;
 
-/**
- * @since 1.4
- */
+/** @since 1.4 */
 @Data
 @ConfigurationProperties("geoserver.backend.pgconfig")
 public class PgconfigBackendProperties {

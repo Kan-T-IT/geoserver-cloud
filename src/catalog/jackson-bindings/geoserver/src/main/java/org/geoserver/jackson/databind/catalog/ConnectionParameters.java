@@ -4,6 +4,7 @@
  */
 package org.geoserver.jackson.databind.catalog;
 
+import java.io.Serial;
 import java.io.Serializable;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -12,14 +13,13 @@ import java.util.Map;
 /**
  * Specialized map class for store connection parameters.
  *
- * <p>
- * This class extends LinkedHashMap to provide a concrete type for store connection parameters.
- * The specialized type allows us to register custom serializers and deserializers specifically
- * for connection parameters without affecting other Map&lt;String, Object&gt; instances.
- * </p>
+ * <p>This class extends LinkedHashMap to provide a concrete type for store connection parameters. The specialized type
+ * allows us to register custom serializers and deserializers specifically for connection parameters without affecting
+ * other Map&lt;String, Object&gt; instances.
  */
 public class ConnectionParameters extends LinkedHashMap<String, Object> {
 
+    @Serial
     private static final long serialVersionUID = 1L;
 
     public ConnectionParameters() {

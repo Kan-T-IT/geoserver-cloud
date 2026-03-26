@@ -29,10 +29,11 @@
       <appender-ref ref="jsonFileAppender" />
     </logger>
 
-    <root level="INFO">
+    <root level="WARN">
       <appender-ref ref="jsonConsoleAppender" />
       <appender-ref ref="jsonFileAppender" />
     </root>
   </springProfile>
 
+  <logger name="org.springframework.context.support.PostProcessorRegistrationDelegate$BeanPostProcessorChecker" level="ERROR"/>
 </configuration>

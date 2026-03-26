@@ -19,18 +19,18 @@ import org.geoserver.cloud.config.catalog.backend.datadirectory.CloudDataDirecto
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryBackendConfiguration;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryProperties;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryUpdateSequence;
-import org.geoserver.cloud.config.catalog.backend.datadirectory.NoServletContextDataDirectoryResourceStore;
 import org.geoserver.config.plugin.RepositoryGeoServerFacade;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.config.UpdateSequence;
+import org.geoserver.platform.resource.FileSystemResourceStore;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 /**
- * Test {@link DataDirectoryBackendConfiguration} through {@link DataDirectoryAutoConfiguration}
- * when {@code geoserver.backend.data-directory.enabled=true}
+ * Test {@link DataDirectoryBackendConfiguration} through {@link DataDirectoryAutoConfiguration} when
+ * {@code geoserver.backend.data-directory.enabled=true}
  */
 class DataDirectoryAutoConfigurationTest {
 
@@ -118,9 +118,7 @@ class DataDirectoryAutoConfigurationTest {
     @Test
     void testResourceStoreImpl() {
         runner.run(context -> {
-            assertThat(context)
-                    .getBean("resourceStoreImpl")
-                    .isInstanceOf(NoServletContextDataDirectoryResourceStore.class);
+            assertThat(context).getBean("resourceStoreImpl").isInstanceOf(FileSystemResourceStore.class);
         });
     }
 

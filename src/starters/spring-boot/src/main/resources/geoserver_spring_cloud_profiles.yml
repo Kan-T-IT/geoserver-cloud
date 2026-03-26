@@ -1,0 +1,104 @@
+spring:
+  profiles:
+    include: default
+    group:
+      # Map the AUTO-ACTIVATED 'kubernetes' profile to a group
+      # When the spring-cloud-starter-kubernetes-client-config detects K8s
+      "kubernetes": 
+        - "bootstrap-standalone"
+        - "bus-rabbitmq"
+      "standalone": 
+        - "bootstrap-standalone"
+        - "bus-rabbitmq"
+      # This group will be triggered dynamically below
+      "config-first":
+        - "config-client"
+        - "discovery-consul"
+        - "bus-rabbitmq"
+---
+spring.config.activate.on-profile: default
+spring:
+  cloud:
+    discovery: # discovery-client defaults
+      enabled: false
+    config: # config-client defaults
+      enabled: false # Whether to use config client
+      discovery.enabled: false # Whether to use discovery to find config server
+    bus.enabled: false
+    consul:
+      enabled: false
+      discovery:
+        enabled: false
+
+---
+spring.config.activate.on-profile: bootstrap_standalone
+#no config-service, load config from /etc/geoserver
+#all Dockerfile files have the default config under that directory
+spring.cloud.discovery.enabled: false
+spring.cloud.config.enabled: false
+spring.cloud.config.discovery.enabled: false
+---
+spring.config.activate.on-profile: "bus-rabbitmq"
+
+spring:
+  cloud.bus.enabled: true
+  rabbitmq:
+    host: ${rabbitmq.host:rabbitmq}
+    port: ${rabbitmq.port:5672}
+    username: ${rabbitmq.user:guest}
+    password: ${rabbitmq.password:guest}
+    virtual-host: ${rabbitmq.vhost:}
+
+---
+spring.config.activate.on-profile: "config-client"
+
+config.server.url: http://config:8080
+
+spring:
+  config:
+    import: "optional:configserver:"
+  cloud:
+    config:
+      enabled: true
+      # Required because 'configserver' is in an optional import
+      import-check.enabled: false
+      fail-fast: true
+      uri:
+        - ${config.server.url}
+      retry:
+        max-attempts: 20
+      discovery:
+        enabled: false
+        service-id: "config-service"
+
+---
+spring.config.activate.on-profile: "discovery-consul"
+
+consul.host: consul
+consul.port: 8500
+
+spring:
+  cloud:
+    discovery:
+      enabled: true
+    consul:
+      enabled: true
+      host: ${consul.host}
+      port: ${consul.port}
+      discovery:
+        enabled: true
+        prefer-ip-address: true
+        instance-id: ${info.instance-id}
+        service-name: ${spring.application.name}
+        health-check-path: /actuator/health
+        health-check-port: 8081
+        health-check-interval: 10s
+
+---
+# LOCAL: For IDE development outside of containers
+spring.config.activate.on-profile: "local"
+config.server.url: http://localhost:8888
+consul.host: localhost
+consul.port: 8500
+rabbitmq.host: localhost
+

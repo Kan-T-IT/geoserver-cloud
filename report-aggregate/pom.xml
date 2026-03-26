@@ -9,7 +9,7 @@
   <modelVersion>4.0.0</modelVersion>
   <parent>
     <groupId>org.geoserver.cloud</groupId>
-    <artifactId>gs-cloud-bom</artifactId>
+    <artifactId>gs-cloud-parent</artifactId>
     <version>${revision}</version>
   </parent>
   <artifactId>gs-cloud-aggregate-report</artifactId>
@@ -86,10 +86,6 @@
     <dependency>
       <groupId>org.geoserver.cloud.catalog.backend</groupId>
       <artifactId>gs-cloud-catalog-backend-datadir</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.geoserver.cloud.catalog.backend</groupId>
-      <artifactId>gs-cloud-catalog-backend-jdbcconfig</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud.catalog.backend</groupId>

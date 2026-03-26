@@ -5,14 +5,14 @@
 
 package org.geoserver.cloud.gwc.event;
 
+import java.io.Serial;
 import lombok.Getter;
 import lombok.NonNull;
 import lombok.Setter;
 
-/**
- * @since 1.0
- */
+/** @since 1.0 */
 public class BlobStoreEvent extends GeoWebCacheEvent {
+    @Serial
     private static final long serialVersionUID = 1L;
 
     private @Getter @Setter String blobStoreId;

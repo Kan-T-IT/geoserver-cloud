@@ -5,13 +5,13 @@
 
 package org.geoserver.cloud.logging.mdc.servlet;
 
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
 import java.io.IOException;
 import java.util.stream.Collectors;
-import javax.servlet.Filter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.ServletRequest;
-import javax.servlet.ServletResponse;
 import lombok.NonNull;
 import lombok.RequiredArgsConstructor;
 import org.geoserver.cloud.logging.mdc.config.AuthenticationMdcConfigProperties;
@@ -22,16 +22,13 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.context.SecurityContextHolder;
 
 /**
- * Appends the {@code enduser.id} and {@code enduser.role} MDC properties
- * depending on whether {@link AuthenticationMdcConfigProperties#isUser() user}
- * and {@link AuthenticationMdcConfigProperties#isRoles() roles} config
- * properties are enabled, respectively.
+ * Appends the {@code enduser.id} and {@code enduser.role} MDC properties depending on whether
+ * {@link AuthenticationMdcConfigProperties#isUser() user} and {@link AuthenticationMdcConfigProperties#isRoles() roles}
+ * config properties are enabled, respectively.
  *
- * <p>
- * Note the appended MDC properties follow the <a href=
- * "https://opentelemetry.io/docs/specs/semconv/general/attributes/#general-identity-attributes">OpenTelemetry
- * identity attributes</a> convention, so we can replace this component if OTel
- * would automatically add them to the logs.
+ * <p>Note the appended MDC properties follow the <a href=
+ * "https://opentelemetry.io/docs/specs/semconv/general/attributes/#general-identity-attributes">OpenTelemetry identity
+ * attributes</a> convention, so we can replace this component if OTel would automatically add them to the logs.
  */
 @RequiredArgsConstructor
 public class MDCAuthenticationFilter implements Filter {

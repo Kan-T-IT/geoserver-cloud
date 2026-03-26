@@ -9,10 +9,9 @@ spring:
   cloud.bus.enabled: false
   autoconfigure:
     exclude:
-    - org.springframework.boot.autoconfigure.jdbc.DataSourceAutoConfiguration
+    - org.springframework.boot.jdbc.autoconfigure.DataSourceAutoConfiguration
 
 
-eureka.client.enabled: false
 
 logging:
   level:
@@ -21,5 +20,3 @@ logging:
     org.geoserver: warn
     org.geoserver.cloud: warn
     org.geoserver.cloud.config.factory: warn
-    org.geoserver.jdbcconfig: warn
-    org.geoserver.jdbcstore: warn

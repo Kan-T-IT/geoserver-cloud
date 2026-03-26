@@ -4,28 +4,26 @@
  */
 package org.geoserver.cloud.autoconfigure.web.core;
 
-import static org.junit.Assert.assertFalse;
-import static org.junit.Assert.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
-import javax.servlet.FilterChain;
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
 import org.springframework.http.HttpStatus;
 
-/**
- * Test for {@link WicketComponentFilter}
- */
-public class WicketComponentFilterTest {
+/** Test for {@link WicketComponentFilter} */
+class WicketComponentFilterTest {
 
     private WicketComponentFilter filter;
     private WebUIConfigurationProperties config;
@@ -34,8 +32,8 @@ public class WicketComponentFilterTest {
     private FilterChain chain;
     private StringWriter responseWriter;
 
-    @Before
-    public void setUp() throws IOException {
+    @BeforeEach
+    void setUp() throws IOException {
         config = new WebUIConfigurationProperties();
         filter = new WicketComponentFilter(config);
 
@@ -49,7 +47,7 @@ public class WicketComponentFilterTest {
     }
 
     @Test
-    public void testNonBookmarkableUrl() throws ServletException, IOException {
+    void testNonBookmarkableUrl() throws ServletException, IOException {
         when(request.getRequestURI()).thenReturn("/web/some/other/url");
 
         filter.doFilter(request, response, chain);
@@ -60,7 +58,7 @@ public class WicketComponentFilterTest {
     }
 
     @Test
-    public void testEnabledComponent() throws ServletException, IOException {
+    void testEnabledComponent() throws ServletException, IOException {
         // WMS is enabled by default
         assertTrue(config.getWms().isEnabled());
 
@@ -74,7 +72,7 @@ public class WicketComponentFilterTest {
     }
 
     @Test
-    public void testEnabledComponentAlternativeUrlFormat() throws ServletException, IOException {
+    void testEnabledComponentAlternativeUrlFormat() throws ServletException, IOException {
         // WMS is enabled by default
         assertTrue(config.getWms().isEnabled());
 
@@ -89,7 +87,7 @@ public class WicketComponentFilterTest {
     }
 
     @Test
-    public void testDisabledComponent() throws ServletException, IOException {
+    void testDisabledComponent() throws ServletException, IOException {
         // Disable WMS
         config.getWms().setEnabled(false);
         assertFalse(config.getWms().isEnabled());
@@ -104,7 +102,7 @@ public class WicketComponentFilterTest {
     }
 
     @Test
-    public void testDisabledNestedComponent() throws ServletException, IOException {
+    void testDisabledNestedComponent() throws ServletException, IOException {
         // Disable demo page layer preview
         config.getDemos().getLayerPreviewPage().setEnabled(false);
 
@@ -118,7 +116,7 @@ public class WicketComponentFilterTest {
     }
 
     @Test
-    public void testDisabledNestedComponentAlternativeUrlFormat() throws ServletException, IOException {
+    void testDisabledNestedComponentAlternativeUrlFormat() throws ServletException, IOException {
         // Disable resource browser tool
         config.getTools().setResourceBrowser(false);
 
@@ -133,7 +131,7 @@ public class WicketComponentFilterTest {
     }
 
     @Test
-    public void testUrlsWithQueryParameters() throws ServletException, IOException {
+    void testUrlsWithQueryParameters() throws ServletException, IOException {
         // Disable WMS
         config.getWms().setEnabled(false);
 

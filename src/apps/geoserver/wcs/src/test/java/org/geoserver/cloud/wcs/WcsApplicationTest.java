@@ -46,18 +46,6 @@ class WcsApplicationTest {
         expectBean("debugCoverageResponseDelegate", org.geoserver.wcs.responses.DebugCoverageResponseDelegate.class);
         expectBean("coverageCleaner", org.geoserver.wcs.CoverageCleanerCallback.class);
         expectBean("wcsResourceVoter", org.geoserver.wcs.WCSResourceVoter.class);
-        expectBean("legacyWcsLoader", org.geoserver.wcs.WCSLoader.class);
-        expectBean("wcsFactoryExtension", org.geoserver.wcs.WCSFactoryExtension.class);
-        expectBean("wcsURLMapping", org.geoserver.ows.OWSHandlerMapping.class);
-        expectBean("wcsLocalWorkspaceURLManger", org.geoserver.ows.LocalWorkspaceURLMangler.class);
-        expectBean("cqlKvpParser", org.geoserver.ows.kvp.CQLFilterKvpParser.class);
-        expectBean("coverageResponseDelegateFactory", org.geoserver.wcs.responses.CoverageResponseDelegateFinder.class);
-        expectBean(
-                "geotiffCoverageResponseDelegate", org.geoserver.wcs.responses.GeoTIFFCoverageResponseDelegate.class);
-        expectBean("imgCoverageResponseDelegate", org.geoserver.wcs.responses.IMGCoverageResponseDelegate.class);
-        expectBean("debugCoverageResponseDelegate", org.geoserver.wcs.responses.DebugCoverageResponseDelegate.class);
-        expectBean("coverageCleaner", org.geoserver.wcs.CoverageCleanerCallback.class);
-        expectBean("wcsResourceVoter", org.geoserver.wcs.WCSResourceVoter.class);
     }
 
     @Test
@@ -183,22 +171,19 @@ class WcsApplicationTest {
     /**
      * Tests the service-specific conditional annotations.
      *
-     * <p>
-     * Verifies that only the WCS conditional bean is activated in this service,
-     * based on the geoserver.service.wcs.enabled=true property set in bootstrap.yml.
-     * This test relies on the ConditionalTestAutoConfiguration class from the
-     * extensions-core test-jar, which contains beans conditionally activated
-     * based on each GeoServer service type.
+     * <p>Verifies that only the WCS conditional bean is activated in this service, based on the
+     * geoserver.service.wcs.enabled=true property set in bootstrap.yml. This test relies on the
+     * ConditionalTestAutoConfiguration class from the extensions-core test-jar, which contains beans conditionally
+     * activated based on each GeoServer service type.
      */
     @Test
     void testServiceConditionalAnnotations() {
         // This should exist in WCS service
         assertThat(context.containsBean("wcsConditionalBean")).isTrue();
-        if (context.containsBean("wcsConditionalBean")) {
-            ConditionalTestAutoConfiguration.ConditionalTestBean bean =
-                    context.getBean("wcsConditionalBean", ConditionalTestAutoConfiguration.ConditionalTestBean.class);
-            assertThat(bean.getServiceName()).isEqualTo("WCS");
-        }
+
+        ConditionalTestAutoConfiguration.ConditionalTestBean bean =
+                context.getBean("wcsConditionalBean", ConditionalTestAutoConfiguration.ConditionalTestBean.class);
+        assertThat(bean.getServiceName()).isEqualTo("WCS");
 
         // These should not exist in WCS service
         assertThat(context.containsBean("wmsConditionalBean")).isFalse();

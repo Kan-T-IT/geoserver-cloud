@@ -25,19 +25,16 @@ import org.junit.jupiter.api.Disabled;
 import org.springframework.integration.jdbc.lock.DefaultLockRepository;
 import org.springframework.integration.jdbc.lock.JdbcLockRegistry;
 import org.springframework.integration.jdbc.lock.LockRepository;
-import org.springframework.integration.support.locks.LockRegistry;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
 
-/**
- * @since 1.4
- */
+/** @since 1.4 */
 @Testcontainers(disabledWithoutDocker = true)
 class PgconfigCatalogBackendConformanceTest extends CatalogConformanceTest {
 
     @Container
-    static PgConfigTestContainer<?> container = new PgConfigTestContainer<>();
+    static PgConfigTestContainer container = new PgConfigTestContainer();
 
     @Override
     @BeforeEach
@@ -68,7 +65,7 @@ class PgconfigCatalogBackendConformanceTest extends CatalogConformanceTest {
         return catalog;
     }
 
-    private LockRegistry pgconfigLockRegistry() {
+    private JdbcLockRegistry pgconfigLockRegistry() {
         return new JdbcLockRegistry(pgconfigLockRepository());
     }
 
@@ -78,8 +75,6 @@ class PgconfigCatalogBackendConformanceTest extends CatalogConformanceTest {
         // override default table prefix "INT" by "RESOURCE_" (matching table definition
         // RESOURCE_LOCK in init.XXX.sql
         lockRepository.setPrefix("RESOURCE_");
-        // time in ms to expire dead locks (10k is the default)
-        lockRepository.setTimeToLive(300_000);
         return lockRepository;
     }
 

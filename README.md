@@ -19,6 +19,20 @@
 
 **GeoServer Cloud** builds on GeoServer to provide a [Cloud Native](https://en.wikipedia.org/wiki/Cloud-native_computing) distribution of its geospatial services and APIs.
 
+## Supporters
+
+This project is made possible through the collaboration and support of the following organizations and individuals.
+
+A **supporter** is anyone who contributes to the project in any way, through code, ideas, time, or funding, while a **sponsor** specifically contributes financially. The current sponsors list is maintained in [SPONSORS.md](SPONSORS.md).
+
+### Organizations
+
+[![Multivers.io](docs/src/assets/images/supporters/logo-multiversio-readme.png)](https://www.multivers.io/)
+
+### Individuals
+
+The complete list of individual contributors is published at [geoserver.org/geoserver-cloud/community/contributors](https://geoserver.org/geoserver-cloud/community/contributors/).
+
 ## Architecture
 
 The following diagram shows the system’s general architecture.
@@ -48,7 +62,6 @@ Only a curated selection of the extensive [GeoServer extensions](http://geoserve
 
 * **Catalog and Configuration**:
     * PGConfig
-    * JDBC `jdbcconfig` and `jdbcstore` (deprecated)
 * **Security**:
     * GeoServer ACL
     * JDBC Security
@@ -99,7 +112,7 @@ If you're looking for instructions to just get *GeoServer Cloud* up and running 
 
 ## Status
 
-`v2.28.1.2` released on top of GeoServer `2.28.1`.
+`v2.28.2.2` released on top of GeoServer `2.28.2`.
 
 Check out the full [Release Notes](https://github.com/geoserver/geoserver-cloud/releases) for a changelog.
 
@@ -151,7 +164,6 @@ development and testing, `cd compose` and run one of the following scripts. Each
 
 * `./pgconfig up -d`: runs *GeoServer Cloud* with the new and shiny PostgreSQL catalog back-end
 * `./datadir up -d`: runs *GeoServer Cloud* with a bind-mounted shared data directory
-* `./jdbcconfig up -d`: runs *GeoServer Cloud* with the older and deprecated `jdbcconfig` catalog back-end
 
 Verify the services are running:
 
@@ -161,5 +173,3 @@ $ curl -u admin:geoserver "http://localhost:9090/geoserver/cloud/rest/workspaces
 ```
 
 Browse to [http://localhost:9090/geoserver/cloud/](http://localhost:9090/geoserver/cloud/)
-
-
