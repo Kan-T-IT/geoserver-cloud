@@ -5,16 +5,16 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.vectortiles;
 
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.extension.vectortiles.VectorTilesMapBoxConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Configuration for MapBox Vector Tiles format.
  *
  * @since 2.27.0
  */
+@Configuration(proxyBeanMethods = false)
 @ConditionalOnVectorTilesMapBox
-@ImportFilteredResource(
-        "jar:gs-vectortiles-.*!/applicationContext.xml#name=(wmsMapBoxBuilderFactory|wmsMapBoxMapOutputFormat)")
-@Configuration
-public class MapBoxConfiguration {}
+@Import(VectorTilesMapBoxConfiguration.class)
+class MapBoxConfiguration {}

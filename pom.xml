@@ -8,7 +8,6 @@
   <packaging>pom</packaging>
   <name>GeoServer Cloud</name>
   <modules>
-    <module>build-tools</module>
     <module>src</module>
   </modules>
   <properties>
@@ -25,6 +24,11 @@
     <dependencies>
       <dependency>
         <groupId>org.geoserver.cloud</groupId>
+        <artifactId>gs-cloud-main</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.cloud</groupId>
         <artifactId>gs-cloud-spring-factory</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -34,12 +38,17 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.geoserver.cloud.catalog.jackson</groupId>
+        <groupId>org.geoserver.cloud</groupId>
+        <artifactId>gs-spring-configuration</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>org.geoserver.cloud.jackson</groupId>
         <artifactId>gt-jackson-bindings</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.geoserver.cloud.catalog.jackson</groupId>
+        <groupId>org.geoserver.cloud.jackson</groupId>
         <artifactId>gs-jackson-bindings</artifactId>
         <version>${project.version}</version>
       </dependency>
@@ -172,11 +181,6 @@
         <version>${project.version}</version>
       </dependency>
       <dependency>
-        <groupId>org.geoserver.cloud.catalog.jackson</groupId>
-        <artifactId>gs-cloud-starter-jackson</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
         <groupId>org.geoserver.cloud</groupId>
         <artifactId>gs-cloud-starter-input-formats</artifactId>
         <version>${project.version}</version>
@@ -213,12 +217,7 @@
       </dependency>
       <dependency>
         <groupId>org.geoserver.cloud.catalog</groupId>
-        <artifactId>gs-cloud-catalog-events</artifactId>
-        <version>${project.version}</version>
-      </dependency>
-      <dependency>
-        <groupId>org.geoserver.cloud.catalog</groupId>
-        <artifactId>gs-cloud-catalog-event-bus</artifactId>
+        <artifactId>gs-cloud-events</artifactId>
         <version>${project.version}</version>
       </dependency>
       <dependency>

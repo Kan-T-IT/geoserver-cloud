@@ -26,6 +26,7 @@ import org.geoserver.platform.GeoServerExtensions;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.platform.resource.GlobalLockProvider;
 import org.geoserver.platform.resource.LockProvider;
+import org.geoserver.platform.resource.ResourceStore;
 import org.geoserver.platform.resource.ResourceStoreFactory;
 import org.geoserver.security.ResourceAccessManager;
 import org.geoserver.security.SecureCatalogImpl;
@@ -33,7 +34,6 @@ import org.geoserver.security.impl.DataAccessRuleDAO;
 import org.geoserver.security.impl.DefaultResourceAccessManager;
 import org.geoserver.security.impl.GsCloudLayerGroupContainmentCache;
 import org.geoserver.security.impl.LayerGroupContainmentCache;
-import org.geoserver.security.impl.NoopLayerGroupContainmentCache;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
@@ -256,11 +256,23 @@ public class CoreBackendConfiguration {
     }
 
     /**
-     * Factory for ResourceStore creation. Looks for a resourceStoreImpl bean before falling back to the
-     * dataDirectoryResourceStore bean. Used to override ResourceStore implementation if desired.
+     * Main {@link ResourceStore} bean, defaults to the provided {@code resourceStoreImpl}, differently to
+     * {@code gs-main.jar!/applicationContext.xml} which provides an indirection through {@link ResourceStoreFactory}
+     * and hence a possible early lookup through {@code GeoServerExtensions.bean("resourceStoreImpl",
+     * applicationContext)}
      */
-    @Bean
-    ResourceStoreFactory resourceStore() {
-        return new ResourceStoreFactory();
+    @Bean(name = "resourceStore")
+    ResourceStoreFactory resourceStore(@Qualifier("resourceStoreImpl") ResourceStore impl) {
+        return new ResourceStoreFactory() {
+            @Override
+            public ResourceStore getObject() throws Exception {
+                return impl;
+            }
+            /** @return ResourceStore.class, ResourceStoreFactory returns null */
+            @Override
+            public Class<?> getObjectType() {
+                return ResourceStore.class;
+            }
+        };
     }
 }

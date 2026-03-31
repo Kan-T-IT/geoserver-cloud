@@ -14,7 +14,7 @@ clean:
 
 .PHONY: build-tools
 build-tools:
-	./mvnw clean install -pl build-tools/ -ntp
+	./mvnw clean install -pl src/build-tools/build-config/ -ntp
 
 .PHONY: lint
 lint: build-tools

@@ -7,30 +7,50 @@ package org.geoserver.cloud.autoconfigure.gwc.core;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnDiskQuotaEnabled;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheRestConfigEnabled;
-import org.geoserver.cloud.autoconfigure.gwc.core.DiskQuotaAutoConfiguration.DisquotaRestAutoConfiguration;
-import org.geoserver.cloud.gwc.config.core.DiskQuotaConfiguration;
-import org.geoserver.cloud.gwc.config.core.DisquotaRestConfiguration;
+import org.geoserver.configuration.gwc.GwcDiskQuotaContextConfiguration;
+import org.geoserver.configuration.gwc.GwcDiskQuotaRestConfiguration;
+import org.geoserver.gwc.config.GeoserverXMLResourceProvider;
+import org.geowebcache.config.ConfigurationException;
+import org.geowebcache.diskquota.DiskQuotaMonitor;
+import org.geowebcache.layer.TileLayerDispatcher;
+import org.geowebcache.storage.DefaultStorageFinder;
+import org.springframework.beans.factory.annotation.Qualifier;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
 /**
- * @see DiskQuotaConfiguration
- * @see DisquotaRestConfiguration
+ * @see GwcDiskQuotaContextConfiguration
+ * @see GwcDiskQuotaRestConfiguration
  * @see ConditionalOnDiskQuotaEnabled
  * @see ConditionalOnGeoWebCacheRestConfigEnabled
  * @since 1.0
  */
 @Configuration(proxyBeanMethods = false)
-@Import({DiskQuotaConfiguration.class, DisquotaRestAutoConfiguration.class})
+@Import({GwcDiskQuotaContextConfiguration.class})
+@SuppressWarnings({"java:S1118", "java:S6830"})
 public class DiskQuotaAutoConfiguration {
 
+    static {
+        /*
+         * Disable disk-quota by brute force for now. We need to resolve how and where
+         * to store the configuration and database.
+         */
+        System.setProperty(DiskQuotaMonitor.GWC_DISKQUOTA_DISABLED, "true");
+    }
+
     /**
-     * Enables disk quota REST API if both {@link ConditionalOnDiskQuotaEnabled disk-quota} and
-     * {@link ConditionalOnGeoWebCacheRestConfigEnabled rest-config} are enabled.
+     * Override {@literal DiskQuotaConfigLoader}, {@code GwcConfigurationTranspilerAggregator} chooses the wrong
+     * constructor so it's excluded there
      */
-    @Configuration
-    @ConditionalOnDiskQuotaEnabled
-    @ConditionalOnGeoWebCacheRestConfigEnabled
-    @Import(DisquotaRestConfiguration.class)
-    static class DisquotaRestAutoConfiguration {}
+    @Bean(name = "DiskQuotaConfigLoader")
+    org.geowebcache.diskquota.ConfigLoader diskQuotaConfigLoader( //
+            @Qualifier("DiskQuotaConfigResourceProvider")
+                    GeoserverXMLResourceProvider diskQuotaConfigResourceProvider, //
+            @Qualifier("gwcDefaultStorageFinder") DefaultStorageFinder storageFinder, //
+            TileLayerDispatcher tld)
+            throws ConfigurationException {
+
+        return new org.geowebcache.diskquota.ConfigLoader(diskQuotaConfigResourceProvider, storageFinder, tld);
+    }
 }

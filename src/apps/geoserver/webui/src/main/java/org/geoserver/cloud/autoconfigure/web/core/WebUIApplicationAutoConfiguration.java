@@ -5,15 +5,19 @@
 
 package org.geoserver.cloud.autoconfigure.web.core;
 
-import org.geoserver.cloud.autoconfigure.core.GeoServerWebMvcMainAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.demo.DemosAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.extension.ExtensionsAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.security.SecurityAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.tools.ToolsAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.wcs.WcsAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.wfs.WfsAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.wms.WmsAutoConfiguration;
-import org.geoserver.cloud.autoconfigure.web.wps.WpsAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.core.GeoServerMainAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.demo.WebDemosAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.security.WebSecCoreAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.tools.WebToolsAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.wcs.WebWcsAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.wfs.WebWfsAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.wms.WebWmsAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.web.wps.WebWpsAutoConfiguration;
+import org.geoserver.configuration.core.web.WebCoreConfiguration;
+import org.geoserver.configuration.core.web.WebRestConfiguration;
+import org.geoserver.configuration.core.web.WebThemeConfiguration;
+import org.geoserver.web.GeoServerBasePage;
+import org.geoserver.web.HeaderContribution;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.boot.web.servlet.FilterRegistrationBean;
@@ -23,20 +27,27 @@ import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.core.env.Environment;
 
-@AutoConfiguration(after = {GeoServerWebMvcMainAutoConfiguration.class})
-@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
+/**
+ * @see WebCoreConfiguration
+ * @see WebRestConfiguration
+ * @see WebSecCoreAutoConfiguration
+ * @see WebWmsAutoConfiguration
+ */
+@AutoConfiguration(after = {GeoServerMainAutoConfiguration.class})
 @EnableConfigurationProperties(WebUIConfigurationProperties.class)
 @Import({ //
     WebCoreConfiguration.class, // this one is mandatory
-    SecurityAutoConfiguration.class,
-    WfsAutoConfiguration.class,
-    WmsAutoConfiguration.class,
-    WcsAutoConfiguration.class,
-    WpsAutoConfiguration.class,
-    ExtensionsAutoConfiguration.class,
-    DemosAutoConfiguration.class,
-    ToolsAutoConfiguration.class
+    WebThemeConfiguration.class,
+    WebRestConfiguration.class,
+    WebSecCoreAutoConfiguration.class,
+    WebWfsAutoConfiguration.class,
+    WebWmsAutoConfiguration.class,
+    WebWcsAutoConfiguration.class,
+    WebWpsAutoConfiguration.class,
+    WebDemosAutoConfiguration.class,
+    WebToolsAutoConfiguration.class
 })
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 public class WebUIApplicationAutoConfiguration {
 
     @Bean
@@ -58,5 +69,14 @@ public class WebUIApplicationAutoConfiguration {
         registrationBean.addUrlPatterns("/web/*");
 
         return registrationBean;
+    }
+
+    /** Contributes the GeoServer Cloud CSS theme to the Wicket UI. */
+    @Bean
+    HeaderContribution geoserverCloudCssTheme() {
+        HeaderContribution contribution = new HeaderContribution();
+        contribution.setScope(GeoServerBasePage.class);
+        contribution.setCSSFilename("geoserver-cloud.css");
+        return contribution;
     }
 }

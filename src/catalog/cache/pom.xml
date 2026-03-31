@@ -21,7 +21,7 @@
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud.catalog</groupId>
-      <artifactId>gs-cloud-catalog-events</artifactId>
+      <artifactId>gs-cloud-events</artifactId>
       <optional>true</optional>
     </dependency>
     <dependency>

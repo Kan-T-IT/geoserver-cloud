@@ -7,7 +7,7 @@ package org.geoserver.cloud.autoconfigure.extensions.security.jdbc;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.core.security.jdbc.JDBCSecurityConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Import;
@@ -40,18 +40,15 @@ import org.springframework.context.annotation.Import;
  * @since 2.27.0.0
  */
 @AutoConfiguration
-@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
+@ConditionalOnJDBC
 @EnableConfigurationProperties(JDBCConfigProperties.class)
-@Import(JDBCSecurityWebUIAutoConfiguration.class)
+@Import({JDBCSecurityConfiguration.class, JDBCSecurityWebUIAutoConfiguration.class})
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.extensions.security.jdbc")
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 public class JDBCSecurityAutoConfiguration {
 
     /** Log that the JDBC security configuration is detected. */
     public @PostConstruct void log() {
-        log.info("JDBC security configuration detected");
+        log.info("JDBC security configuration enabled");
     }
-    /** Configuration for the JDBC security components. */
-    @ConditionalOnJDBC
-    @ImportFilteredResource("jar:gs-sec-jdbc-.*!/applicationContext.xml")
-    static class Configuration {}
 }

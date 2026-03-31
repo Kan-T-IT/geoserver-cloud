@@ -5,12 +5,11 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.vectortiles;
 
-import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerGWC;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWMS;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWebUI;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.extension.vectortiles.VectorTilesModuleInfoConfiguration;
 import org.geoserver.platform.ModuleStatusImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -55,8 +54,8 @@ import org.springframework.context.annotation.Import;
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnVectorTiles
 @EnableConfigurationProperties(VectorTilesConfigProperties.class)
-@ImportFilteredResource("jar:gs-vectortiles-.*!/applicationContext.xml#name=(VectorTilesExtension)")
 @Import({
+    VectorTilesModuleInfoConfiguration.class,
     VectorTilesAutoConfiguration.WMSConfiguration.class,
     VectorTilesAutoConfiguration.WebUIConfiguration.class,
     VectorTilesAutoConfiguration.GWCConfiguration.class
@@ -77,13 +76,9 @@ public class VectorTilesAutoConfiguration {
     public VectorTilesAutoConfiguration(
             @Qualifier("VectorTilesExtension") ModuleStatusImpl extensionInfo, VectorTilesConfigProperties config) {
 
-        extensionInfo.setEnabled(config.anyEnabled());
-    }
-
-    /** Logs that the Vector Tiles extension is enabled. */
-    @PostConstruct
-    void log() {
-        log.info("Vector Tiles extension enabled");
+        boolean enabled = config.anyEnabled();
+        extensionInfo.setEnabled(enabled);
+        log.info("Vector Tiles extension " + (enabled ? "enabled" : "disabled"));
     }
 
     /**
