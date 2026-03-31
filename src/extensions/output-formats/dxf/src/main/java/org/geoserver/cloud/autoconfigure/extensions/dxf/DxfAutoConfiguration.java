@@ -10,7 +10,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWFS;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWPS;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWebUI;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.extension.dxf.DxfCoreConfiguration;
+import org.geoserver.configuration.extension.dxf.DxfWpsConfiguration;
 import org.geoserver.platform.ModuleStatus;
 import org.geoserver.platform.ModuleStatusImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -43,6 +44,7 @@ import org.springframework.context.annotation.Import;
  *   <li>The respective service is available (WFS, WebUI, WPS)
  * </ul>
  *
+ * @see DxfCoreConfiguration
  * @since 2.27.0
  */
 @AutoConfiguration
@@ -82,7 +84,7 @@ public class DxfAutoConfiguration {
     @Configuration
     @ConditionalOnDxf
     @ConditionalOnGeoServerWFS
-    @ImportFilteredResource("jar:gs-dxf-core-.*!/applicationContext.xml#name=DXFOutputFormat")
+    @Import(DxfCoreConfiguration.class)
     static class DxfOutputFormatConfiguration {
         @PostConstruct
         void log() {
@@ -105,7 +107,7 @@ public class DxfAutoConfiguration {
     @Configuration
     @ConditionalOnDxf
     @ConditionalOnGeoServerWebUI
-    @ImportFilteredResource("jar:gs-dxf-core-.*!/applicationContext.xml#name=DXFOutputFormat")
+    @Import(DxfCoreConfiguration.class)
     static class WebUIConfiguration {
         @PostConstruct
         void log() {
@@ -126,10 +128,7 @@ public class DxfAutoConfiguration {
     @Configuration
     @ConditionalOnDxf
     @ConditionalOnGeoServerWPS
-    @ImportFilteredResource({
-        "jar:gs-dxf-core-.*!/applicationContext.xml#name=DXFOutputFormat",
-        "jar:gs-dxf-wps-.*!/applicationContext.xml"
-    })
+    @Import({DxfCoreConfiguration.class, DxfWpsConfiguration.class})
     static class WPSConfiguration {
         @PostConstruct
         void log() {

@@ -7,9 +7,10 @@ package org.geoserver.cloud.autoconfigure.vectorformats.graticule;
 
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWebUI;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.community.graticule.GraticuleWebUIConfiguration;
 import org.geotools.autoconfigure.vectorformats.DataAccessFactoryFilteringAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Auto-configuration for Graticule extension that provides a data store for graticule lines.
@@ -21,11 +22,12 @@ import org.springframework.boot.autoconfigure.AutoConfiguration;
  *   <li>The GraticuleDataStoreFactory class is on the classpath
  * </ul>
  *
+ * @see GraticuleWebUIConfiguration
  * @since 2.27.0
  */
 @AutoConfiguration(after = DataAccessFactoryFilteringAutoConfiguration.class)
 @ConditionalOnGraticule
 @ConditionalOnGeoServerWebUI
-@ImportFilteredResource("jar:gs-graticule-.*!/applicationContext.xml")
+@Import(GraticuleWebUIConfiguration.class)
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.vectorformats.graticule")
 public class GraticuleWebComponentsAutoConfiguration {}

@@ -15,7 +15,6 @@
     <module>events</module>
     <module>cache</module>
     <module>jackson-bindings</module>
-    <module>event-bus</module>
     <module>backends</module>
   </modules>
   <properties>

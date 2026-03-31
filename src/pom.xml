@@ -11,6 +11,7 @@
   <name>GeoServer Cloud modules</name>
   <modules>
     <module>build-tools</module>
+    <module>main</module>
     <module>catalog</module>
     <module>config</module>
     <module>gwc</module>

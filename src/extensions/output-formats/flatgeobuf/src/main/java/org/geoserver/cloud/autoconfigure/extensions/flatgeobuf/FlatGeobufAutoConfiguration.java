@@ -9,7 +9,7 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWFS;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWebUI;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.community.flatgeobuf.FlatGeobufConfiguration;
 import org.geoserver.platform.ModuleStatus;
 import org.geoserver.platform.ModuleStatusImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -52,6 +52,7 @@ import org.springframework.context.annotation.Import;
  * <p>The FlatGeobuf extension provides a compact binary format for vector data with random access capabilities, making
  * it efficient for large datasets.
  *
+ * @see FlatGeobufConfiguration
  * @since 2.27.0
  */
 @AutoConfiguration
@@ -86,7 +87,7 @@ public class FlatGeobufAutoConfiguration {
     @Configuration
     @ConditionalOnFlatGeobuf
     @ConditionalOnGeoServerWFS
-    @ImportFilteredResource("jar:gs-flatgeobuf-.*!/applicationContext.xml#name=.*")
+    @Import(FlatGeobufConfiguration.class)
     public static class FlatGeobufOutputFormatConfiguration {
         @PostConstruct
         void log() {
@@ -112,7 +113,7 @@ public class FlatGeobufAutoConfiguration {
     @Configuration
     @ConditionalOnFlatGeobuf
     @ConditionalOnGeoServerWebUI
-    @ImportFilteredResource("jar:gs-flatgeobuf-.*!/applicationContext.xml#name=.*")
+    @Import(FlatGeobufConfiguration.class)
     public static class WebUIConfiguration {
         @PostConstruct
         void log() {

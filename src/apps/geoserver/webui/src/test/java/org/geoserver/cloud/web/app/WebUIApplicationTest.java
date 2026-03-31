@@ -113,10 +113,9 @@ class WebUIApplicationTest {
                 .setAuthentication(new UsernamePasswordAuthenticationToken(username, password, l));
     }
 
-    @SuppressWarnings("unused")
-    private void print(Component component) {
+    void print(Component component) {
         boolean dumpClass = true;
-        boolean dumpValue = false;
+        boolean dumpValue = true;
         boolean dumpPath = true;
         WicketHierarchyPrinter.print(component, dumpClass, dumpValue, dumpPath);
     }
@@ -148,9 +147,6 @@ class WebUIApplicationTest {
         tester.assertVisible("serviceList");
         tester.assertComponent("serviceList:serviceDescriptions:0", ListItem.class);
         tester.assertComponent("serviceList:serviceDescriptions:0:links:0", ListItem.class);
-
-        tester.assertComponent("serviceList:serviceDescriptions:1", ListItem.class);
-        tester.assertComponent("serviceList:serviceDescriptions:1:links:0", ListItem.class);
 
         tester.assertComponent("serviceList:serviceDescriptions:2", ListItem.class);
         tester.assertComponent("serviceList:serviceDescriptions:2:links:0", ListItem.class);

@@ -1,2 +1,0 @@
-org.geoserver.cloud.autoconfigure.jackson.GeoServerJacksonBindingsAutoConfiguration
-org.geoserver.cloud.autoconfigure.jackson.GeoToolsJacksonBindingsAutoConfiguration

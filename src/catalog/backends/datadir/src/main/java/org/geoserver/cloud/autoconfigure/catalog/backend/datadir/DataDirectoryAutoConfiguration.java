@@ -5,8 +5,8 @@
 
 package org.geoserver.cloud.autoconfigure.catalog.backend.datadir;
 
-import org.geoserver.cloud.autoconfigure.catalog.backend.core.DefaultUpdateSequenceAutoConfiguration;
 import org.geoserver.cloud.autoconfigure.geotools.GeoToolsHttpClientAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.main.DefaultUpdateSequenceAutoConfiguration;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryBackendConfiguration;
 import org.geoserver.cloud.config.catalog.backend.datadirectory.DataDirectoryProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;

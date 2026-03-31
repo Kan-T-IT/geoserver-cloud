@@ -11,7 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import org.geoserver.catalog.Catalog;
-import org.geoserver.cloud.gwc.config.core.WebMapServiceMinimalConfiguration;
+import org.geoserver.configuration.gwc.GwcWMSMinimalConfiguration;
 import org.geoserver.gwc.layer.GeoServerTileLayer;
 import org.geoserver.platform.GeoServerResourceLoader;
 import org.geoserver.rest.RestConfiguration;
@@ -42,7 +42,7 @@ import org.springframework.context.annotation.FilterType;
 public class GeoWebCacheApplicationConfiguration extends RestConfiguration {
 
     /**
-     * Required by {@link GeoServerTileLayer#getLegendSample}, excluded by {@link WebMapServiceMinimalConfiguration}
+     * Required by {@link GeoServerTileLayer#getLegendSample}, excluded by {@link GwcWMSMinimalConfiguration}
      *
      * @param catalog using {@code rawCatalog} instead of {@code catalog}, to avoid the local workspace and secured
      *     catalog decorators

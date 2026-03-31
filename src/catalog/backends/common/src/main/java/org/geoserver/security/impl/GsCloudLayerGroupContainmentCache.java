@@ -62,7 +62,6 @@ import org.springframework.web.context.WebApplicationContext;
  * {@link #getContainerGroupsFor(LayerGroupInfo)} and/or {@link #getContainerGroupsFor(ResourceInfo)}. For the later,
  * only global and same-workspace layer groups may be queried.
  *
- * @see NoopLayerGroupContainmentCache
  * @since 1.8.2
  */
 @Slf4j

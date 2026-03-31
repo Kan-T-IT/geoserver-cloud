@@ -6,7 +6,7 @@
 package org.geoserver.cloud.autoconfigure.gwc.core;
 
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
-import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
+import org.geoserver.cloud.autoconfigure.gwc.GeoWebCacheConfigurationProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.context.annotation.Import;
 

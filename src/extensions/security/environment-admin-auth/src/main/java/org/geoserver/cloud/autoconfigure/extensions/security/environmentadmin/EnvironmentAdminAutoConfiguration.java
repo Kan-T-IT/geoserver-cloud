@@ -7,7 +7,7 @@ package org.geoserver.cloud.autoconfigure.extensions.security.environmentadmin;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.geoserver.cloud.autoconfigure.security.GeoServerSecurityAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.main.GeoServerMainSecurityAutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Bean;
@@ -32,7 +32,7 @@ import org.springframework.security.authentication.AuthenticationProvider;
  */
 // run before GeoServerSecurityAutoConfiguration so the provider is available when
 // GeoServerSecurityManager calls GeoServerExtensions.extensions(GeoServerSecurityProvider.class)
-@AutoConfiguration(before = GeoServerSecurityAutoConfiguration.class)
+@AutoConfiguration(before = GeoServerMainSecurityAutoConfiguration.class)
 @ConditionalOnEnvironmentAdmin
 @EnableConfigurationProperties(EnvironmentAdminConfigProperties.class)
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.extensions.security.environmentadmin")

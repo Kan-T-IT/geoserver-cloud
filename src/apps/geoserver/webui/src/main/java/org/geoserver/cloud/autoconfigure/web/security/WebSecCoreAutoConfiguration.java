@@ -1,0 +1,72 @@
+/* (c) 2020 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
+
+package org.geoserver.cloud.autoconfigure.web.security;
+
+import jakarta.servlet.Filter;
+import jakarta.servlet.FilterChain;
+import jakarta.servlet.ServletException;
+import jakarta.servlet.ServletRequest;
+import jakarta.servlet.ServletResponse;
+import java.io.IOException;
+import lombok.NonNull;
+import lombok.RequiredArgsConstructor;
+import org.geoserver.cloud.autoconfigure.web.core.AbstractWebUIAutoConfiguration;
+import org.geoserver.configuration.core.web.sec.WebSecCoreConfiguration;
+import org.geoserver.security.filter.GeoServerLogoutFilter;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
+import org.springframework.boot.web.servlet.FilterRegistrationBean;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+/** @see WebSecCoreConfiguration */
+@Configuration(proxyBeanMethods = false)
+@ConditionalOnClass(name = "org.geoserver.security.web.SecuritySettingsPage")
+@ConditionalOnProperty( // enabled by default
+        prefix = WebSecCoreAutoConfiguration.CONFIG_PREFIX,
+        name = "enabled",
+        havingValue = "true",
+        matchIfMissing = true)
+@Import(WebSecCoreConfiguration.class)
+public class WebSecCoreAutoConfiguration extends AbstractWebUIAutoConfiguration {
+
+    static final String CONFIG_PREFIX = "geoserver.web-ui.security";
+
+    @Override
+    public String getConfigPrefix() {
+        return CONFIG_PREFIX;
+    }
+
+    @Bean
+    @ConditionalOnProperty("geoserver.web-ui.security.logout-url")
+    FilterRegistrationBean<ConfigurableLogoutUrlFilter> configurableLogoutUrlFilterRegistration(
+            @Value("${geoserver.web-ui.security.logout-url}") String logoutUrl) {
+
+        ConfigurableLogoutUrlFilter filter = new ConfigurableLogoutUrlFilter(logoutUrl);
+
+        FilterRegistrationBean<ConfigurableLogoutUrlFilter> registration = new FilterRegistrationBean<>();
+        registration.setFilter(filter);
+        registration.setOrder(1);
+        return registration;
+    }
+
+    @RequiredArgsConstructor
+    private static class ConfigurableLogoutUrlFilter implements Filter {
+
+        private final @NonNull String logoutUrl;
+
+        @Override
+        public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+                throws IOException, ServletException {
+
+            request.setAttribute(GeoServerLogoutFilter.LOGOUT_REDIRECT_ATTR, logoutUrl);
+
+            chain.doFilter(request, response);
+        }
+    }
+}

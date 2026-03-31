@@ -11,7 +11,6 @@ import static org.mockito.Mockito.mock;
 import org.geoserver.config.GeoServer;
 import org.geoserver.platform.ModuleStatusImpl;
 import org.geoserver.security.GeoServerSecurityManager;
-import org.geoserver.security.web.auth.AuthenticationFilterPanelInfo;
 import org.geoserver.security.web.jdbc.JDBCAuthProviderPanelInfo;
 import org.geoserver.security.web.jdbc.JDBCRoleServicePanelInfo;
 import org.geoserver.security.web.jdbc.JDBCUserGroupServicePanelInfo;
@@ -36,6 +35,7 @@ class JDBCSecurityWebUIAutoConfigurationTest {
         var mockGeoServer = mock(GeoServer.class);
 
         runner = new WebApplicationContextRunner()
+                .withPropertyValues("geoserver.service.webui.enabled=true")
                 .withConfiguration(AutoConfigurations.of(
                         JDBCSecurityAutoConfiguration.class, JDBCSecurityWebUIAutoConfiguration.class))
                 .withBean("geoServer", GeoServer.class, () -> mockGeoServer)
@@ -44,7 +44,7 @@ class JDBCSecurityWebUIAutoConfigurationTest {
 
     @Test
     void testConditionalOnClassNoMatch() {
-        runner.withClassLoader(new FilteredClassLoader(AuthenticationFilterPanelInfo.class))
+        runner.withClassLoader(new FilteredClassLoader(org.geoserver.web.GeoServerApplication.class))
                 .run(context -> assertThat(context)
                         .hasNotFailed()
                         .doesNotHaveBean(JDBCUserGroupServicePanelInfo.class)

@@ -5,15 +5,19 @@
 
 package org.geoserver.cloud.autoconfigure.wfs;
 
-import org.geoserver.cloud.autoconfigure.core.GeoServerWebMvcMainAutoConfiguration;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.cloud.autoconfigure.core.GeoServerMainAutoConfiguration;
+import org.geoserver.configuration.core.wfs.WFS1xConfiguration;
+import org.geoserver.configuration.core.wfs.WFS2xConfiguration;
+import org.geoserver.configuration.core.wfs.WFSCoreConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.context.annotation.Import;
 
-@AutoConfiguration(after = GeoServerWebMvcMainAutoConfiguration.class)
+/**
+ * @see WFSCoreConfiguration
+ * @see WFS1xConfiguration
+ * @see WFS2xConfiguration
+ */
+@AutoConfiguration(after = GeoServerMainAutoConfiguration.class)
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
-@ImportFilteredResource({
-    "jar:gs-wfs-core.*!/applicationContext.xml",
-    "jar:gs-wfs1_x-.*!/applicationContext.xml",
-    "jar:gs-wfs2_x-.*!/applicationContext.xml"
-})
+@Import({WFSCoreConfiguration.class, WFS1xConfiguration.class, WFS2xConfiguration.class})
 public class WfsApplicationAutoConfiguration {}

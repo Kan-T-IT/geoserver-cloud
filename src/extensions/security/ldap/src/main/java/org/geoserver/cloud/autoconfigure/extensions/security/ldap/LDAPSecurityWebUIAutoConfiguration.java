@@ -5,10 +5,11 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.security.ldap;
 
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.core.web.sec.WebSecLdapConfiguration;
 import org.geoserver.security.web.auth.AuthenticationFilterPanelInfo;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.annotation.Import;
 
 /**
  * Auto-configuration for the GeoServer LDAP security web UI components.
@@ -23,11 +24,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
  * <p>It registers the LDAP security web UI components like panel info classes for configuration through the GeoServer
  * web admin interface.
  *
+ * @see WebSecLdapConfiguration
  * @since 2.27.0.0
  */
 @AutoConfiguration
-@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnLDAP
 @ConditionalOnClass(AuthenticationFilterPanelInfo.class)
-@ImportFilteredResource("jar:gs-web-sec-ldap-.*!/applicationContext.xml")
+@Import(WebSecLdapConfiguration.class)
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 public class LDAPSecurityWebUIAutoConfiguration {}

@@ -12,5 +12,6 @@
   <modules>
     <module>spring-factory</module>
     <module>spring-boot-simplejndi</module>
+    <module>geoserver-configuration</module>
   </modules>
 </project>

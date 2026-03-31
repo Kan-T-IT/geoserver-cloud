@@ -56,7 +56,7 @@
       <optional>true</optional>
     </dependency>
     <dependency>
-      <groupId>org.geoserver.cloud.catalog.jackson</groupId>
+      <groupId>org.geoserver.cloud.jackson</groupId>
       <artifactId>gt-jackson-bindings</artifactId>
       <scope>test</scope>
     </dependency>

@@ -220,7 +220,6 @@ public abstract class ExpressionRoundtripTest {
         try {
             roundtripTest(literal(value));
         } catch (Exception e) {
-            e.printStackTrace();
             throw e;
         }
     }

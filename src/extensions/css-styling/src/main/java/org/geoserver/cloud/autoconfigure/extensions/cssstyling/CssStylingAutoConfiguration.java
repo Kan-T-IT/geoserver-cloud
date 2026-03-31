@@ -8,8 +8,8 @@ package org.geoserver.cloud.autoconfigure.extensions.cssstyling;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.catalog.StyleHandler;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
 import org.geoserver.community.css.web.CssHandler;
+import org.geoserver.configuration.extension.css.CssConfiguration;
 import org.geoserver.platform.ModuleStatus;
 import org.geoserver.platform.ModuleStatusImpl;
 import org.geotools.styling.css.CssParser;
@@ -40,6 +40,7 @@ import org.springframework.context.annotation.Import;
  *   <li>Disabled - Provides a disabled module status when extension is explicitly disabled
  * </ul>
  *
+ * @see CssConfiguration
  * @since 2.27.0
  */
 @AutoConfiguration
@@ -52,7 +53,7 @@ public class CssStylingAutoConfiguration {
     /** Configuration class that activates CSS styling extension when enabled. */
     @Configuration
     @ConditionalOnCssStyling
-    @ImportFilteredResource("jar:gs-css-.*!/applicationContext.xml")
+    @Import(CssConfiguration.class)
     static class Enabled {
         @PostConstruct
         void log() {

@@ -43,12 +43,12 @@ class DataDirectoryAutoConfigurationTest {
                     // AutoConfigurations from gs-cloud-catalog-backend-common
                     org.geoserver.cloud.autoconfigure.geotools.GeoToolsHttpClientAutoConfiguration.class,
                     org.geoserver.cloud.autoconfigure.catalog.backend.core.GeoServerBackendAutoConfiguration.class,
-                    org.geoserver.cloud.autoconfigure.catalog.backend.core.DefaultUpdateSequenceAutoConfiguration.class,
-                    org.geoserver.cloud.autoconfigure.catalog.backend.core.XstreamServiceLoadersAutoConfiguration.class,
+                    org.geoserver.cloud.autoconfigure.main.DefaultUpdateSequenceAutoConfiguration.class,
+                    org.geoserver.cloud.autoconfigure.main.XstreamServiceLoadersAutoConfiguration.class,
                     org.geoserver.cloud.autoconfigure.catalog.backend.core
                             .RemoteEventResourcePoolCleanupUpAutoConfiguration.class,
                     //
-                    org.geoserver.cloud.autoconfigure.security.GeoServerSecurityAutoConfiguration.class,
+                    org.geoserver.cloud.autoconfigure.main.GeoServerMainSecurityAutoConfiguration.class,
                     org.geoserver.cloud.autoconfigure.metrics.catalog.CatalogMetricsAutoConfiguration.class,
                     // AutoConfigurations from gs-cloud-catalog-backend-datadir
                     org.geoserver.cloud.autoconfigure.catalog.backend.datadir.DataDirectoryAutoConfiguration.class //

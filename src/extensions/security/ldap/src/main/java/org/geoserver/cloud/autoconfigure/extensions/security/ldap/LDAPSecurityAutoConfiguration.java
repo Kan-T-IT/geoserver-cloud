@@ -7,7 +7,7 @@ package org.geoserver.cloud.autoconfigure.extensions.security.ldap;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.core.security.ldap.LDAPSecurityConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Import;
@@ -36,22 +36,19 @@ import org.springframework.context.annotation.Import;
  *     ldap: true|false
  * }</pre>
  *
+ * @see LDAPSecurityConfiguration
  * @since 2.27.0.0
  */
 @AutoConfiguration
-@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
+@ConditionalOnLDAP
 @EnableConfigurationProperties(LDAPConfigProperties.class)
-@Import(LDAPSecurityWebUIAutoConfiguration.class)
+@Import({LDAPSecurityConfiguration.class, LDAPSecurityWebUIAutoConfiguration.class})
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.extensions.security.ldap")
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 public class LDAPSecurityAutoConfiguration {
 
     /** Log that the LDAP security configuration is detected. */
     public @PostConstruct void log() {
-        log.info("LDAP security configuration detected");
+        log.info("LDAP security configuration enabled");
     }
-
-    /** Configuration for the LDAP security components. */
-    @ConditionalOnLDAP
-    @ImportFilteredResource("jar:gs-sec-ldap-.*!/applicationContext.xml")
-    static class Configuration {}
 }
