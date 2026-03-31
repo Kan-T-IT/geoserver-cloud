@@ -61,6 +61,7 @@
         <configuration>
           <failOnNoGitDirectory>false</failOnNoGitDirectory>
           <generateGitPropertiesFile>true</generateGitPropertiesFile>
+          <useNativeGit>true</useNativeGit>
         </configuration>
         <executions>
           <execution>

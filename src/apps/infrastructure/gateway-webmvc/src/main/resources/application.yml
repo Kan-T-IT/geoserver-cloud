@@ -1,0 +1,104 @@
+server:
+  port: 8080
+  # Let spring-boot's ForwardedHeaderFilter take care of reflecting the client-originated protocol and address in the HttpServletRequest
+  forward-headers-strategy: framework
+
+spring:
+  application.name: gateway
+  threads.virtual.enabled: true
+  servlet:
+    # The gateway is a reverse proxy: request bodies and Content-Type headers must be forwarded
+    # verbatim to downstream services.
+    encoding:
+      # Disable CharacterEncodingFilter. It appends ';charset=UTF-8' to Content-Type headers
+      # (e.g. 'application/zip' becomes 'application/zip;charset=UTF-8'), which breaks
+      # downstream services that rely on exact media type matching.
+      enabled: false
+    multipart:
+      # Disable multipart request parsing so multipart/form-data bodies are streamed through
+      # to backend services without being consumed by the gateway.
+      enabled: false
+  config:
+    import:
+      - classpath:geoserver_spring_boot_profiles.yml
+      - classpath:geoserver_spring_cloud_profiles.yml
+  cloud:
+    gateway:
+      server:
+        webmvc:
+          # Required: without this, XForwardedRequestHeadersFilter is not created and
+          # X-Forwarded-* headers won't be sent to backend services.
+          # In production, set to a regex matching actual trusted proxy IPs (e.g. "10\\.0\\.0\\.\\d+").
+          trusted-proxies: ".*"
+          forwarded-request-headers-filter:
+            # Disable the Forwarded header, rely on X-Forwarded-*. Forwarded is built wrong.
+            # e.g.:      proto=https;host=\"gateway:8080\";for=\"172.20.0.1:51084\
+            # instead of proto=https;host=\"original-host:443\";for=\"172.20.0.1:51084\
+            enabled: false
+          x-forwarded-request-headers-filter:
+            enabled: true
+            for-enabled: true
+            host-enabled: true
+            port-enabled: true
+            proto-enabled: true
+            prefix-enabled: true
+
+management:
+  endpoints:
+    access:
+      default: read-only
+    web:
+      exposure:
+        include: "*"
+  endpoint:
+    env.show-values: ALWAYS
+    configprops.show-values: ALWAYS
+    info:
+      access: read-only
+    metrics:
+      access: read-only
+    shutdown:
+      access: none
+    health:
+      access: read-only
+      probes:
+        enabled: true
+      show-details: always
+    prometheus:
+      access: read-only
+  metrics:
+    enable:
+      jvm: true
+
+# Access log configuration - log all requests by default
+logging:
+  level:
+    # Enable debug for MDC components
+    '[org.geoserver.cloud.logging.mdc]': DEBUG
+    '[org.geoserver.cloud.logging.accesslog]': DEBUG
+  accesslog:
+    info:
+      - ".*"  # Log all URLs at INFO level
+  # Configure logback to include MDC in json output
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level %logger{36} - %msg%n"
+
+---
+spring.config.activate.on-profile: "bootstrap-standalone"
+spring.config.import: ${standalone.config.location:file:/etc/geoserver/gateway.yml}
+
+---
+spring.config.activate.on-profile: "discovery-consul"
+spring:
+  cloud:
+    consul:
+      discovery:
+        # Gateway needs to see healthy instances for lb:// routes
+        query-passing: true
+
+---
+# local profile, used for development only. Other settings like config and consul urls in geoserver_spring_cloud_profiles.yml
+spring.config.activate.on-profile: local
+server.port: 9090
+management.server.port: 9090
