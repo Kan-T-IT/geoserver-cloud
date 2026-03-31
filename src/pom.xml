@@ -55,8 +55,7 @@
     <maven.compiler.release>${java.version}</maven.compiler.release>
     <checkstyle.skip>false</checkstyle.skip>
     <sonar.coverage.jacoco.xmlReportPaths>${project.build.directory}/site/jacoco/jacoco.xml</sonar.coverage.jacoco.xmlReportPaths>
-    <!-- logstash-logback-encoder:7.4+ requires logback 1.3+ and slf4j 2.0+, only available on spring-boot 3.0+ -->
-    <logstash-logback-encoder.version>7.3</logstash-logback-encoder.version>
+    <logstash-logback-encoder.version>9.0</logstash-logback-encoder.version>
     <argLine>--add-opens=java.base/java.lang=ALL-UNNAMED --add-opens=java.base/java.util=ALL-UNNAMED --add-opens=java.base/java.lang.reflect=ALL-UNNAMED --add-opens=java.base/java.text=ALL-UNNAMED --add-opens=java.desktop/java.awt.font=ALL-UNNAMED  --add-opens=java.desktop/sun.awt.image=ALL-UNNAMED --add-opens=java.naming/com.sun.jndi.ldap=ALL-UNNAMED --enable-native-access=ALL-UNNAMED --sun-misc-unsafe-memory-access=allow</argLine>
     <surefire.skip>false</surefire.skip>
     <failsafe.skip>false</failsafe.skip>
