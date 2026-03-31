@@ -6,7 +6,6 @@ package org.geoserver.cloud.gwc.config.core;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
-import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.when;
 
@@ -51,7 +50,7 @@ class CloudGwcUrlHandlerMappingTest {
         request.setAttribute(ServletRequestPathUtils.PATH_ATTRIBUTE, originalPath);
 
         AtomicReference<Object> pathDuringCatalogCall = new AtomicReference<>();
-        when(catalog.getWorkspaceByName(eq("myws"))).thenAnswer(invocation -> {
+        when(catalog.getWorkspaceByName("myws")).thenAnswer(invocation -> {
             pathDuringCatalogCall.set(request.getAttribute(ServletRequestPathUtils.PATH_ATTRIBUTE));
             return mock(WorkspaceInfo.class);
         });
@@ -78,7 +77,7 @@ class CloudGwcUrlHandlerMappingTest {
         request.setAttribute(ServletRequestPathUtils.PATH_ATTRIBUTE, originalPath);
 
         RuntimeException catalogException = new RuntimeException("catalog error");
-        when(catalog.getWorkspaceByName(eq("myws"))).thenThrow(catalogException);
+        when(catalog.getWorkspaceByName("myws")).thenThrow(catalogException);
 
         assertThatThrownBy(() -> handler.lookupHandlerMethod("/myws/gwc/demo/layer:name", request))
                 .isSameAs(catalogException);
@@ -93,7 +92,7 @@ class CloudGwcUrlHandlerMappingTest {
         request.setServletPath("/myws");
         // Do NOT set PATH_ATTRIBUTE — simulates it being absent
 
-        when(catalog.getWorkspaceByName(eq("myws"))).thenReturn(mock(WorkspaceInfo.class));
+        when(catalog.getWorkspaceByName("myws")).thenReturn(mock(WorkspaceInfo.class));
 
         handler.lookupHandlerMethod("/myws/gwc/demo/layer:name", request);
 
