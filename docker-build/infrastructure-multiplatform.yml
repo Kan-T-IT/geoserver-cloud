@@ -7,10 +7,18 @@ services:
     build:
       context: ../src/apps/infrastructure/config/
 
-  gateway:
+  gateway-webmvc:
     extends:
       file: templates.yml
       service: multi-platform
     image: ${REPOSITORY}/geoserver-cloud-gateway:${TAG}
     build:
-      context: ../src/apps/infrastructure/gateway/
+      context: ../src/apps/infrastructure/gateway-webmvc/
+
+  gateway-webflux:
+    extends:
+      file: templates.yml
+      service: multi-platform
+    image: ${REPOSITORY}/geoserver-cloud-gateway:${TAG}
+    build:
+      context: ../src/apps/infrastructure/gateway-webflux/

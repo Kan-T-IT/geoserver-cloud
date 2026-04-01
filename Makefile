@@ -102,7 +102,7 @@ endif
 .PHONY: package-infrastructure-images
 package-infrastructure-images:
 ifeq ($(REPACKAGE), true)
-	./mvnw clean package -DskipTests -T1C -ntp -am -pl src/apps/infrastructure/config,src/apps/infrastructure/gateway
+	./mvnw clean package -DskipTests -T1C -ntp -am -pl src/apps/infrastructure/config,src/apps/infrastructure/gateway-webmvc,src/apps/infrastructure/gateway-webflux
 else
 	@echo "Not re-packaging infra images, assuming the target/*-bin.jar files exist"
 endif
