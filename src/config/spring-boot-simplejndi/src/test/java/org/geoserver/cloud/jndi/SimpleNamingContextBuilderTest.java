@@ -25,6 +25,7 @@ import org.junit.jupiter.api.TestInstance;
 import org.junit.jupiter.api.TestMethodOrder;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
+import org.testcontainers.ldap.LLdapContainer;
 
 /**
  * Test suite for {@link SimpleNamingContextBuilder}
@@ -37,12 +38,12 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 class SimpleNamingContextBuilderTest {
 
     @Container
-    private static final GeorchestraLdapContainer LDAP_CONTAINER = new GeorchestraLdapContainer();
+    private static final LLdapContainer LDAP_CONTAINER = new LLdapContainer("lldap/lldap:v0.6.1-alpine");
 
     @BeforeAll
     static void beforeAll() {
         LDAP_CONTAINER.start();
-        System.setProperty("ldapPort", String.valueOf(LDAP_CONTAINER.getMappedLdapPort()));
+        System.setProperty("ldapPort", String.valueOf(LDAP_CONTAINER.getLdapPort()));
         System.setProperty("ldapHost", LDAP_CONTAINER.getHost());
     }
 
@@ -78,12 +79,11 @@ class SimpleNamingContextBuilderTest {
         env.put("java.naming.factory.object", "org.springframework.ldap.core.support.DefaultDirObjectFactory");
         env.put("java.naming.ldap.version", "3");
 
-        final int ldapPort = LDAP_CONTAINER.getMappedLdapPort();
-        env.put("org.springframework.ldap.base.path", "dc=georchestra,dc=org");
-        env.put("java.naming.provider.url", "ldap://localhost:%d/dc=georchestra,dc=org".formatted(ldapPort));
-        env.put("java.naming.security.principal", "uid=testadmin,ou=users,dc=georchestra,dc=org");
+        env.put("org.springframework.ldap.base.path", LDAP_CONTAINER.getBaseDn());
+        env.put("java.naming.provider.url", "%s/%s".formatted(LDAP_CONTAINER.getLdapUrl(), LDAP_CONTAINER.getBaseDn()));
+        env.put("java.naming.security.principal", LDAP_CONTAINER.getUser());
         env.put("java.naming.security.authentication", "simple");
-        env.put("java.naming.security.credentials", "testadmin");
+        env.put("java.naming.security.credentials", LDAP_CONTAINER.getPassword());
 
         Context context = NamingManager.getInitialContext(env);
         assertThat(context).isInstanceOf(DirContext.class);

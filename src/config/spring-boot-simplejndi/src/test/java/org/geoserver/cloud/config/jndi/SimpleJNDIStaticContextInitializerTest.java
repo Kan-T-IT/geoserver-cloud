@@ -24,7 +24,7 @@ class SimpleJNDIStaticContextInitializerTest {
 
     @Test
     void testDefaultInitialContext() {
-        runner.run(context -> {
+        runner.run(_ -> {
             InitialContext initialContext = new InitialContext();
             Context ctx = NamingManager.getInitialContext(new Hashtable<>());
             assertThat(ctx).isInstanceOf(SimpleNamingContext.class);

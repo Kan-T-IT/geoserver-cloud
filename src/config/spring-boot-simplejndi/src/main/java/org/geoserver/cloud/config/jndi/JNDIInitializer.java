@@ -7,6 +7,8 @@ package org.geoserver.cloud.config.jndi;
 
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Map;
+import java.util.Objects;
+import java.util.concurrent.StructuredTaskScope;
 import javax.naming.Context;
 import javax.naming.NamingException;
 import javax.naming.spi.NamingManager;
@@ -39,17 +41,20 @@ public class JNDIInitializer implements InitializingBean, DisposableBean {
         }
 
         // Assign the datasource a name from the mappings key
-        configs.entrySet().forEach(e -> {
-            var name = e.getKey();
-            var props = e.getValue();
+        configs.forEach((name, props) -> {
             if (null == props.getName()) {
                 props.setName(name);
             }
         });
-        try {
-            configs.entrySet().forEach(e -> setUpDataSource(toJndiDatasourceName(e.getKey()), e.getValue()));
-        } catch (Exception e) {
-            throw new IllegalStateException(e);
+
+        Context initialContext = getInitialContext();
+
+        try (@SuppressWarnings("preview")
+                var scope = StructuredTaskScope.open()) {
+            for (var props : configs.values()) {
+                scope.fork(() -> setUpDataSource(initialContext, props));
+            }
+            scope.join();
         }
     }
 
@@ -91,16 +96,14 @@ public class JNDIInitializer implements InitializingBean, DisposableBean {
         return dsname;
     }
 
-    void setUpDataSource(String jndiName, JNDIDatasourceConfig props) {
+    void setUpDataSource(Context initialContext, JNDIDatasourceConfig props) {
+        final String jndiName = toJndiDatasourceName(Objects.requireNonNull(props.getName()));
         if (props.isEnabled()) {
             log.info("Creating JNDI datasoruce {} on {}", jndiName, props.getUrl());
         } else {
             log.info("Ignoring disabled JNDI datasource " + jndiName);
             return;
         }
-
-        Context initialContext = getInitialContext();
-
         DataSource dataSource = createDataSource(props);
         waitForIt(jndiName, dataSource, props);
         try {
