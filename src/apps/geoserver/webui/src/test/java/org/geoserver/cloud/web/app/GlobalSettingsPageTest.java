@@ -5,7 +5,7 @@
  */
 package org.geoserver.cloud.web.app;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -231,7 +231,7 @@ class GlobalSettingsPageTest {
         GlobalSettingsPage page = (GlobalSettingsPage) tester.getLastRenderedPage();
         assertNotNull(page);
         assertHidden("proxyBaseUrlContainer");
-        assertHidden("useHeadersProxyURL");
+        assertHidden("useHeadersProxyURLContainer");
         assertHidden("loggingSettingsContainer");
         assertHidden("lockProviderContainer");
         assertHidden("webUISettingsContainer");
@@ -241,6 +241,6 @@ class GlobalSettingsPageTest {
         TagTester tag = tester.getTagById(id);
         String msg = "expected custom 'unused' css class to hide the %s form inputs in custom GlobalSettingsPage.html"
                 .formatted(id);
-        assertEquals("unused", tag.getAttribute("class"), msg);
+        assertThat(tag.getAttribute("class")).as(msg).contains("unused");
     }
 }

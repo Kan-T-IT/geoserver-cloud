@@ -5,6 +5,7 @@
 
 package org.geoserver.jackson.databind.config.dto;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonTypeName;
 import lombok.Data;
 import lombok.EqualsAndHashCode;
@@ -16,8 +17,8 @@ import org.geoserver.config.LoggingInfo;
 @EqualsAndHashCode(callSuper = true)
 @ToString(callSuper = true)
 @JsonTypeName("LoggingInfo")
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class LoggingInfoDto extends ConfigInfoDto {
     private String level;
-    private String location;
     private boolean stdOutLogging;
 }
