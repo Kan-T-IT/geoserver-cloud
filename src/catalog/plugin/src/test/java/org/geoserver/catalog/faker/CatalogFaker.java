@@ -468,7 +468,6 @@ public class CatalogFaker {
         LoggingInfoImpl l = new LoggingInfoImpl();
         l.setId("weird-this-has-id");
         l.setLevel("super");
-        l.setLocation("there");
         l.setStdOutLogging(true);
         return l;
     }

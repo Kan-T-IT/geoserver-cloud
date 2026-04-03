@@ -7,11 +7,8 @@ package org.geoserver.configuration.core.main;
 
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
-import org.geoserver.security.CloudGeoServerSecurityFilterChainProxy;
-import org.geoserver.security.GeoServerSecurityFilterChainProxy;
 import org.geoserver.security.GeoServerSecurityManager;
 import org.geoserver.spring.config.annotations.TranspileXmlConfig;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -25,7 +22,7 @@ import org.springframework.context.annotation.Import;
 @Configuration(proxyBeanMethods = false)
 @TranspileXmlConfig(
         locations = "jar:gs-main-.*!/applicationSecurityContext.xml",
-        excludes = {"authenticationManager", "filterChainProxy"})
+        excludes = {"authenticationManager"})
 @Import(GeoServerMainSecurityConfiguration_Generated.class)
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.security")
 public class GeoServerMainSecurityConfiguration {
@@ -33,11 +30,5 @@ public class GeoServerMainSecurityConfiguration {
     @PostConstruct
     void log() {
         log.info("GeoServer main security configuration loaded");
-    }
-
-    /** Provide bean excluded in {@code @TranspileXmlConfig} */
-    @Bean
-    GeoServerSecurityFilterChainProxy filterChainProxy(GeoServerSecurityManager sm) {
-        return new CloudGeoServerSecurityFilterChainProxy(sm);
     }
 }
