@@ -12,6 +12,7 @@ import org.geoserver.cloud.event.bus.RemoteGeoServerEventsConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.cloud.bus.BusAutoConfiguration;
+import org.springframework.cloud.bus.BusProperties;
 import org.springframework.context.annotation.Import;
 
 /** Log a message if spring-cloud-bus is explicitly disables */
@@ -29,8 +30,19 @@ public class GeoServerBusIntegrationAutoConfiguration {
     @ConditionalOnGeoServerRemoteEventsEnabled
     @Import(RemoteGeoServerEventsConfiguration.class)
     static class Enabled {
-        public @PostConstruct void logBusDisabled() {
-            log.info("GeoServer event-bus integration is enabled");
+
+        private BusProperties busProperties;
+
+        public Enabled(BusProperties busProperties) {
+            this.busProperties = busProperties;
+        }
+
+        @PostConstruct
+        void logBusEnabled() {
+            log.info(
+                    "Spring Cloud Bus integration enabled. bus[id: {}, destination: {}]",
+                    busProperties.getId(),
+                    busProperties.getDestination());
         }
     }
 
