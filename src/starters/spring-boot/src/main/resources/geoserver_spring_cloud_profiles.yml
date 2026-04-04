@@ -41,7 +41,15 @@ spring.cloud.config.discovery.enabled: false
 spring.config.activate.on-profile: "bus-rabbitmq"
 
 spring:
-  cloud.bus.enabled: true
+  cloud:
+    bus:
+      enabled: true
+      id: ${info.instance-id}
+      destination: geoserver
+      trace.enabled: false #switch on tracing of acks (default off).
+    stream:
+      # Prevents Stream from treating every java Function bean as a Rabbit queue
+      function.autodetect: false
   rabbitmq:
     host: ${rabbitmq.host:rabbitmq}
     port: ${rabbitmq.port:5672}
