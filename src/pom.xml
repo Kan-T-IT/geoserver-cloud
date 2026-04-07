@@ -882,7 +882,6 @@
           <inherited>true</inherited>
           <configuration>
             <release>${java.version}</release>
-            <enablePreview>true</enablePreview>
             <debug>true</debug>
             <parameters>true</parameters>
             <encoding>UTF-8</encoding>
