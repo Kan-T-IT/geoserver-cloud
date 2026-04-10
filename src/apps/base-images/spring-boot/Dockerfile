@@ -46,4 +46,9 @@ HEALTHCHECK \
 --retries=5 \
 CMD curl -f -s -o /dev/null localhost:8081/actuator/health || exit 1
 
-CMD exec env USER_ID="$(id -u)" USER_GID="$(id -g)" java $JAVA_OPTS org.springframework.boot.loader.launch.JarLauncher
+# JVM AOT cache support: services that run an AOT training step during image build
+# produce an app.aot cache file. At startup, -XX:AOTMode=auto tells the JVM to use
+# the cache if present, or silently continue without it.
+# Override at runtime with -e AOT_MODE=off to disable AOT for a specific container.
+ENV AOT_MODE=auto
+CMD exec java $JAVA_OPTS -XX:AOTMode=$AOT_MODE -XX:AOTCache=app.aot org.springframework.boot.loader.launch.JarLauncher

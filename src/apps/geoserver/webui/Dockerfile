@@ -20,3 +20,13 @@ COPY --from=builder spring-boot-loader/ ./
 #see https://github.com/moby/moby/issues/37965
 RUN true
 COPY --from=builder application/ ./
+
+# AOT training run for faster startup (each arch builds natively, no QEMU)
+RUN GEOSERVER_DATA_DIR=/tmp/datadir && \
+ mkdir $GEOSERVER_DATA_DIR && \
+ java -XX:AOTCacheOutput=app.aot -Dspring.context.exit=onRefresh \
+  -Dgeoserver.acl.client.startupCheck=false \
+  -Dgeoserver.bus.enabled=true \
+  -Dspring.profiles.active=standalone,datadir,acl \
+  org.springframework.boot.loader.launch.JarLauncher && \
+ rm -rf /tmp/*

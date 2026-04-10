@@ -25,6 +25,9 @@ ENV DEFAULT_JAVA_TOOL_OPTIONS="\
 -XX:+IgnoreUnrecognizedVMOptions \
 -XX:UseSVE=0"
 
+# -XX:UseSVE=0 disables Scalable Vector Extension (SVE)
+# It is currently the primary workaround for a critical compatibility bug affecting Apple M4 chips running Docker on macOS 15.2+
+
 ENV JAVA_TOOL_OPTIONS="${DEFAULT_JAVA_TOOL_OPTIONS}"
 ENV JAVA_OPTS=
 

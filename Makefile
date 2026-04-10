@@ -66,7 +66,7 @@ build-base-images: package-base-images
 
 .PHONY: build-image-infrastructure
 build-image-infrastructure: package-infrastructure-images
-	TAG=$(TAG) docker compose -f docker-build/infrastructure.yml build
+	TAG=$(TAG) docker compose -f docker-build/infrastructure.yml build  $(filter-out $@ build-image build-image-multiplatform,$(MAKECMDGOALS))
 
 # This uses $(MAKECMDGOALS) (all targets specified) and filters out the target itself ($@), passing the rest as arguments. The %: rule tells make to ignore any unrecognized "targets" (which are actually your service names).
 # Then you can call:
