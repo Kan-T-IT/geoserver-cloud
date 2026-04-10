@@ -35,3 +35,10 @@ ENV SPRING_CLOUD_CONFIG_SERVER_GIT_DEFAULT_LABEL: master
 ENV CONFIG_GIT_BASEDIR: /tmp/git_config
 # avoid stack trace due to jgit not being able of creating a .config dir at $HOME
 ENV XDG_CONFIG_HOME: /tmp
+
+# AOT training run for faster startup (each arch builds natively, no QEMU)
+RUN java -XX:AOTCacheOutput=app.aot -Dspring.context.exit=onRefresh \
+  -Dspring.profiles.active=native \
+  org.springframework.boot.loader.launch.JarLauncher; \
+  rm -rf /tmp/*
+

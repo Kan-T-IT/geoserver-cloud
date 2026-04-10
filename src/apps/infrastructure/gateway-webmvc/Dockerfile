@@ -18,3 +18,10 @@ COPY --from=builder spring-boot-loader/ ./
 #see https://github.com/moby/moby/issues/37965
 RUN true
 COPY --from=builder application/ ./
+
+# AOT training run for faster startup (each arch builds natively, no QEMU)
+RUN java -XX:AOTCacheOutput=app.aot \
+-Dspring.context.exit=onRefresh \
+-Dspring.profiles.active=standalone \
+org.springframework.boot.loader.launch.JarLauncher; \
+rm -rf /tmp/*
