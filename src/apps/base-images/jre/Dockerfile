@@ -20,7 +20,10 @@ ENV DEFAULT_JAVA_TOOL_OPTIONS="\
 -XX:MaxRAMPercentage=80 \
 -XX:InitialRAMPercentage=30 \
 -XX:+UseCompressedOops \
--XX:+UseCompactObjectHeaders"
+-XX:+UseCompactObjectHeaders \
+-XX:+UseStringDeduplication \
+-XX:+IgnoreUnrecognizedVMOptions \
+-XX:UseSVE=0"
 
 ENV JAVA_TOOL_OPTIONS="${DEFAULT_JAVA_TOOL_OPTIONS}"
 ENV JAVA_OPTS=
