@@ -66,41 +66,23 @@ to test the geoserver containers, without having to rebuild the base and infra i
 
 #### Multiplatform (amd64/arm64) images
 
-The "build and push" github actions job will create `linux/amd64` and `linux/arm64` multi-platform images by running
+The "build and push" GitHub Actions workflow (`.github/workflows/build-and-push.yaml`) creates `linux/amd64` and `linux/arm64`
+multi-platform images by building each architecture natively on its own runner, then stitching the results into
+multi-arch manifests using `docker buildx imagetools create`.
 
-```bash
-make build-image-multiplatform
-```
+This avoids QEMU emulation, which is critical for JVM AOT cache correctness — AOT caches generated under
+emulation produce invalid instructions on real hardware.
 
-This target assumes `buildx` is set up as an alias for `docker build` and there's a build runner that supports both platforms.
+The workflow structure is:
 
-Building multi-platform images requires pushing to the container registry, so the `build-image-multiplatform` target
-will run `docker compose build --push` with the appropriate `*-multiplatform.yml` compose file from the `docker-build` directory.
+1. **build-base-images** — builds the 3 base images on each platform (amd64 + arm64), pushes, and extracts digests
+2. **stitch-base-manifests** — creates multi-arch manifests for base images so downstream `FROM` references resolve correctly
+3. **build-infrastructure-images** + **build-geoserver-images** — build downstream images on both platforms in parallel
+4. **stitch-manifests** — creates multi-arch manifests for all downstream images
+5. **sign-images** — signs release images with Cosign (only on git tags)
 
-If you want to build the multi-platform images yourself:
-
-* Install [QEmu](https://www.qemu.org/download/)
-* Run the following command to create a `buildx` builder:
-
-```bash
-docker buildx create --name gscloud-builder --driver docker-container --bootstrap --use
-```
-
-In order to push the images to your own dockerhub account, use the `REPOSITORY` environment variable, for example:
-
-```bash
-REPOSITORY=groldan make build-image-multiplatform
-```
-
-will build and push `groldan/<image-name>:<version>` tagged images instead of the default `geoservercloud/<image-name>:<version>` ones.
-
-
-Finally, to remove the multi-platform builder, run
-
-```bash
-docker buildx stop gscloud-builder
-docker buildx rm gscloud-builder
-```
+For local development, `make build-image` builds single-platform images for your native architecture, which is
+sufficient for testing.
 
 ### Note on custom upstream GeoServer version
 

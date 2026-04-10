@@ -7,16 +7,3 @@ services:
       args:
         TAG: ${TAG}
         REPOSITORY: ${REPOSITORY}
-
-  multi-platform:
-    build:
-      no_cache: true
-      pull: true
-      context: override-me
-      platforms:
-        - linux/amd64
-        - linux/arm64
-      args:
-        TAG: ${TAG}
-        REPOSITORY: ${REPOSITORY}
-        
