@@ -22,6 +22,13 @@ spring:
     import:
       - classpath:geoserver_spring_boot_profiles.yml
       - classpath:geoserver_spring_cloud_profiles.yml
+  http:
+    clients:
+      imperative:
+        factory: reactor
+      reactive:
+        connector: reactor
+      connect-timeout: 5s
   cloud:
     gateway:
       server:

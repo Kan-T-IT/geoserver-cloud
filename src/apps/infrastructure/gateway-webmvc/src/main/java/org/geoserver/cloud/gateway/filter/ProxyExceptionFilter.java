@@ -13,8 +13,10 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.NestedExceptionUtils;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
+import org.springframework.web.client.HttpServerErrorException;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 /**
@@ -36,20 +38,35 @@ public class ProxyExceptionFilter extends OncePerRequestFilter {
         try {
             chain.doFilter(request, response);
         } catch (Exception e) {
-            Throwable root = rootCause(e);
+            // get the most specific cause (e.g., ConnectException or HttpServerErrorException)
+            Throwable root = NestedExceptionUtils.getMostSpecificCause(e);
+
             if (isConnectionError(root)) {
-                log.warn(
-                        "{} {} -> 502: {}",
-                        sanitizeMethod(request.getMethod()),
-                        sanitizeUri(request.getRequestURI()),
-                        root.getMessage());
+                int status = determineStatus(root);
+                String message = root.getMessage();
+
+                String method = sanitizeMethod(request.getMethod());
+                String uri = sanitizeUri(request.getRequestURI());
+                log.warn("{} {} -> {}: {}", method, uri, status, message);
+
                 if (!response.isCommitted()) {
-                    response.sendError(HttpServletResponse.SC_BAD_GATEWAY, root.getMessage());
+                    response.sendError(status, message);
                 }
                 return;
             }
+            // let other handlers (like @ControllerAdvice) handle non-connection errors
             throw e;
         }
+    }
+
+    /** If the LoadBalancer already decided it's a 50x, keep it (HttpServerErrorException). */
+    private static int determineStatus(Throwable t) {
+        //
+        if (t instanceof HttpServerErrorException hsee) {
+            return hsee.getStatusCode().value();
+        }
+        // Socket issues are usually 502 Bad Gateway
+        return HttpServletResponse.SC_BAD_GATEWAY;
     }
 
     private static boolean isConnectionError(Throwable t) {
@@ -57,13 +74,5 @@ public class ProxyExceptionFilter extends OncePerRequestFilter {
                 || t instanceof java.net.NoRouteToHostException
                 || t instanceof java.net.SocketTimeoutException
                 || t instanceof java.net.UnknownHostException;
-    }
-
-    private static Throwable rootCause(Throwable t) {
-        Throwable cause = t;
-        while (cause.getCause() != null && cause.getCause() != cause) {
-            cause = cause.getCause();
-        }
-        return cause;
     }
 }
