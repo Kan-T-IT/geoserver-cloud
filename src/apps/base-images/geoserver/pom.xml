@@ -11,7 +11,7 @@
   <dependencies>
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
-      <artifactId>gs-cloud-spring-factory</artifactId>
+      <artifactId>gs-spring-configuration</artifactId>
     </dependency>
     <!-- Base Spring Boot integration -->
     <dependency>
