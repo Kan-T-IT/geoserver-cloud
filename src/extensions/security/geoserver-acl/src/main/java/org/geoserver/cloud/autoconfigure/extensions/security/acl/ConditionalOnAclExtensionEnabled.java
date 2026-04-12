@@ -40,5 +40,4 @@ import org.springframework.context.annotation.Configuration;
         name = "enabled",
         havingValue = "true",
         matchIfMissing = AclExtensionConfigurationProperties.DEFAULT)
-@ConditionalOnProperty(prefix = "geoserver.acl", name = "enabled", havingValue = "true", matchIfMissing = true)
 public @interface ConditionalOnAclExtensionEnabled {}

@@ -19,10 +19,13 @@ import org.geoserver.acl.plugin.config.wps.AclWpsIntegrationConfiguration;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWPS;
 import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWebUI;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnBean;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.cache.CacheManager;
 import org.springframework.cache.annotation.EnableCaching;
+import org.springframework.cache.caffeine.CaffeineCacheManager;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Import;
 
@@ -88,12 +91,13 @@ public class AclExtensionAutoConfiguration {
             }
         }
     }
+
     /**
      * Imports {@link AclWebApiAccessManagerConfiguration} for an {@link AclResourceAccessManager} backed by the
      * GeoServer ACL REST API client
      */
     @Configuration(proxyBeanMethods = false)
-    @ConditionalOnProperty(name = "geoserver.acl.client.enabled", havingValue = "true", matchIfMissing = true)
+    @ConditionalOnAclWebApiClient
     @Import(AclWebApiAccessManagerConfiguration.class)
     public static class AclWebApiAccessManagerAutoConfiguration {}
 
@@ -102,14 +106,20 @@ public class AclExtensionAutoConfiguration {
      * {@link AuthorizationService}
      */
     @Configuration(proxyBeanMethods = false)
+    @ConditionalOnAclWebApiClient
     @ConditionalOnProperty(name = "geoserver.acl.client.caching", havingValue = "true", matchIfMissing = true)
-    @ConditionalOnBean(org.springframework.cache.CacheManager.class)
     @EnableCaching
     @Import(CachingAuthorizationServicePluginConfiguration.class)
     static class AclCachingAutoConfiguration {
         @PostConstruct
         void log() {
             log.info("geoserver.acl.client.caching: true");
+        }
+
+        @Bean
+        @ConditionalOnMissingBean(CacheManager.class)
+        CacheManager cacheManager() {
+            return new CaffeineCacheManager();
         }
     }
 
