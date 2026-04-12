@@ -7,7 +7,6 @@ package org.geoserver.cloud.autoconfigure.catalog.backend.core;
 
 import org.geoserver.cloud.autoconfigure.geotools.GeoToolsHttpClientAutoConfiguration;
 import org.geoserver.cloud.config.catalog.backend.core.CoreBackendConfiguration;
-import org.geoserver.cloud.config.jndi.JNDIDataSourceConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfigureAfter;
 import org.springframework.context.annotation.Import;
@@ -23,7 +22,7 @@ import org.springframework.context.annotation.Import;
  *
  * @see CoreBackendConfiguration
  */
-@AutoConfiguration(after = {GeoToolsHttpClientAutoConfiguration.class, JNDIDataSourceConfiguration.class})
+@AutoConfiguration(after = {GeoToolsHttpClientAutoConfiguration.class})
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @Import(CoreBackendConfiguration.class)
 public class GeoServerBackendAutoConfiguration {}

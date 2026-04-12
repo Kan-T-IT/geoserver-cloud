@@ -3,24 +3,23 @@
  * application directory.
  */
 
-package org.geoserver.cloud.autoconfigure.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
 import com.zaxxer.hikari.HikariDataSource;
 import javax.naming.Context;
 import javax.naming.spi.NamingManager;
-import org.geoserver.cloud.config.jndi.JNDIDataSourceConfiguration;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 /** @since 1.0 */
-class JNDIDataSourceAutoConfigurationTest {
+class JNDIDataSourcesAutoConfigurationTest {
 
     private ApplicationContextRunner runner = new ApplicationContextRunner()
-            .withInitializer(new SimpleJNDIStaticContextInitializer())
-            .withConfiguration(AutoConfigurations.of(JNDIDataSourceConfiguration.class));
+            .withInitializer(new JNDIStaticContextInitializer())
+            .withConfiguration(AutoConfigurations.of(JNDIDataSourcesAutoConfiguration.class));
 
     @Test
     void testInitialContextLookup() {

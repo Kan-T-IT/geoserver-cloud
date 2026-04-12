@@ -36,6 +36,7 @@
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
       <artifactId>spring-boot-simplejndi</artifactId>
+      <scope>runtime</scope>
       <optional>true</optional>
     </dependency>
     <dependency>

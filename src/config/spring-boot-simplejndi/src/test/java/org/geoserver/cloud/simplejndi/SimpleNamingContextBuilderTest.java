@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geoserver.cloud.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertFalse;

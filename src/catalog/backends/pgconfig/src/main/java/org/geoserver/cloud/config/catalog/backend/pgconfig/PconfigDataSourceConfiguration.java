@@ -6,28 +6,30 @@
 package org.geoserver.cloud.config.catalog.backend.pgconfig;
 
 import com.zaxxer.hikari.HikariDataSource;
+import java.util.Optional;
 import javax.sql.DataSource;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
-import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.geoserver.config.GeoServerLoader;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.jdbc.autoconfigure.DataSourceProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.context.annotation.DependsOn;
 import org.springframework.jdbc.datasource.lookup.JndiDataSourceLookup;
-import org.springframework.transaction.annotation.EnableTransactionManagement;
 import org.springframework.util.StringUtils;
 
 /** @since 1.4 */
-@Configuration(proxyBeanMethods = true)
-@EnableTransactionManagement
-@EnableConfigurationProperties(PgconfigBackendProperties.class)
+@Configuration(proxyBeanMethods = false)
 @Slf4j
 public class PconfigDataSourceConfiguration {
 
+    /**
+     * Note: due to eager initialization of Catalog objects by {@link GeoServerLoader} we're optionally depending on the
+     * {@code jndiInitializer} bean from {@code gs-spring-boot-simplejndi}
+     */
     @Bean
-    @DependsOn("jndiInitializer")
-    DataSource pgconfigDataSource(PgconfigBackendProperties configprops) {
+    DataSource pgconfigDataSource(
+            PgconfigBackendProperties configprops, @Qualifier("jndiInitializer") Optional<Object> jndiInitializer) {
+        log.trace("jndiInitializer present: {}", jndiInitializer.isPresent());
         DataSourceProperties config = configprops.getDatasource();
         String jndiName = config.getJndiName();
         if (StringUtils.hasText(jndiName)) {
@@ -35,16 +37,5 @@ public class PconfigDataSourceConfiguration {
             return new JndiDataSourceLookup().getDataSource(jndiName);
         }
         return config.initializeDataSourceBuilder().type(HikariDataSource.class).build();
-    }
-
-    @Bean(name = "jndiInitializer")
-    @ConditionalOnMissingBean(name = "jndiInitializer")
-    Object jndiInitializerFallback() {
-        log.warn(
-                """
-                 jndiInitializer is not provided, beware a JNDI datasource \
-                 definition for the pgconfig catalog backend won't work.
-                 """);
-        return new Object();
     }
 }

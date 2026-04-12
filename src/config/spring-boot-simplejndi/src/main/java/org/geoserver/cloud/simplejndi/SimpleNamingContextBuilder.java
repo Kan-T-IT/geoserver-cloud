@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geoserver.cloud.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import static javax.naming.Context.INITIAL_CONTEXT_FACTORY;
 
@@ -37,7 +37,7 @@ import org.springframework.util.ReflectionUtils;
  *
  * @see SimpleNamingContext
  */
-public class SimpleNamingContextBuilder implements InitialContextFactoryBuilder {
+class SimpleNamingContextBuilder implements InitialContextFactoryBuilder {
 
     /** Default factory instance used when no custom factory is provided in the environment. */
     private final SimpleNamingContextFactory factory = new SimpleNamingContextFactory();

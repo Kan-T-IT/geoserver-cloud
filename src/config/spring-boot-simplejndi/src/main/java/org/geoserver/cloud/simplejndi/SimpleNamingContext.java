@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geoserver.cloud.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import java.util.HashMap;
 import java.util.Hashtable;
@@ -30,7 +30,7 @@ import lombok.NonNull;
  * @see org.springframework.jndi.JndiTemplate#createInitialContext
  * @since 1.0
  */
-public class SimpleNamingContext implements Context {
+class SimpleNamingContext implements Context {
 
     private static final String ROOT_NAME = "";
 
@@ -320,7 +320,7 @@ public class SimpleNamingContext implements Context {
         }
 
         protected @Override NameClassPair createObject(String simpleName, Object obj) {
-            return new org.geoserver.cloud.jndi.SimpleNameClassPair(
+            return new org.geoserver.cloud.simplejndi.SimpleNameClassPair(
                     simpleName, obj.getClass().getName());
         }
     }

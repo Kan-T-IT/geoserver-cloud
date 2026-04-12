@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geoserver.cloud.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -91,6 +91,6 @@ class SimpleNamingContextTest {
     }
 
     private NameClassPair ncp(String name, Class<?> type) {
-        return new org.geoserver.cloud.jndi.SimpleNameClassPair(name, type.getName());
+        return new org.geoserver.cloud.simplejndi.SimpleNameClassPair(name, type.getName());
     }
 }

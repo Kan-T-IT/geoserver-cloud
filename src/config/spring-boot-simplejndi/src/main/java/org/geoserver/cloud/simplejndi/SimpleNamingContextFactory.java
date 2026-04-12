@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geoserver.cloud.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import java.util.Hashtable;
 import javax.naming.Context;
@@ -11,14 +11,16 @@ import javax.naming.NamingException;
 import javax.naming.spi.InitialContextFactory;
 
 /**
- * Simple implementation of a JNDI naming context factory.
+ * Simple {@link InitialContextFactory} that always returns the same shared {@link SimpleNamingContext} instance,
+ * ignoring the supplied environment.
  *
  * @see SimpleNamingContext
  */
-public class SimpleNamingContextFactory implements InitialContextFactory {
+class SimpleNamingContextFactory implements InitialContextFactory {
 
     private SimpleNamingContext initialContext = new SimpleNamingContext();
 
+    /** {@inheritDoc} Returns the singleton {@link SimpleNamingContext} held by this factory. */
     @Override
     public Context getInitialContext(Hashtable<?, ?> environment) throws NamingException {
         return initialContext;
