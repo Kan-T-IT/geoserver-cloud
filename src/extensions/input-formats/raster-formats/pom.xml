@@ -11,6 +11,10 @@
   <description>Auto-configuration for curated list of supported raster data formats</description>
   <dependencies>
     <dependency>
+      <groupId>org.springframework.boot</groupId>
+      <artifactId>spring-boot-autoconfigure</artifactId>
+    </dependency>
+    <dependency>
       <!-- Just to make sure the autoconfiguration runs before the catalog loader-->
       <groupId>org.geoserver.cloud.catalog.backend</groupId>
       <artifactId>gs-cloud-catalog-backend-common</artifactId>

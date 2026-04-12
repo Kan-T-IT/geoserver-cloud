@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geoserver.cloud.config.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import com.zaxxer.hikari.HikariDataSource;
 import java.util.Map;
@@ -20,9 +20,17 @@ import org.springframework.context.ApplicationContextException;
 import org.springframework.jdbc.support.DatabaseStartupValidator;
 import org.springframework.util.StringUtils;
 
-/** @since 1.0 */
+/**
+ * Bean that builds a {@link HikariDataSource} for each enabled {@link JNDIDatasourceProperties} entry, binds it to the
+ * JNDI initial context under {@code java:comp/env/jdbc/<name>}, and closes the pools on shutdown.
+ *
+ * <p>Datasources are initialized concurrently using a {@link StructuredTaskScope} so that
+ * {@link JNDIDatasourceProperties#isWaitForIt() waitForIt} delays do not serialize across configured datasources.
+ *
+ * @since 1.0
+ */
 @Slf4j(topic = "org.geoserver.cloud.config.jndidatasource")
-public class JNDIInitializer implements InitializingBean, DisposableBean {
+class JNDIInitializer implements InitializingBean, DisposableBean {
 
     private JNDIDataSourcesConfigurationProperties config;
 
@@ -32,8 +40,7 @@ public class JNDIInitializer implements InitializingBean, DisposableBean {
 
     @Override
     public void afterPropertiesSet() throws Exception {
-
-        Map<String, JNDIDatasourceConfig> configs = config.getDatasources();
+        Map<String, JNDIDatasourceProperties> configs = config.getDatasources();
 
         if (null == configs || configs.isEmpty()) {
             log.info("No JNDI datasources configured");
@@ -50,17 +57,19 @@ public class JNDIInitializer implements InitializingBean, DisposableBean {
         Context initialContext = getInitialContext();
 
         try (@SuppressWarnings("preview")
-                var scope = StructuredTaskScope.open()) {
+                StructuredTaskScope<Object, Void> scope = StructuredTaskScope.open()) {
             for (var props : configs.values()) {
                 scope.fork(() -> setUpDataSource(initialContext, props));
             }
             scope.join();
+        } catch (InterruptedException _) {
+            Thread.currentThread().interrupt();
         }
     }
 
     @Override
     public void destroy() throws Exception {
-        Map<String, JNDIDatasourceConfig> configs = config.getDatasources();
+        Map<String, JNDIDatasourceProperties> configs = config.getDatasources();
         if (null == configs || configs.isEmpty()) {
             return;
         }
@@ -96,7 +105,7 @@ public class JNDIInitializer implements InitializingBean, DisposableBean {
         return dsname;
     }
 
-    void setUpDataSource(Context initialContext, JNDIDatasourceConfig props) {
+    void setUpDataSource(Context initialContext, JNDIDatasourceProperties props) {
         final String jndiName = toJndiDatasourceName(Objects.requireNonNull(props.getName()));
         if (props.isEnabled()) {
             log.info("Creating JNDI datasoruce {} on {}", jndiName, props.getUrl());
@@ -132,7 +141,7 @@ public class JNDIInitializer implements InitializingBean, DisposableBean {
         return initialContext;
     }
 
-    private void waitForIt(String jndiName, DataSource dataSource, JNDIDatasourceConfig props) {
+    private void waitForIt(String jndiName, DataSource dataSource, JNDIDatasourceProperties props) {
         if (props.isWaitForIt()) {
             log.info("Waiting up to {} seconds for datasource {}", props.getWaitTimeout(), jndiName);
             DatabaseStartupValidator validator = new DatabaseStartupValidator();
@@ -142,7 +151,7 @@ public class JNDIInitializer implements InitializingBean, DisposableBean {
         }
     }
 
-    protected HikariDataSource createDataSource(JNDIDatasourceConfig props) {
+    protected HikariDataSource createDataSource(JNDIDatasourceProperties props) {
         HikariDataSource dataSource = props.initializeDataSourceBuilder() //
                 .type(HikariDataSource.class)
                 .build();

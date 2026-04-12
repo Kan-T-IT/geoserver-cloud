@@ -3,12 +3,17 @@
  * application directory.
  */
 
-package org.geoserver.cloud.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import java.io.Serial;
 import java.util.Objects;
 
-/** @since 1.0 */
+/**
+ * {@link javax.naming.NameClassPair} subclass that adds value-based {@link #equals(Object)} and {@link #hashCode()},
+ * making instances usable in collections and assertions during enumeration of {@link SimpleNamingContext} bindings.
+ *
+ * @since 1.0
+ */
 class SimpleNameClassPair extends javax.naming.NameClassPair {
 
     @Serial

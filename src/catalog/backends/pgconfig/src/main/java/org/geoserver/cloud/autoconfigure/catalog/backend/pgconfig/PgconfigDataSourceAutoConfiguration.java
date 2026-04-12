@@ -6,13 +6,19 @@
 package org.geoserver.cloud.autoconfigure.catalog.backend.pgconfig;
 
 import org.geoserver.cloud.config.catalog.backend.pgconfig.PconfigDataSourceConfiguration;
-import org.geoserver.cloud.config.jndi.JNDIDataSourceConfiguration;
+import org.geoserver.cloud.config.catalog.backend.pgconfig.PgconfigBackendProperties;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
 import org.springframework.context.annotation.Import;
 
-/** @since 1.4 */
-@AutoConfiguration(after = JNDIDataSourceConfiguration.class)
-@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
+/**
+ * @see PconfigDataSourceConfiguration
+ * @see PgconfigBackendProperties
+ * @since 1.4
+ */
+@AutoConfiguration
 @ConditionalOnPgconfigBackendEnabled
+@EnableConfigurationProperties(PgconfigBackendProperties.class)
 @Import(PconfigDataSourceConfiguration.class)
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 public class PgconfigDataSourceAutoConfiguration {}

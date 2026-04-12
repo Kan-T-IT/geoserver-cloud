@@ -3,12 +3,11 @@
  * application directory.
  */
 
-package org.geoserver.cloud.autoconfigure.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import javax.naming.NamingException;
 import javax.naming.spi.NamingManager;
 import lombok.extern.slf4j.Slf4j;
-import org.geoserver.cloud.jndi.SimpleNamingContextBuilder;
 import org.springframework.context.ApplicationContextException;
 import org.springframework.context.ApplicationContextInitializer;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -19,8 +18,7 @@ import org.springframework.context.ConfigurableApplicationContext;
  * @since 1.0
  */
 @Slf4j(topic = "org.geoserver.cloud.config.jndi")
-public class SimpleJNDIStaticContextInitializer
-        implements ApplicationContextInitializer<ConfigurableApplicationContext> {
+public class JNDIStaticContextInitializer implements ApplicationContextInitializer<ConfigurableApplicationContext> {
 
     private static boolean initialized;
 

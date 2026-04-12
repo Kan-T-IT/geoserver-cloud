@@ -5,8 +5,8 @@
 
 package org.geoserver.cloud.backend.pgconfig.support;
 
-import org.geoserver.cloud.autoconfigure.jndi.SimpleJNDIStaticContextInitializer;
-import org.geoserver.cloud.config.jndi.JNDIDataSourceConfiguration;
+import org.geoserver.cloud.simplejndi.JNDIDataSourcesAutoConfiguration;
+import org.geoserver.cloud.simplejndi.JNDIStaticContextInitializer;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.AbstractApplicationContextRunner;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -55,8 +55,8 @@ public class PgConfigTestContainer extends PostgreSQLContainer {
         String password = getPassword();
         return (R) runner
                 // enable simplejndi
-                .withInitializer(new SimpleJNDIStaticContextInitializer())
-                .withConfiguration(AutoConfigurations.of(JNDIDataSourceConfiguration.class))
+                .withInitializer(new JNDIStaticContextInitializer())
+                .withConfiguration(AutoConfigurations.of(JNDIDataSourcesAutoConfiguration.class))
                 .withPropertyValues(
                         "geoserver.backend.pgconfig.enabled: true", //
                         // java:comp/env/jdbc/testdb config properties

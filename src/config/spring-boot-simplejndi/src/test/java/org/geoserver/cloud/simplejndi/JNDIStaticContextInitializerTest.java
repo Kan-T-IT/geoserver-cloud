@@ -3,7 +3,7 @@
  * application directory.
  */
 
-package org.geoserver.cloud.config.jndi;
+package org.geoserver.cloud.simplejndi;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -11,16 +11,14 @@ import java.util.Hashtable;
 import javax.naming.Context;
 import javax.naming.InitialContext;
 import javax.naming.spi.NamingManager;
-import org.geoserver.cloud.autoconfigure.jndi.SimpleJNDIStaticContextInitializer;
-import org.geoserver.cloud.jndi.SimpleNamingContext;
 import org.junit.jupiter.api.Test;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 
 /** @since 1.0 */
-class SimpleJNDIStaticContextInitializerTest {
+class JNDIStaticContextInitializerTest {
 
     private ApplicationContextRunner runner =
-            new ApplicationContextRunner().withInitializer(new SimpleJNDIStaticContextInitializer());
+            new ApplicationContextRunner().withInitializer(new JNDIStaticContextInitializer());
 
     @Test
     void testDefaultInitialContext() {
