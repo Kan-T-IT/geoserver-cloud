@@ -123,7 +123,6 @@ class WebUIApplicationTest {
     void GeoServerHomePage_smoke_test_anonymous() {
         GeoServerHomePage page = tester.startPage(GeoServerHomePage.class);
         assertNotNull(page);
-        print(page);
         tester.assertInvisible("administration");
         tester.assertComponent("providedCaps", ListView.class);
     }
@@ -133,7 +132,6 @@ class WebUIApplicationTest {
         login();
         GeoServerHomePage page = tester.startPage(GeoServerHomePage.class);
         assertNotNull(page);
-        print(page);
         tester.assertVisible("administration");
         tester.assertComponent("administration:adminContent", ListView.class);
         tester.assertComponent("providedCaps", ListView.class);
