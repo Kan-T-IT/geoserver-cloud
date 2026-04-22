@@ -569,6 +569,62 @@ class TranspileXmlConfigAnnotationProcessorMethodGenerationTest {
         testBeanMethodGeneneration("dataDirectoryResourceStore", xml, expectedJavaCode);
     }
 
+    /**
+     * Regression: when a bean's declared class is package-private, the generated {@code @Bean} method must declare its
+     * return type as the nearest public ancestor. Otherwise the generated code does not compile from a configuration
+     * class in a different package.
+     */
+    @Test
+    void testBeanWithPackagePrivateClass() {
+        final String xml =
+                """
+                <bean id="packagePrivateBean"
+                      class="org.geoserver.spring.config.test.components.PackagePrivateClassComponent"/>
+                """;
+
+        final String expectedJavaCode =
+                """
+                @org.springframework.context.annotation.Bean
+                org.geoserver.spring.config.test.components.PublicAncestor packagePrivateBean() throws java.lang.Exception {
+                  java.lang.reflect.Constructor constructor = java.lang.Class.forName("org.geoserver.spring.config.test.components.PackagePrivateClassComponent").getDeclaredConstructor();
+                  constructor.setAccessible(true);
+                  return (org.geoserver.spring.config.test.components.PublicAncestor) constructor.newInstance();
+                }
+                """;
+
+        testBeanMethodGeneneration("packagePrivateBean", xml, expectedJavaCode);
+    }
+
+    /**
+     * Regression: when a property {@code ref} attribute uses a dotted bean name (e.g.,
+     * {@code ref="org.springframework.security.config.annotation.web.configuration.HttpSecurityConfiguration.httpSecurity"}),
+     * the {@code @Qualifier} string value must preserve the dots so Spring can resolve the bean at runtime. Only the
+     * Java parameter identifier is sanitized with underscores.
+     */
+    @Test
+    void testBeanWithDottedBeanReference() {
+        final String xml =
+                """
+                <bean id="myBean"
+                      class="org.geoserver.platform.resource.DataDirectoryResourceStore">
+                    <property name="lockProvider" ref="some.qualified.bean.name"/>
+                </bean>
+                """;
+
+        final String expectedJavaCode =
+                """
+                @org.springframework.context.annotation.Bean
+                org.geoserver.platform.resource.DataDirectoryResourceStore myBean(
+                    @org.springframework.beans.factory.annotation.Qualifier("some.qualified.bean.name") org.geoserver.platform.resource.LockProvider some_qualified_bean_name) {
+                  org.geoserver.platform.resource.DataDirectoryResourceStore bean = new org.geoserver.platform.resource.DataDirectoryResourceStore();
+                  bean.setLockProvider(some_qualified_bean_name);
+                  return bean;
+                }
+                """;
+
+        testBeanMethodGeneneration("myBean", xml, expectedJavaCode);
+    }
+
     @Test
     void testBeanWithConstructorArgsAndRefProperty() {
         final String xml =

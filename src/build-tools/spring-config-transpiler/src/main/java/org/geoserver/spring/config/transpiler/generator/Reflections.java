@@ -22,6 +22,48 @@ public class Reflections {
         return java.lang.reflect.Modifier.isPublic(constructor.getModifiers());
     }
 
+    public boolean isPublic(Class<?> type) {
+        return java.lang.reflect.Modifier.isPublic(type.getModifiers());
+    }
+
+    /**
+     * Walk the class hierarchy of {@code type} (super-classes first, then interfaces) and return the nearest public
+     * ancestor, or {@link Object} if none is found. Used to pick a method return/parameter type that is accessible from
+     * other packages when the declared bean class is itself package-private.
+     */
+    public Class<?> findFirstPublicAncestor(Class<?> type) {
+        if (type == null) {
+            return Object.class;
+        }
+        // Prefer super-classes (walk up to Object)
+        Class<?> walker = type.getSuperclass();
+        while (walker != null) {
+            if (isPublic(walker)) {
+                return walker;
+            }
+            walker = walker.getSuperclass();
+        }
+        // Fall back to any public interface implemented directly or indirectly
+        return findFirstPublicInterface(type).orElse(Object.class);
+    }
+
+    private Optional<Class<?>> findFirstPublicInterface(Class<?> type) {
+        for (Class<?> iface : type.getInterfaces()) {
+            if (isPublic(iface)) {
+                return Optional.of(iface);
+            }
+            Optional<Class<?>> nested = findFirstPublicInterface(iface);
+            if (nested.isPresent()) {
+                return nested;
+            }
+        }
+        Class<?> parent = type.getSuperclass();
+        if (parent != null) {
+            return findFirstPublicInterface(parent);
+        }
+        return Optional.empty();
+    }
+
     /** Check if a class represents a numeric type that should be rendered as a literal. */
     public static boolean isPrimitiveOrBoxedType(Class<?> type) {
         return type.isPrimitive()

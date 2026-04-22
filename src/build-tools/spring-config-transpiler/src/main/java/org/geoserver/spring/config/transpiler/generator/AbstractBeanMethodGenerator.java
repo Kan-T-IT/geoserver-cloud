@@ -494,14 +494,35 @@ public abstract class AbstractBeanMethodGenerator implements BeanMethodGenerator
 
     /**
      * Resolve the return type for a {@code @Bean} method using {@link TypeNameResolver}. Returns {@code Object.class}
-     * if the type cannot be resolved.
+     * if the type cannot be resolved. If the resolved class is not public (and thus not accessible from a generated
+     * {@code @Bean} method in another package), falls back to its nearest public ancestor.
      */
     protected ClassName resolveReturnType(BeanDefinition beanDefinition, TranspilationContext context) {
         TypeNameResolver.TypeResolutionResult result = TypeNameResolver.resolveBeanReturnType(beanDefinition, context);
         if (!result.isResolved()) {
             return ClassName.get(Object.class);
         }
-        return typeNameToClassName(result.getResolvedTypeName());
+        return toAccessibleClassName(result.getResolvedTypeName());
+    }
+
+    /**
+     * Convert a fully qualified type name to a {@link ClassName}, substituting the nearest public ancestor if the class
+     * itself is not public. {@code @Bean} method return/parameter types must be accessible from the generated
+     * configuration class, which lives in a different package than Spring Security internals such as
+     * {@code HttpSecurityConfiguration}.
+     */
+    protected ClassName toAccessibleClassName(String typeName) {
+        try {
+            Class<?> clazz = Reflections.convertToRuntimeClass(typeName);
+            if (!Reflections.isPublic(clazz)) {
+                return ClassName.get(Reflections.findFirstPublicAncestor(clazz));
+            }
+        } catch (IllegalStateException _) {
+            // Reflections.convertToRuntimeClass wraps ClassNotFoundException — the class isn't on the
+            // annotation-processor classpath. Fall through to emit the literal name; downstream compile
+            // errors will point to the real missing dependency.
+        }
+        return typeNameToClassName(typeName);
     }
 
     /** Convert a fully qualified type name string to a JavaPoet ClassName. Falls back to Object on failure. */
