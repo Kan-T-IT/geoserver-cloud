@@ -133,25 +133,31 @@ public class SimpleBeanMethodGenerator extends AbstractBeanMethodGenerator {
             // Need to handle property values
             methodBuilder.addJavadoc("Note: Property values will be applied using setter methods\n");
 
-            // Collect bean references from properties (base class returns unsanitized names)
-            List<String> propertyBeanReferences =
-                    super.collectPropertyBeanReferences(beanDefinition.getPropertyValues()).stream()
-                            .map(EnhancedBeanDefinition::sanitizeBeanName)
-                            .toList();
+            // Collect bean references from properties with original (unsanitized) names — needed
+            // both for @Qualifier (Spring looks up by the literal bean name, preserving dots) and
+            // for finding the matching property by name in the PropertyValues.
+            List<String> originalBeanReferences =
+                    super.collectPropertyBeanReferences(beanDefinition.getPropertyValues());
+            // Parallel list of sanitized identifiers to use as Java parameter/variable names.
+            List<String> sanitizedBeanReferences = originalBeanReferences.stream()
+                    .map(EnhancedBeanDefinition::sanitizeBeanName)
+                    .toList();
 
             // Add method parameters for property bean references with proper types
-            for (String beanRef : propertyBeanReferences) {
-                // Find the property name for this bean reference
-                String propertyName = findPropertyNameForBeanRef(beanRef, beanDefinition.getPropertyValues());
+            for (int i = 0; i < originalBeanReferences.size(); i++) {
+                String originalBeanRef = originalBeanReferences.get(i);
+                String sanitizedBeanRef = sanitizedBeanReferences.get(i);
+
+                // Find the property name for this bean reference (uses original name to match PropertyValues)
+                String propertyName = findPropertyNameForBeanRef(originalBeanRef, beanDefinition.getPropertyValues());
 
                 // Use enhanced type inference from base class
                 ClassName paramType = resolveParameterTypeWithInference(
-                        beanRef, beanClassName, null, propertyName, null, transpilationContext);
+                        originalBeanRef, beanClassName, null, propertyName, null, transpilationContext);
 
-                ParameterSpec.Builder paramBuilder = ParameterSpec.builder(
-                                paramType, EnhancedBeanDefinition.sanitizeBeanName(beanRef))
+                ParameterSpec.Builder paramBuilder = ParameterSpec.builder(paramType, sanitizedBeanRef)
                         .addAnnotation(AnnotationSpec.builder(Qualifier.class)
-                                .addMember("value", "$S", beanRef)
+                                .addMember("value", "$S", originalBeanRef)
                                 .build());
                 methodBuilder.addParameter(paramBuilder.build());
             }
@@ -162,11 +168,11 @@ public class SimpleBeanMethodGenerator extends AbstractBeanMethodGenerator {
             } else {
                 methodBuilder.addStatement("$T bean = new $T()", returnType, returnType);
             }
-            // Use the unified generatePropertySetters method from base class
+            // Pass the sanitized list — generatePropertySetters uses these as Java identifiers in the body.
             generatePropertySetters(
                     methodBuilder,
                     beanDefinition.getPropertyValues(),
-                    propertyBeanReferences,
+                    sanitizedBeanReferences,
                     beanClassName,
                     beanContext.getBeanName());
             methodBuilder.addStatement("return bean");
