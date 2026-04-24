@@ -9,6 +9,11 @@ on:
     branches:
       - main
       - "release/**"
+    paths:
+      - "src/**"
+      - "**/pom.xml"
+      - "acceptance_tests/**"
+      - ".github/workflows/codeql.yaml"
   schedule:
     - cron: '0 0 * * 1'  # Weekly on Monday
 
