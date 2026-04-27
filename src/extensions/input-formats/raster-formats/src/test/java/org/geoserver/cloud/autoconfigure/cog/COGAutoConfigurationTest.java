@@ -67,6 +67,6 @@ class COGAutoConfigurationTest {
     }
 
     private String[] webuiBeanNames() {
-        return COGWebUIAutoConfiguration.WEBUI_BEAN_NAMES.split("\\|");
+        return new String[] {"COGGeoTIFFExclusionFilter", "CogGeotiffStorePanel", "CogSettingsPanel"};
     }
 }

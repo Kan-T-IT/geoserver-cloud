@@ -192,44 +192,112 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 public @interface ConditionalOn<Extension> {}
 ```
 
-### 7. Create Auto-Configuration Class
+### 7. Add Transpiled Configuration to `gs-spring-configuration`
 
-Create an auto-configuration class for your extension:
+Most GeoServer plugins ship their bean definitions in `applicationContext.xml` files inside their
+JARs. Instead of relying on runtime XML parsing, we transpile these to Java `@Configuration`
+classes at compile time using `@TranspileXmlConfig`.
+
+Add a configuration class in `src/config/geoserver-configuration/`:
+
+```java
+package org.geoserver.configuration.extension.<extensionname>;
+
+import org.geoserver.spring.config.annotations.TranspileXmlConfig;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
+
+@Configuration(proxyBeanMethods = false)
+@TranspileXmlConfig(locations = "jar:gs-<extension>-.*!/applicationContext.xml")
+@Import(<Extension>Configuration_Generated.class)
+public class <Extension>Configuration {}
+```
+
+This class has **no conditional logic** — it just declares which XML to transpile and imports
+the generated result. The annotation processor generates `<Extension>Configuration_Generated`
+at compile time with `@Bean` methods for each bean in the XML.
+
+If the extension has Web UI components in a separate XML or package, create a second
+configuration class for those, excluding them from the core one:
+
+```java
+// Core beans (excluding UI beans)
+@TranspileXmlConfig(
+        locations = "jar:gs-<extension>-.*!/applicationContext.xml",
+        excludes = <Extension>WebUIConfiguration.WEB_UI_BEANS)
+@Import(<Extension>Configuration_Generated.class)
+public class <Extension>Configuration {}
+
+// UI beans only
+@TranspileXmlConfig(
+        locations = "jar:gs-<extension>-.*!/applicationContext.xml",
+        includes = <Extension>WebUIConfiguration.WEB_UI_BEANS)
+@Import(<Extension>WebUIConfiguration_Generated.class)
+public class <Extension>WebUIConfiguration {
+    static final String[] WEB_UI_BEANS = {"somePanel", "someMenuPage"};
+}
+```
+
+> **Note**: You also need to add the GeoServer plugin JAR to the `annotationProcessorPaths`
+> in `gs-spring-configuration`'s `pom.xml` so the processor can find the XML and resolve
+> the bean classes at compile time.
+
+See `src/config/geoserver-configuration/README.md` for the full `@TranspileXmlConfig`
+attribute reference and more examples.
+
+### 8. Create Auto-Configuration Class
+
+Create an auto-configuration class in your extension module that imports the transpiled
+configuration with the appropriate conditionals:
 
 ```java
 package org.geoserver.cloud.autoconfigure.extensions.<category>.<extensionname>;
 
-import javax.annotation.PostConstruct;
+import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
+import org.geoserver.configuration.extension.<extensionname>.<Extension>Configuration;
+import org.geoserver.configuration.extension.<extensionname>.<Extension>WebUIConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.context.properties.EnableConfigurationProperties;
-import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @AutoConfiguration
 @EnableConfigurationProperties(<Extension>ConfigProperties.class)
-@ConditionalOn<Extension>
+@Import({<Extension>AutoConfiguration.Enabled.class, <Extension>AutoConfiguration.WebUI.class})
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.extensions.<category>.<extensionname>")
 public class <Extension>AutoConfiguration {
 
-    private final <Extension>ConfigProperties properties;
-
-    public <Extension>AutoConfiguration(<Extension>ConfigProperties properties) {
-        this.properties = properties;
+    /** Core extension beans, conditionally activated. */
+    @ConditionalOn<Extension>
+    @Import(<Extension>Configuration.class)
+    static @Configuration class Enabled {
+        public @PostConstruct void log() {
+            log.info("<Extension> extension enabled");
+        }
     }
 
-    @PostConstruct
-    void log() {
-        log.info("GeoServer <Extension> extension enabled");
-    }
-
-    @Bean
-    public SomeExtensionBean someExtensionBean() {
-        return new SomeExtensionBean(properties.getSomeProperty());
-    }
+    /** Web UI beans, additionally gated on the WebUI service being active. */
+    @ConditionalOn<Extension>
+    @ConditionalOnGeoServerWebUI
+    @Import(<Extension>WebUIConfiguration.class)
+    static @Configuration class WebUI {}
 }
 ```
 
-### 8. Register Auto-Configuration
+This separates **what** beans exist (transpiled configuration in `gs-spring-configuration`)
+from **when** they are activated (conditional auto-configuration in the extension module).
+
+> **Why this two-layer approach?**
+>
+> - The transpiled `@Configuration` classes are compiled once in `gs-spring-configuration`
+>   and reused by all services, avoiding runtime XML parsing overhead.
+> - The auto-configuration layer adds Spring Boot conditionals (`@ConditionalOnProperty`,
+>   `@ConditionalOnGeoServerWebUI`, etc.) to control activation per service.
+> - This keeps the transpilation centralized (one place to update when upstream GeoServer
+>   changes its XML) while letting each extension own its activation logic.
+
+### 9. Register Auto-Configuration
 
 Depending on your Spring Boot version:
 
@@ -244,7 +312,7 @@ For Spring Boot 3.x, add to `META-INF/spring/org.springframework.boot.autoconfig
 org.geoserver.cloud.autoconfigure.extensions.<category>.<extensionname>.<Extension>AutoConfiguration
 ```
 
-### 9. Write Tests
+### 10. Write Tests
 
 Create tests to verify your extension:
 
@@ -331,7 +399,7 @@ class <Extension>AutoConfigurationTest {
 }
 ```
 
-### 10. Add to the Starter Module
+### 11. Add to the Starter Module
 
 Add your extension to the appropriate starter:
 
@@ -346,7 +414,7 @@ Add your extension to the appropriate starter:
 </dependencies>
 ```
 
-### 11. Add Configuration to `geoserver.yml`
+### 12. Add Configuration to `geoserver.yml`
 
 Add your extension's configuration to `config/geoserver.yml`:
 
@@ -359,7 +427,7 @@ geoserver:
         # Other properties
 ```
 
-### 12. Create Documentation
+### 13. Create Documentation
 
 Create a README.md file with documentation for your extension:
 

@@ -5,19 +5,19 @@
 
 package org.geoserver.cloud.autoconfigure.cog;
 
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.community.cog.COGWebUIConfiguration;
 import org.geoserver.web.GeoServerApplication;
 import org.geoserver.web.data.store.cog.panel.CogRasterEditPanel;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.annotation.Import;
 
-/** Auto configuration to enable the COG customized store panel when the web-ui is present. */
+/**
+ * Auto configuration to enable the COG customized store panel when the web-ui is present.
+ *
+ * @see COGWebUIConfiguration
+ */
 @AutoConfiguration
 @ConditionalOnClass({GeoServerApplication.class, CogRasterEditPanel.class})
-@ImportFilteredResource("jar:gs-cog-.*!/applicationContext.xml#name=" + COGWebUIAutoConfiguration.INCLUDE_WEBUI_BEANS)
-public class COGWebUIAutoConfiguration {
-
-    static final String WEBUI_BEAN_NAMES = "COGGeoTIFFExclusionFilter|CogGeotiffStorePanel|CogSettingsPanel";
-
-    static final String INCLUDE_WEBUI_BEANS = "^(" + WEBUI_BEAN_NAMES + ").*$";
-}
+@Import(COGWebUIConfiguration.class)
+public class COGWebUIAutoConfiguration {}

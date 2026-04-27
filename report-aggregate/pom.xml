@@ -24,11 +24,11 @@
       <artifactId>spring-boot-simplejndi</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.geoserver.cloud.catalog.jackson</groupId>
+      <groupId>org.geoserver.cloud.jackson</groupId>
       <artifactId>gt-jackson-bindings</artifactId>
     </dependency>
     <dependency>
-      <groupId>org.geoserver.cloud.catalog.jackson</groupId>
+      <groupId>org.geoserver.cloud.jackson</groupId>
       <artifactId>gs-jackson-bindings</artifactId>
     </dependency>
     <dependency>
@@ -42,10 +42,6 @@
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
       <artifactId>gs-cloud-starter-security</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.geoserver.cloud.catalog.jackson</groupId>
-      <artifactId>gs-cloud-starter-jackson</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
@@ -65,11 +61,7 @@
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud.catalog</groupId>
-      <artifactId>gs-cloud-catalog-events</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.geoserver.cloud.catalog</groupId>
-      <artifactId>gs-cloud-catalog-event-bus</artifactId>
+      <artifactId>gs-cloud-events</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud</groupId>
@@ -98,10 +90,6 @@
     <dependency>
       <groupId>org.geoserver.cloud.gwc</groupId>
       <artifactId>gwc-cloud-blobstores</artifactId>
-    </dependency>
-    <dependency>
-      <groupId>org.geoserver.cloud.gwc</groupId>
-      <artifactId>gwc-cloud-services</artifactId>
     </dependency>
     <dependency>
       <groupId>org.geoserver.cloud.gwc</groupId>

@@ -9,10 +9,13 @@ import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.web.service.WebUiCloudServicesConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnCloudPlatform;
+import org.springframework.boot.cloud.CloudPlatform;
 import org.springframework.context.annotation.Import;
 
 /** @since 1.0 */
 @AutoConfiguration
+@ConditionalOnCloudPlatform(CloudPlatform.NONE)
 @Import(WebUiCloudServicesConfiguration.class)
 @Slf4j
 public class CloudNativeUIAutoConfiguration {

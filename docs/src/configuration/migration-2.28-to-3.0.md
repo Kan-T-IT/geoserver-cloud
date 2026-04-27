@@ -70,9 +70,74 @@ The JDBC Config backend has been completely removed from GeoServer Cloud 3.0.0. 
 
 ## Configuration Property Changes
 
-### Spring Cloud Gateway Properties
+### Gateway Implementation Change
 
-Spring Boot 4 includes a major upgrade to Spring Cloud Gateway. The gateway configuration namespace has changed:
+GeoServer Cloud 3.0.0 replaces the default gateway implementation from Spring Cloud Gateway Server WebFlux (reactive) to **Spring Cloud Gateway Server MVC** (servlet-based with virtual threads).
+
+**If you have not customized the gateway configuration**, the migration is transparent — the new Docker image `geoservercloud/geoserver-cloud-gateway:3.0.0` works out of the box with the default configuration.
+
+**If you have customized the gateway configuration**, note the following changes:
+
+| Aspect | 2.28.x (WebFlux) | 3.0.0 (WebMVC) |
+|--------|------------------|-----------------|
+| Docker image | `geoservercloud/geoserver-cloud-gateway` | `geoservercloud/geoserver-cloud-gateway` (unchanged) |
+| Config namespace | `spring.cloud.gateway.server.webflux` | `spring.cloud.gateway.server.webmvc` |
+| Default filters | Supported via `default-filters` | Not supported; add filters to each route |
+| WebSocket routing | Supported | Not supported |
+
+#### Key configuration differences
+
+1. **No `default-filters`**: SCG Server MVC does not support `default-filters`. Filters like `StripBasePath`, `SharedAuth`, `SecureHeaders`, and `DedupeResponseHeader` must be listed explicitly in each route's `filters` section.
+
+2. **Header forwarding** uses a different structure:
+
+    ```yaml
+    # Old (WebFlux)
+    spring.cloud.gateway.server.webflux:
+      forwarded.enabled: false
+      x-forwarded:
+        for-enabled: true
+
+    # New (WebMVC)
+    spring.cloud.gateway.server.webmvc:
+      forwarded-request-headers-filter:
+        enabled: false
+      x-forwarded-request-headers-filter:
+        enabled: true
+        for-enabled: true
+    ```
+
+3. **Trusted proxies** are required for X-Forwarded header processing:
+
+    ```yaml
+    spring.cloud.gateway.server.webmvc:
+      trusted-proxies: ".*"  # restrict in production
+    ```
+
+#### Using the deprecated WebFlux gateway
+
+The WebFlux-based gateway remains available as a separate Docker image for 3.0.0 only:
+
+```
+geoservercloud/geoserver-cloud-gateway-webflux:3.0.0
+```
+
+Its default configuration is embedded in the Docker image at `/etc/geoserver/gateway-webflux.yml`.
+
+> **Warning**: The WebFlux gateway will not be continued for 3.1.0. Migrate to the WebMVC gateway before upgrading to 3.1.0.
+
+To use the deprecated WebFlux gateway, replace the gateway service image in your Docker Compose:
+
+```yaml
+services:
+  gateway:
+    image: geoservercloud/geoserver-cloud-gateway-webflux:3.0.0
+    # ... rest of configuration unchanged
+```
+
+### Spring Cloud Gateway Route Namespace
+
+Spring Boot 4 includes a major upgrade to Spring Cloud Gateway. The route configuration namespace has changed. This applies whether you use the new WebMVC gateway (default) or the deprecated WebFlux gateway:
 
 #### Old Structure (2.28.x)
 
@@ -89,12 +154,16 @@ spring:
 
 #### New Structure (3.0.0)
 
+For the default WebMVC gateway, routes are under `spring.cloud.gateway.server.webmvc.routes`.
+For the deprecated WebFlux gateway, routes are under `spring.cloud.gateway.server.webflux.routes`.
+
 ```yaml
+# WebMVC (default)
 spring:
   cloud:
     gateway:
       server:
-        webflux:
+        webmvc:
           routes:
             - id: wms
               uri: lb://wms-service
@@ -143,7 +212,7 @@ To migrate from GeoServer Cloud 2.28.x to 3.0.0:
 
 3. **Migrate from JDBC Config** (if applicable): Export your configuration and migrate to either `datadir` or `pgconfig` backend.
 
-4. **Update Gateway Configurations** (if customized): Move gateway route configurations from `spring.cloud.gateway` to `spring.cloud.gateway.server.webflux`.
+4. **Update Gateway Configurations** (if customized): If you have not modified the default gateway configuration, no action is needed — the new WebMVC gateway works out of the box. If you have custom route configurations, move them from `spring.cloud.gateway` to `spring.cloud.gateway.server.webmvc` and add filters explicitly to each route (see [Gateway Implementation Change](#gateway-implementation-change)).
 
 5. **Update ACL Configuration** (if customized): Rename `geoserver.acl.enabled` to `geoserver.acl.client.enabled`.
 

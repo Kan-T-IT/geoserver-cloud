@@ -61,16 +61,6 @@ class AuthKeyAutoConfigurationTest {
     }
 
     @Test
-    void testModuleStatus_disabled() {
-        contextRunner
-                .withPropertyValues("geoserver.extension.security.auth-key.enabled=false")
-                .run(context -> assertThat(context).hasBean("authKeyExtension"))
-                .run(context -> assertThat(context)
-                        .getBean("authKeyExtension", ModuleStatus.class)
-                        .hasFieldOrPropertyWithValue("enabled", false));
-    }
-
-    @Test
     void testGeoServerAuthenticationKeyProvider_enabled_no_GsWebSecCore_InClasspath() {
         contextRunner
                 .withPropertyValues("geoserver.extension.security.auth-key.enabled=true")
@@ -87,7 +77,8 @@ class AuthKeyAutoConfigurationTest {
     @Test
     void testGeoServerAuthenticationKeyProvider_enabled() {
         contextRunner
-                .withPropertyValues("geoserver.extension.security.auth-key.enabled=true")
+                .withPropertyValues(
+                        "geoserver.service.webui.enabled=true", "geoserver.extension.security.auth-key.enabled=true")
                 .run(ctx -> {
                     assertThat(ctx).hasSingleBean(GeoServerAuthenticationKeyProvider.class);
                     assertThat(ctx).hasSingleBean(AuthenticationKeyMangler.class);

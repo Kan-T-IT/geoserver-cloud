@@ -4,6 +4,8 @@
  */
 package org.geoserver.cloud.autoconfigure.extensions.ogcapi.features;
 
+import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWFS;
+import org.geoserver.configuration.extension.ogcapi.features.OgcApiFeaturesConfiguration;
 import org.geoserver.platform.ModuleStatus;
 import org.geoserver.platform.ModuleStatusImpl;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
@@ -25,7 +27,8 @@ import org.springframework.context.annotation.Import;
 @AutoConfiguration
 @EnableConfigurationProperties(OgcApiFeatureConfigProperties.class)
 @ConditionalOnOgcApiFeatures
-@Import({OgcApiFeaturesConfiguration.class, OgcApiFeaturesWebUIConfiguration.class})
+@ConditionalOnGeoServerWFS
+@Import({OgcApiFeaturesConfiguration.class, OgcApiFeaturesWebUIAutoConfiguration.class})
 public class OgcApiFeaturesAutoConfiguration {
 
     /** Creates a ModuleStatus bean for OGC API Features. */

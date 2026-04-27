@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.geoserver.gwc.web.GWCSettingsPage;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 
@@ -29,7 +28,7 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 @Target({ElementType.METHOD, ElementType.TYPE})
 @Documented
 @ConditionalOnGeoWebCacheEnabled
-@ConditionalOnClass(GWCSettingsPage.class)
+@ConditionalOnClass(name = "org.geoserver.gwc.web.GWCSettingsPage")
 @ConditionalOnProperty(
         name = GoServerWebUIConfigurationProperties.GWC_WEBUI_ENABLED_PROPERTY,
         havingValue = "true",

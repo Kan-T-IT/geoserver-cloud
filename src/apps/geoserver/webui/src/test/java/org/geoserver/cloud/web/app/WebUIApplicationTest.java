@@ -15,7 +15,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 import org.apache.wicket.Component;
-import org.apache.wicket.markup.html.link.BookmarkablePageLink;
 import org.apache.wicket.markup.html.list.ListItem;
 import org.apache.wicket.markup.html.list.ListView;
 import org.apache.wicket.util.tester.WicketTester;
@@ -113,10 +112,9 @@ class WebUIApplicationTest {
                 .setAuthentication(new UsernamePasswordAuthenticationToken(username, password, l));
     }
 
-    @SuppressWarnings("unused")
-    private void print(Component component) {
+    void print(Component component) {
         boolean dumpClass = true;
-        boolean dumpValue = false;
+        boolean dumpValue = true;
         boolean dumpPath = true;
         WicketHierarchyPrinter.print(component, dumpClass, dumpValue, dumpPath);
     }
@@ -125,7 +123,7 @@ class WebUIApplicationTest {
     void GeoServerHomePage_smoke_test_anonymous() {
         GeoServerHomePage page = tester.startPage(GeoServerHomePage.class);
         assertNotNull(page);
-        tester.assertInvisible("catalogLinks");
+        tester.assertInvisible("administration");
         tester.assertComponent("providedCaps", ListView.class);
     }
 
@@ -134,9 +132,8 @@ class WebUIApplicationTest {
         login();
         GeoServerHomePage page = tester.startPage(GeoServerHomePage.class);
         assertNotNull(page);
-        tester.assertComponent("catalogLinks:layersLink", BookmarkablePageLink.class);
-        tester.assertComponent("catalogLinks:storesLink", BookmarkablePageLink.class);
-        tester.assertComponent("catalogLinks:workspacesLink", BookmarkablePageLink.class);
+        tester.assertVisible("administration");
+        tester.assertComponent("administration:adminContent", ListView.class);
         tester.assertComponent("providedCaps", ListView.class);
     }
 
@@ -148,9 +145,6 @@ class WebUIApplicationTest {
         tester.assertVisible("serviceList");
         tester.assertComponent("serviceList:serviceDescriptions:0", ListItem.class);
         tester.assertComponent("serviceList:serviceDescriptions:0:links:0", ListItem.class);
-
-        tester.assertComponent("serviceList:serviceDescriptions:1", ListItem.class);
-        tester.assertComponent("serviceList:serviceDescriptions:1:links:0", ListItem.class);
 
         tester.assertComponent("serviceList:serviceDescriptions:2", ListItem.class);
         tester.assertComponent("serviceList:serviceDescriptions:2:links:0", ListItem.class);

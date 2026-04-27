@@ -460,14 +460,14 @@ public class DefaultCatalogValidator implements CatalogValidator {
     static void validateKeywords(List<KeywordInfo> keywords) {
         if (keywords != null) {
             for (KeywordInfo kw : keywords) {
-                Matcher m = KeywordInfo.RE.matcher(kw.getValue());
+                Matcher m = KeywordInfo.isValidPattern.matcher(kw.getValue());
                 if (!m.matches()) {
                     throw new IllegalArgumentException(
                             "Illegal keyword '%s'. Keywords must not be empty and must not contain the '\\' character"
                                     .formatted(kw));
                 }
                 if (kw.getVocabulary() != null) {
-                    m = KeywordInfo.RE.matcher(kw.getVocabulary());
+                    m = KeywordInfo.isValidPattern.matcher(kw.getVocabulary());
                     if (!m.matches()) {
                         throw new IllegalArgumentException("Keyword vocbulary must not contain the '\\' character");
                     }

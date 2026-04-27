@@ -41,7 +41,15 @@ spring.cloud.config.discovery.enabled: false
 spring.config.activate.on-profile: "bus-rabbitmq"
 
 spring:
-  cloud.bus.enabled: true
+  cloud:
+    bus:
+      enabled: true
+      id: ${info.instance-id}
+      destination: geoserver
+      trace.enabled: false #switch on tracing of acks (default off).
+    stream:
+      # Prevents Stream from treating every java Function bean as a Rabbit queue
+      function.autodetect: false
   rabbitmq:
     host: ${rabbitmq.host:rabbitmq}
     port: ${rabbitmq.port:5672}
@@ -92,7 +100,10 @@ spring:
         service-name: ${spring.application.name}
         health-check-path: /actuator/health
         health-check-port: 8081
-        health-check-interval: 10s
+        health-check-interval: 3s
+        # Consul auto-deregisters an instance whose health check stays critical for this long.
+        # Acts as a safety net when graceful shutdown fails to deregister the service.
+        health-check-critical-timeout: 15s
 
 ---
 # LOCAL: For IDE development outside of containers

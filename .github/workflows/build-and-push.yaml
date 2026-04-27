@@ -1,4 +1,5 @@
-# Builds and pushes docker images on main and tags
+# Builds and pushes multi-arch docker images on main and tags.
+# Each architecture builds natively (no QEMU) so the JVM AOT cache is correct.
 
 name: Build and Push Docker images
 on:
@@ -17,32 +18,30 @@ on:
     tags:
       - '*'
 # cancel in-progress jobs or runs for the current workflow
-# see https://docs.github.com/en/actions/writing-workflows/choosing-what-your-workflow-does/control-the-concurrency-of-workflows-and-jobs#example-only-cancel-in-progress-jobs-or-runs-for-the-current-workflow
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
-  base-images:
+  build-base-images:
     if: github.repository == 'geoserver/geoserver-cloud'
-    name: Build and Push Base Images
-    runs-on: ubuntu-latest
+    name: Base images (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      with:
-        platforms: linux/amd64,linux/arm64
-        install: true
 
     - name: Checkout
       uses: actions/checkout@v4
@@ -55,26 +54,48 @@ jobs:
         distribution: 'temurin'
         java-version: '25'
         cache: 'maven'
+
+    - name: Set version
+      run: echo "VERSION=$(make -s show-version)" >> $GITHUB_ENV
 
     - name: Package base images
-      run: |
-        make package-base-images
+      run: make package-base-images
 
-    - name: Build and push base images
+    - name: Build base images
       run: |
-        REPACKAGE=false make build-base-images-multiplatform
+        TAG=${{ env.VERSION }} docker compose -f docker-build/base-images.yml build jre
+        TAG=${{ env.VERSION }} docker compose -f docker-build/base-images.yml build spring-boot
+        TAG=${{ env.VERSION }} docker compose -f docker-build/base-images.yml build geoserver-common
+
+    - name: Push base images and extract digests
+      run: |
+        TAG=${{ env.VERSION }} docker compose -f docker-build/base-images.yml push
+        mkdir -p /tmp/digests
+        for image in $(TAG=${{ env.VERSION }} docker compose -f docker-build/base-images.yml config --images); do
+          name=$(echo "$image" | sed 's|.*/||' | cut -d: -f1)
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$image" | cut -d@ -f2)
+          echo "Image: $image -> $name = $digest"
+          echo "$digest" > "/tmp/digests/${name}"
+        done
+
+    - name: Upload digests
+      uses: actions/upload-artifact@v4
+      with:
+        name: digests-base-${{ matrix.arch }}
+        path: /tmp/digests/*
+        retention-days: 1
 
     - name: Clean up Maven project artifacts
       run: |
         rm -rf ~/.m2/repository/org/geoserver/cloud
         find ~/.m2/repository -name "*SNAPSHOT*" -type d -exec rm -rf {} + 2>/dev/null || true
 
-  infrastructure-images:
-    needs: base-images
+  stitch-base-manifests:
+    needs: build-base-images
     if: github.repository == 'geoserver/geoserver-cloud'
-    name: Build infrastructure images
+    name: Stitch base image manifests
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 10
     steps:
     - name: Login to Docker Hub
       uses: docker/login-action@v3
@@ -82,14 +103,70 @@ jobs:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
+
+    - name: Checkout
+      uses: actions/checkout@v4
       with:
-        platforms: linux/amd64,linux/arm64
-        install: true
+        submodules: recursive
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+
+    - name: Set version
+      run: echo "VERSION=$(make -s show-version)" >> $GITHUB_ENV
+
+    - name: Download amd64 digests
+      uses: actions/download-artifact@v4
+      with:
+        name: digests-base-amd64
+        path: /tmp/digests/amd64/
+
+    - name: Download arm64 digests
+      uses: actions/download-artifact@v4
+      with:
+        name: digests-base-arm64
+        path: /tmp/digests/arm64/
+
+    - name: Create multi-platform manifests
+      run: |
+        REPO=$(grep -oP '^REPOSITORY=\K.*' docker-build/.env)
+        for file in /tmp/digests/amd64/*; do
+          name=$(basename "$file")
+          amd64_digest=$(cat "/tmp/digests/amd64/$name")
+          arm64_digest=$(cat "/tmp/digests/arm64/$name")
+          full_image="${REPO}/${name}:${{ env.VERSION }}"
+          echo "Creating manifest for $full_image"
+          docker buildx imagetools create \
+            -t "$full_image" \
+            "${REPO}/${name}@${amd64_digest}" \
+            "${REPO}/${name}@${arm64_digest}"
+        done
+
+  build-infrastructure-images:
+    needs: stitch-base-manifests
+    if: github.repository == 'geoserver/geoserver-cloud'
+    name: Infrastructure images (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: true
+      matrix:
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
+    steps:
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
 
     - name: Checkout
       uses: actions/checkout@v4
@@ -103,45 +180,62 @@ jobs:
         java-version: '25'
         cache: 'maven'
 
-    - name: Package infrastructure apps
-      run: |
-        make package-infrastructure-images
+    - name: Set version
+      run: echo "VERSION=$(make -s show-version)" >> $GITHUB_ENV
 
-    - name: Build and push infrastructure images
+    - name: Package infrastructure apps
+      run: make package-infrastructure-images
+
+    - name: Build infrastructure images
       run: |
-        REPACKAGE=false make build-image-infrastructure-multiplatform
+        TAG=${{ env.VERSION }} docker compose -f docker-build/infrastructure.yml build
+
+    - name: Push infrastructure images and extract digests
+      run: |
+        TAG=${{ env.VERSION }} docker compose -f docker-build/infrastructure.yml push
+        mkdir -p /tmp/digests
+        for image in $(TAG=${{ env.VERSION }} docker compose -f docker-build/infrastructure.yml config --images); do
+          name=$(echo "$image" | sed 's|.*/||' | cut -d: -f1)
+          digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$image" | cut -d@ -f2)
+          echo "Image: $image -> $name = $digest"
+          echo "$digest" > "/tmp/digests/${name}"
+        done
+
+    - name: Upload digests
+      uses: actions/upload-artifact@v4
+      with:
+        name: digests-infra-${{ matrix.arch }}
+        path: /tmp/digests/*
+        retention-days: 1
 
     - name: Clean up Maven project artifacts
       run: |
         rm -rf ~/.m2/repository/org/geoserver/cloud
         find ~/.m2/repository -name "*SNAPSHOT*" -type d -exec rm -rf {} + 2>/dev/null || true
 
-  geoserver-images:
-    needs: base-images
+  build-geoserver-images:
+    needs: stitch-base-manifests
     if: github.repository == 'geoserver/geoserver-cloud'
-    name: Build GeoServer image
-    runs-on: ubuntu-latest
+    name: GeoServer ${{ matrix.app }} (${{ matrix.arch }})
+    runs-on: ${{ matrix.runner }}
     timeout-minutes: 60
     strategy:
       fail-fast: false
       matrix:
         # matches app folder names in src/apps/geoserver/* and docker compose service names
-        app: [ 'wms', 'wfs', 'wcs', 'wps', 'gwc', 'restconfig', 'webui' ]
+        app: ['wms', 'wfs', 'wcs', 'wps', 'gwc', 'restconfig', 'webui']
+        arch: [amd64, arm64]
+        include:
+          - arch: amd64
+            runner: ubuntu-latest
+          - arch: arm64
+            runner: ubuntu-24.04-arm
     steps:
     - name: Login to Docker Hub
       uses: docker/login-action@v3
       with:
         username: ${{ secrets.DOCKER_HUB_USERNAME }}
         password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-
-    - name: Set up QEMU
-      uses: docker/setup-qemu-action@v3
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-      with:
-        platforms: linux/amd64,linux/arm64
-        install: true
 
     - name: Checkout
       uses: actions/checkout@v4
@@ -155,21 +249,111 @@ jobs:
         java-version: '25'
         cache: 'maven'
 
-    - name: Package GeoServer apps
+    - name: Set version
+      run: echo "VERSION=$(make -s show-version)" >> $GITHUB_ENV
+
+    - name: Package GeoServer app
       run: |
         ./mvnw clean package -DskipTests -T1C -ntp -am -pl src/apps/geoserver/${{ matrix.app }}
 
-    - name: Build and push GeoServer images
+    - name: Build GeoServer image
       run: |
-        REPACKAGE=false make build-image-geoserver-multiplatform ${{ matrix.app }}
+        TAG=${{ env.VERSION }} docker compose -f docker-build/geoserver.yml build ${{ matrix.app }}
+
+    - name: Push image and extract digest
+      run: |
+        TAG=${{ env.VERSION }} docker compose -f docker-build/geoserver.yml push ${{ matrix.app }}
+        mkdir -p /tmp/digests
+        image=$(TAG=${{ env.VERSION }} docker compose -f docker-build/geoserver.yml \
+          config --format json | jq -r '.services."${{ matrix.app }}".image')
+        name=$(echo "$image" | sed 's|.*/||' | cut -d: -f1)
+        digest=$(docker inspect --format='{{index .RepoDigests 0}}' "$image" | cut -d@ -f2)
+        echo "Image: $image -> $name = $digest"
+        echo "$digest" > "/tmp/digests/${name}"
+
+    - name: Upload digest
+      uses: actions/upload-artifact@v4
+      with:
+        name: digests-gs-${{ matrix.app }}-${{ matrix.arch }}
+        path: /tmp/digests/*
+        retention-days: 1
 
     - name: Clean up Maven project artifacts
       run: |
         rm -rf ~/.m2/repository/org/geoserver/cloud
         find ~/.m2/repository -name "*SNAPSHOT*" -type d -exec rm -rf {} + 2>/dev/null || true
 
+  stitch-manifests:
+    needs: [build-infrastructure-images, build-geoserver-images]
+    if: github.repository == 'geoserver/geoserver-cloud'
+    name: Create multi-platform manifests
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+    - name: Login to Docker Hub
+      uses: docker/login-action@v3
+      with:
+        username: ${{ secrets.DOCKER_HUB_USERNAME }}
+        password: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Download amd64 infrastructure digests
+      uses: actions/download-artifact@v4
+      with:
+        name: digests-infra-amd64
+        path: /tmp/digests/amd64/
+
+    - name: Download arm64 infrastructure digests
+      uses: actions/download-artifact@v4
+      with:
+        name: digests-infra-arm64
+        path: /tmp/digests/arm64/
+
+    - name: Download amd64 geoserver digests
+      uses: actions/download-artifact@v4
+      with:
+        pattern: digests-gs-*-amd64
+        path: /tmp/digests/amd64/
+        merge-multiple: true
+
+    - name: Download arm64 geoserver digests
+      uses: actions/download-artifact@v4
+      with:
+        pattern: digests-gs-*-arm64
+        path: /tmp/digests/arm64/
+        merge-multiple: true
+
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        distribution: 'temurin'
+        java-version: '25'
+
+    - name: Set version
+      run: echo "VERSION=$(make -s show-version)" >> $GITHUB_ENV
+
+    - name: Create multi-platform manifests
+      run: |
+        REPO=$(grep -oP '^REPOSITORY=\K.*' docker-build/.env)
+        for file in /tmp/digests/amd64/*; do
+          name=$(basename "$file")
+          amd64_digest=$(cat "/tmp/digests/amd64/$name")
+          arm64_digest=$(cat "/tmp/digests/arm64/$name")
+          full_image="${REPO}/${name}:${{ env.VERSION }}"
+          echo "Creating manifest for $full_image"
+          docker buildx imagetools create \
+            -t "$full_image" \
+            "${REPO}/${name}@${amd64_digest}" \
+            "${REPO}/${name}@${arm64_digest}"
+        done
+
   sign-images:
-    needs: [base-images, infrastructure-images, geoserver-images]
+    needs: [stitch-base-manifests, stitch-manifests]
     # Only sign release images (git tags), not SNAPSHOT builds
     if: github.repository == 'geoserver/geoserver-cloud' && startsWith(github.ref, 'refs/tags/')
     name: Sign and Verify Images

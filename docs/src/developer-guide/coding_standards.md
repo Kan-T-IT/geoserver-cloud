@@ -8,7 +8,7 @@ Code style consistency is enforced using automated tools during the build proces
 
 ## Checkstyle Configuration
 
-Checkstyle is used to enforce consistent code style and formatting standards. The configuration is located in the `build-tools` module.
+Checkstyle is used to enforce consistent code style and formatting standards. The configuration is located in the `src/build-tools` module.
 
 ### Key Style Rules
 
@@ -27,8 +27,8 @@ Checkstyle is used to enforce consistent code style and formatting standards. Th
 
 The Checkstyle configuration is stored in the following files:
 
-- `build-tools/src/main/resources/checkstyle/checkstyle.xml`: Main configuration
-- `build-tools/src/main/resources/checkstyle/suppressions.xml`: Rules for suppressing certain checks
+- `src/build-tools/src/main/resources/checkstyle/checkstyle.xml`: Main configuration
+- `src/build-tools/src/main/resources/checkstyle/suppressions.xml`: Rules for suppressing certain checks
 
 ## Code Formatting
 

@@ -10,7 +10,6 @@ import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.lang.annotation.Target;
-import org.geoserver.cloud.gwc.config.core.GeoWebCacheConfigurationProperties;
 import org.geowebcache.storage.blobstore.gcs.GoogleCloudStorageBlobStoreInfo;
 import org.geowebcache.storage.blobstore.gcs.GoogleCloudStorageConfigProvider;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;

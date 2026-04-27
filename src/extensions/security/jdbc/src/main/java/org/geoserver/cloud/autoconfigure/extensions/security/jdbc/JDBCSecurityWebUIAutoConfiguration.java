@@ -5,10 +5,10 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.security.jdbc;
 
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
-import org.geoserver.security.web.auth.AuthenticationFilterPanelInfo;
+import org.geoserver.cloud.autoconfigure.extensions.ConditionalOnGeoServerWebUI;
+import org.geoserver.configuration.core.web.sec.WebSecJdbcConfiguration;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
-import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.annotation.Import;
 
 /**
  * Auto-configuration for the GeoServer JDBC security web UI components.
@@ -23,11 +23,12 @@ import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
  * <p>It registers the JDBC security web UI components like panel info classes for configuration through the GeoServer
  * web admin interface.
  *
+ * @see WebSecJdbcConfiguration
  * @since 2.27.0.0
  */
 @AutoConfiguration
-@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnJDBC
-@ConditionalOnClass(AuthenticationFilterPanelInfo.class)
-@ImportFilteredResource("jar:gs-web-sec-jdbc-.*!/applicationContext.xml")
+@ConditionalOnGeoServerWebUI
+@Import(WebSecJdbcConfiguration.class)
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 public class JDBCSecurityWebUIAutoConfiguration {}

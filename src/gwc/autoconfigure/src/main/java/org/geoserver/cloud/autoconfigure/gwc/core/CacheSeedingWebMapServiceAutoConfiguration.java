@@ -10,7 +10,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnGeoWebCacheEnabled;
 import org.geoserver.cloud.autoconfigure.gwc.core.CacheSeedingWebMapServiceAutoConfiguration.MinimalWebMapServiceAutoConfiguration;
 import org.geoserver.cloud.gwc.config.core.WebMapServiceCacheSeedingConfiguration;
-import org.geoserver.cloud.gwc.config.core.WebMapServiceMinimalConfiguration;
+import org.geoserver.configuration.gwc.GwcWMSMinimalConfiguration;
 import org.geoserver.gwc.layer.GeoServerTileLayer;
 import org.geoserver.wms.DefaultWebMapService;
 import org.geoserver.wms.WebMapService;
@@ -39,6 +39,11 @@ public class CacheSeedingWebMapServiceAutoConfiguration {
 
     @Configuration
     @ConditionalOnMissingBean(DefaultWebMapService.class)
-    @Import(WebMapServiceMinimalConfiguration.class)
-    static class MinimalWebMapServiceAutoConfiguration {}
+    @Import(GwcWMSMinimalConfiguration.class)
+    static class MinimalWebMapServiceAutoConfiguration {
+
+        MinimalWebMapServiceAutoConfiguration() {
+            log.info("Loaded a default MinimalWebMapServiceAutoConfiguration");
+        }
+    }
 }

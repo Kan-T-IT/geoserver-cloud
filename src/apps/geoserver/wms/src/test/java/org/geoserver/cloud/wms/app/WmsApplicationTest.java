@@ -11,14 +11,18 @@ import org.geoserver.cloud.autoconfigure.extensions.test.ConditionalTestAutoConf
 import org.geoserver.cloud.autoconfigure.gwc.integration.WMSIntegrationAutoConfiguration.ForwardGetMapToGwcAspect;
 import org.geoserver.cloud.wms.controller.kml.KMLIconsController;
 import org.geoserver.cloud.wms.controller.kml.KMLReflectorController;
+import org.geoserver.configuration.core.wms.WMSCoreConfiguration;
+import org.geoserver.configuration.core.wms.WmsGmlConfiguration;
 import org.geoserver.gwc.wms.CachingExtendedCapabilitiesProvider;
 import org.geoserver.ows.FlatKvpParser;
-import org.geoserver.ows.kvp.BBoxKvpParser;
+import org.geoserver.ows.OWSHandlerMapping;
 import org.geoserver.ows.kvp.CQLFilterKvpParser;
 import org.geoserver.ows.kvp.SortByKvpParser;
 import org.geoserver.ows.kvp.ViewParamsKvpParser;
-import org.geoserver.ows.util.NumericKvpParser;
-import org.geoserver.wfs.xml.v1_1_0.WFSConfiguration;
+import org.geoserver.platform.ModuleStatusImpl;
+import org.geoserver.wfs.xml.GML3OutputFormat;
+import org.geoserver.wms.GetCapabilities;
+import org.geoserver.wms.WMS;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ConfigurableApplicationContext;
@@ -27,51 +31,35 @@ abstract class WmsApplicationTest {
 
     protected @Autowired ConfigurableApplicationContext context;
 
+    /** Contributions from {@link WMSCoreConfiguration} */
     @Test
-    void testExpectedBeansFromWmsApplicationAutoConfiguration() {
-        expectBean("wfsConfiguration", WFSConfiguration.class);
-        expectBean("wms_1_1_1_GetCapabilitiesResponse", org.geoserver.wms.capabilities.GetCapabilitiesResponse.class);
-        expectBean("wms_1_1_1_GetCapabilitiesResponse", org.geoserver.wms.capabilities.GetCapabilitiesResponse.class);
-        expectBean("wmsExceptionHandler", StatusCodeWmsExceptionHandler.class);
+    void testExpectedBeansFromWmsCore() {
+        expectBean("wmsURLMapping", OWSHandlerMapping.class);
+        expectBean("wms", WMS.class);
+        expectBean("wmsExtension", ModuleStatusImpl.class);
+        expectBean("wmsGetCapabilities", GetCapabilities.class);
+        expectBean("wms", WMS.class);
+        expectBean("wmsSqlViewKvpParser", ViewParamsKvpParser.class);
     }
 
-    @Test
-    void testExpectedBeansFromGsWfsJarFile() {
-        expectBean("bboxKvpParser", BBoxKvpParser.class);
-        expectBean("featureIdKvpParser", FlatKvpParser.class);
-        expectBean("cqlKvpParser", CQLFilterKvpParser.class);
-        expectBean("maxFeatureKvpParser", NumericKvpParser.class);
-        expectBean("sortByKvpParser", SortByKvpParser.class);
-        expectBean("wfsSqlViewKvpParser", ViewParamsKvpParser.class);
-
-        expectBean("wfsXsd-1.0", org.geoserver.wfs.xml.v1_0_0.WFS.class);
-        expectBean("wfsXmlConfiguration-1.0", org.geoserver.wfs.xml.v1_0_0.WFSConfiguration.class);
-
-        expectBean("wfsXsd-1.1", org.geoserver.wfs.xml.v1_1_0.WFS.class);
-        expectBean("wfsXmlConfiguration-1.1", org.geoserver.wfs.xml.v1_1_0.WFSConfiguration.class);
-
-        expectBean("wfsXsd-1.0", org.geoserver.wfs.xml.v1_0_0.WFS.class);
-        expectBean("wfsXmlConfiguration-1.0", org.geoserver.wfs.xml.v1_0_0.WFSConfiguration.class);
-
-        expectBean("filter1_0_0_KvpParser", org.geoserver.wfs.kvp.Filter_1_0_0_KvpParser.class);
-        expectBean("filter1_1_0_KvpParser", org.geoserver.wfs.kvp.Filter_1_1_0_KvpParser.class);
-        expectBean("filter2_0_0_KvpParser", org.geoserver.wfs.kvp.Filter_2_0_0_KvpParser.class);
-
-        expectBean("gml2SchemaBuilder", org.geoserver.wfs.xml.FeatureTypeSchemaBuilder.GML2.class);
-        expectBean("gml3SchemaBuilder", org.geoserver.wfs.xml.FeatureTypeSchemaBuilder.GML3.class);
-
-        expectBean("gml2OutputFormat", org.geoserver.wfs.xml.GML2OutputFormat.class);
-        expectBean("gml3OutputFormat", org.geoserver.wfs.xml.GML3OutputFormat.class);
-        expectBean("gml32OutputFormat", org.geoserver.wfs.xml.GML32OutputFormat.class);
-    }
-
+    /** Contributions from {@link WmsGmlConfiguration} */
     @Test
     void testExpectedBeansFromGsWmsGml() {
+        expectBean("wmsFilterKvpParser", org.geoserver.wms.kvp.FilterKvpParser.class);
         expectBean("wmsGetFeatureInfoGML2", org.geoserver.wms.featureinfo.GML2FeatureInfoOutputFormat.class);
-        expectBean("wmsGetFeatureInfoXML2", org.geoserver.wms.featureinfo.XML2FeatureInfoOutputFormat.class);
         expectBean("wmsGetFeatureInfoGML3", org.geoserver.wms.featureinfo.GML3FeatureInfoOutputFormat.class);
         expectBean("wmsGetFeatureInfoXML311", org.geoserver.wms.featureinfo.XML311FeatureInfoOutputFormat.class);
-        expectBean("wmsFilterKvpParser", org.geoserver.wms.kvp.FilterKvpParser.class);
+
+        // wfs-core|wfs1_1
+        expectBean("xmlConfiguration-1.1", org.geoserver.wfs.xml.v1_1_0.WFSConfiguration.class);
+        expectBean("gml3OutputFormat", GML3OutputFormat.class);
+    }
+
+    @Test
+    void testExpectedBeansFromGsMain() {
+        expectBean("cqlKvpParser", CQLFilterKvpParser.class);
+        expectBean("featureIdKvpParser", FlatKvpParser.class);
+        expectBean("sortByKvpParser", SortByKvpParser.class);
     }
 
     @Test

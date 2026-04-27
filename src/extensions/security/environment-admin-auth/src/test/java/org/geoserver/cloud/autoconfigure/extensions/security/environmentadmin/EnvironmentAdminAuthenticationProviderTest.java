@@ -9,7 +9,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.mock;
 
-import org.geoserver.cloud.autoconfigure.security.GeoServerSecurityAutoConfiguration;
+import org.geoserver.cloud.autoconfigure.main.GeoServerMainSecurityAutoConfiguration;
 import org.geoserver.security.GeoServerSecurityManager;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
@@ -24,7 +24,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 
 /**
- * {@link EnableAutoConfiguration @EnableAutoConfiguration} tests for {@link GeoServerSecurityAutoConfiguration}'s
+ * {@link EnableAutoConfiguration @EnableAutoConfiguration} tests for {@link GeoServerMainSecurityAutoConfiguration}'s
  * {@link EnvironmentAdminAuthenticationProvider}
  *
  * @since 1.0

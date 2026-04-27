@@ -8,6 +8,7 @@ package org.geoserver.cloud.autoconfigure.extensions.security.acl;
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.mockito.Mockito.mock;
 
+import org.geoserver.acl.authorization.AuthorizationService;
 import org.geoserver.acl.authorization.cache.CachingAuthorizationService;
 import org.geoserver.acl.autoconfigure.messaging.bus.AclSpringCloudBusAutoConfiguration;
 import org.geoserver.acl.config.authorization.cache.CachingAuthorizationServiceConfiguration;
@@ -40,6 +41,8 @@ import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
 import org.springframework.boot.autoconfigure.AutoConfigurations;
 import org.springframework.boot.test.context.runner.ApplicationContextRunner;
 import org.springframework.cache.CacheManager;
@@ -53,6 +56,7 @@ import org.springframework.cloud.bus.event.PathDestinationFactory;
  *
  * @since 2.27.0.0
  */
+@Execution(value = ExecutionMode.CONCURRENT)
 class AclExtensionAutoConfigurationTest {
 
     private ApplicationContextRunner runner;
@@ -272,18 +276,18 @@ class AclExtensionAutoConfigurationTest {
         }
 
         @Test
-        void conditionalOnSpringCacheManager() {
-            assertCachingUnavailable();
+        void availableWithoutCacheManager() {
+            assertCachingAvailable();
+        }
 
+        @Test
+        void availableWithCacheManager() {
             addCacheManager();
-
             assertCachingAvailable();
         }
 
         @Test
         void conditionalOnClientCachingEnabledProperty() {
-            addCacheManager();
-
             runner = runner.withPropertyValues("geoserver.acl.client.caching: false");
             assertCachingUnavailable();
 
@@ -292,12 +296,18 @@ class AclExtensionAutoConfigurationTest {
         }
 
         private void assertCachingUnavailable() {
-            runner.run(context -> assertThat(context)
-                    .hasNotFailed()
-                    .doesNotHaveBean(AclCachingAutoConfiguration.class)
-                    .doesNotHaveBean(CachingAuthorizationServicePluginConfiguration.class)
-                    .doesNotHaveBean(CachingAuthorizationServiceConfiguration.class)
-                    .doesNotHaveBean(CachingAuthorizationService.class));
+            runner.run(context -> {
+                assertThat(context)
+                        .hasNotFailed()
+                        .doesNotHaveBean(AclCachingAutoConfiguration.class)
+                        .doesNotHaveBean(CachingAuthorizationServicePluginConfiguration.class)
+                        .doesNotHaveBean(CachingAuthorizationServiceConfiguration.class)
+                        .doesNotHaveBean(CachingAuthorizationService.class);
+
+                AuthorizationService service = context.getBean(AuthorizationService.class);
+                assertThat(service.getClass().getName())
+                        .isEqualTo("org.geoserver.acl.webapi.client.AuthorizationServiceClientAdaptor");
+            });
         }
 
         private void assertCachingAvailable() {
@@ -306,7 +316,10 @@ class AclExtensionAutoConfigurationTest {
                     .hasSingleBean(AclCachingAutoConfiguration.class)
                     .hasSingleBean(CachingAuthorizationServicePluginConfiguration.class)
                     .hasSingleBean(CachingAuthorizationServiceConfiguration.class)
-                    .hasSingleBean(CachingAuthorizationService.class));
+                    .hasSingleBean(CachingAuthorizationService.class)
+                    .getBean(AuthorizationService.class)
+                    .as("Primary AuthorizationService Bean should be CachingAuthorizationService")
+                    .isInstanceOf(CachingAuthorizationService.class));
         }
     }
 

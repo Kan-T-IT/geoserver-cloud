@@ -8,18 +8,22 @@ package org.geoserver.cloud.autoconfigure.gwc.integration;
 import jakarta.annotation.PostConstruct;
 import lombok.extern.slf4j.Slf4j;
 import org.geoserver.cloud.autoconfigure.gwc.ConditionalOnWMTSIntegrationEnabled;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.gwc.GwcGeoServerWMTSIntegrationConfiguration;
 import org.geowebcache.service.wmts.WMTSService;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
+import org.springframework.context.annotation.Import;
 
-/** @since 1.0 */
+/**
+ * @see GwcGeoServerWMTSIntegrationConfiguration
+ * @since 1.0
+ */
 @AutoConfiguration
-@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 @ConditionalOnWMTSIntegrationEnabled
 @ConditionalOnClass(WMTSService.class)
-@ImportFilteredResource("jar:gs-gwc-[0-9]+.*!/geowebcache-geoserver-wmts-integration.xml")
+@Import(GwcGeoServerWMTSIntegrationConfiguration.class)
 @Slf4j(topic = "org.geoserver.cloud.autoconfigure.gwc.integration")
+@SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
 public class WMTSIntegrationAutoConfiguration {
 
     public @PostConstruct void log() {

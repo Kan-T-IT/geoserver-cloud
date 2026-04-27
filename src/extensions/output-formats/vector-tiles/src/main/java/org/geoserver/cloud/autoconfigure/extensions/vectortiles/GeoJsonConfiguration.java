@@ -5,16 +5,16 @@
 
 package org.geoserver.cloud.autoconfigure.extensions.vectortiles;
 
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.extension.vectortiles.VectorTilesGeoJsonConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 /**
  * Configuration for GeoJSON Vector Tiles format.
  *
  * @since 2.27.0
  */
-@ConditionalOnVectorTilesGeoJson
-@ImportFilteredResource(
-        "jar:gs-vectortiles-.*!/applicationContext.xml#name=(wmsGeoJsonBuilderFactory|wmsGeoJsonMapOutputFormat)")
 @Configuration
-public class GeoJsonConfiguration {}
+@ConditionalOnVectorTilesGeoJson
+@Import(VectorTilesGeoJsonConfiguration.class)
+class GeoJsonConfiguration {}

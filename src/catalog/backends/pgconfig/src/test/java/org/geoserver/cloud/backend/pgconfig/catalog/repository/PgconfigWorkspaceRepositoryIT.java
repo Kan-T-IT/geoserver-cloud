@@ -1,0 +1,50 @@
+/* (c) 2023 Open Source Geospatial Foundation - all rights reserved
+ * This code is licensed under the GPL 2.0 license, available at the root
+ * application directory.
+ */
+
+package org.geoserver.cloud.backend.pgconfig.catalog.repository;
+
+import static org.assertj.core.api.Assertions.assertThat;
+
+import java.util.Optional;
+import org.geoserver.catalog.WorkspaceInfo;
+import org.geoserver.catalog.impl.WorkspaceInfoImpl;
+import org.geoserver.cloud.backend.pgconfig.support.PgConfigTestContainer;
+import org.geoserver.cloud.backend.pgconfig.support.PgconfigTestDatabaseSupport;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.RegisterExtension;
+import org.junit.jupiter.api.parallel.Execution;
+import org.junit.jupiter.api.parallel.ExecutionMode;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+/** @since 1.4 */
+@Testcontainers(disabledWithoutDocker = true)
+@Execution(value = ExecutionMode.CONCURRENT)
+class PgconfigWorkspaceRepositoryIT {
+
+    @Container
+    static PgConfigTestContainer container = new PgConfigTestContainer();
+
+    @RegisterExtension
+    PgconfigTestDatabaseSupport db = new PgconfigTestDatabaseSupport(container);
+
+    PgconfigWorkspaceRepository repo;
+
+    @BeforeEach
+    void setUp() {
+        repo = new PgconfigWorkspaceRepository(db.getTemplate());
+    }
+
+    @Test
+    void testAdd() {
+        WorkspaceInfoImpl info = new WorkspaceInfoImpl();
+        info.setId("ws1");
+        info.setName("ws1");
+        repo.add(info);
+        Optional<WorkspaceInfo> found = repo.findById(info.getId(), repo.getContentType());
+        assertThat(found).isPresent();
+    }
+}

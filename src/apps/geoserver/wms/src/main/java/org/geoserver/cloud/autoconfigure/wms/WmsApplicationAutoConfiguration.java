@@ -5,127 +5,47 @@
 
 package org.geoserver.cloud.autoconfigure.wms;
 
-import java.util.List;
-import org.geoserver.catalog.Catalog;
 import org.geoserver.cloud.autoconfigure.gwc.integration.WMSIntegrationAutoConfiguration;
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
-import org.geoserver.cloud.wms.app.StatusCodeWmsExceptionHandler;
 import org.geoserver.config.GeoServer;
-import org.geoserver.platform.GeoServerResourceLoader;
-import org.geoserver.platform.Service;
+import org.geoserver.configuration.core.wms.WMS11Configuration;
+import org.geoserver.configuration.core.wms.WMS13Configuration;
+import org.geoserver.configuration.core.wms.WMSCoreConfiguration;
+import org.geoserver.configuration.core.wms.WmsGmlConfiguration;
 import org.geoserver.wfs.xml.FeatureTypeSchemaBuilder;
-import org.geoserver.wfs.xml.v1_1_0.WFS;
+import org.geoserver.wfs.xml.GML3OutputFormat;
 import org.geoserver.wfs.xml.v1_1_0.WFSConfiguration;
-import org.geoserver.wms.WMSServiceExceptionHandler;
-import org.geoserver.wms.capabilities.GetCapabilitiesTransformer;
-import org.geoserver.wms.capabilities.LegendSample;
-import org.geoserver.wms.capabilities.LegendSampleImpl;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.boot.autoconfigure.AutoConfiguration;
+import org.springframework.boot.autoconfigure.condition.ConditionalOnMissingBean;
 import org.springframework.context.annotation.Bean;
-import org.springframework.core.env.PropertyResolver;
+import org.springframework.context.annotation.Import;
 
-// auto-configure before GWC's wms-integration to avoid it precluding to load beans from
-// jar:gs-wms-.*
+/**
+ * @see WMSCoreConfiguration
+ * @see WMS11Configuration
+ * @see WMS13Configuration
+ * @see WmsGmlConfiguration
+ */
+// auto-configure before GWC's wms-integration to avoid it precluding to load beans from jar:gs-wms-.*
 @AutoConfiguration(before = WMSIntegrationAutoConfiguration.class)
+@Import({WMSCoreConfiguration.class, WMS11Configuration.class, WMS13Configuration.class, WmsGmlConfiguration.class})
 @SuppressWarnings("java:S1118") // Suppress SonarLint warning, constructor needs to be public
-@ImportFilteredResource({
-    "jar:gs-wms-core-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WMS_BEANS_BLACKLIST,
-    "jar:gs-wms1_1-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WMS_BEANS_BLACKLIST,
-    "jar:gs-wms1_3-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WMS_BEANS_BLACKLIST,
-    "jar:gs-wms-gml-.*!/applicationContext.xml",
-    "jar:gs-wfs-core-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WFS_BEANS_WHITELIST,
-    "jar:gs-wfs1_x-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WFS_BEANS_WHITELIST,
-    "jar:gs-wfs2_x-.*!/applicationContext.xml#name=" + WmsApplicationAutoConfiguration.WFS_BEANS_WHITELIST
-})
 public class WmsApplicationAutoConfiguration {
 
-    static final String WFS_BEANS_WHITELIST =
-            """
-            ^(\
-            gml.*OutputFormat\
-            |bboxKvpParser\
-            |featureIdKvpParser\
-            |filter.*_KvpParser\
-            |cqlKvpParser\
-            |maxFeatureKvpParser\
-            |sortByKvpParser\
-            |xmlConfiguration.*\
-            |gml[1-9]*SchemaBuilder\
-            |wfsXsd.*\
-            |wfsSqlViewKvpParser\
-            ).*$\
-            """;
-
-    /** wms beans black-list */
-    static final String WMS_BEANS_BLACKLIST =
-            """
-            ^(?!\
-            legendSample\
-            |wms11ExceptionHandler\
-            |wms13ExceptionHandler\
-            ).*$\
-            """;
-
-    /**
-     * Required by {@link GetCapabilitiesTransformer}, excluded from gs-wms.jar
-     *
-     * @param catalog using {@code rawCatalog} instead of {@code catalog}, to avoid the local workspace and secured
-     *     catalog decorators
-     */
-    @Bean
-    LegendSample legendSample(@Qualifier("rawCatalog") Catalog catalog, GeoServerResourceLoader loader) {
-        return new LegendSampleImpl(catalog, loader);
-    }
-
-    @Bean
+    @Bean(name = "xmlConfiguration-1.1")
+    @ConditionalOnMissingBean
+    @SuppressWarnings("java:S6830") // unconventional bean name
     WFSConfiguration wfsConfiguration(GeoServer geoServer) {
         FeatureTypeSchemaBuilder schemaBuilder = new FeatureTypeSchemaBuilder.GML3(geoServer);
-        return new WFSConfiguration(geoServer, schemaBuilder, new WFS(schemaBuilder));
+        org.geoserver.wfs.xml.v1_1_0.WFS wfs = new org.geoserver.wfs.xml.v1_1_0.WFS(schemaBuilder);
+        return new WFSConfiguration(geoServer, schemaBuilder, wfs);
     }
 
-    // TODO: make it configurable again
-    //    @ConditionalOnProperty(
-    //            prefix = "geoserver.wms",
-    //            name = "reflector.enabled",
-    //            havingValue = "true",
-    //            matchIfMissing = true)
-    //    @Bean
-    //    GetMapReflectorController getMapReflectorController(Dispatcher geoserverDispatcher) {
-    //        return new GetMapReflectorController(geoserverDispatcher);
-    //    }
-    //
-    /**
-     * Overrides the {@link #WMS_BEANS_BLACKLIST excluded wms11ExceptionHandler and wms13ExceptionHandler} bean with a
-     * {@link StatusCodeWmsExceptionHandler} to support setting a non 200 status code on http responses.
-     *
-     * <p>The original bean definition is as follows, which this bean method respects:
-     *
-     * <pre>
-     * <code>
-     *  <!-- service exception handler -->
-     *  <bean id="wmsExceptionHandler" class=
-     * "org.geoserver.wms.WMSServiceExceptionHandler">
-     *          <constructor-arg>
-     *                  <list>
-     *                          <ref bean="wms-1_1_1-ServiceDescriptor"/>
-     *                          <ref bean="wms-1_3_0-ServiceDescriptor"/>
-     *                  </list>
-     *          </constructor-arg>
-     *          <constructor-arg ref="geoServer"/>
-     *  </bean>
-     * </code>
-     * </pre>
-     *
-     * @param propertyResolver
-     * @return
-     */
-    @Bean
-    WMSServiceExceptionHandler wmsExceptionHandler(
-            @SuppressWarnings("java:S6830") @Qualifier("wms-1_1_1-ServiceDescriptor") Service wms11,
-            @SuppressWarnings("java:S6830") @Qualifier("wms-1_3_0-ServiceDescriptor") Service wms13,
-            GeoServer geoServer,
-            PropertyResolver propertyResolver) {
-        return new StatusCodeWmsExceptionHandler(List.of(wms11, wms13), geoServer, propertyResolver);
+    @Bean(name = "gml3OutputFormat")
+    @ConditionalOnMissingBean
+    @SuppressWarnings("java:S6830") // unconventional bean name
+    GML3OutputFormat gml3OutputFormat(
+            GeoServer geoserver, @Qualifier("xmlConfiguration-1.1") WFSConfiguration configuration) {
+        return new GML3OutputFormat(geoserver, configuration);
     }
 }

@@ -5,16 +5,27 @@
 
 package org.geoserver.cloud.wps;
 
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.core.wcs.WCS20Configuration;
+import org.geoserver.configuration.core.wcs.WCSCoreConfiguration;
+import org.geoserver.configuration.core.wfs.WFSCoreConfiguration;
+import org.geoserver.configuration.extension.wps.WPSCoreConfiguration;
+import org.geoserver.configuration.extension.wps.WPSSecurityConfiguration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
-@Configuration
-@ImportFilteredResource({
-    "jar:gs-wps-.*!/applicationContext.xml",
-    "jar:gs-wcs-.*!/applicationContext.xml",
-    "jar:gs-wcs1_0-.*!/applicationContext.xml",
-    "jar:gs-wcs1_1-.*!/applicationContext.xml",
-    "jar:gs-wcs2_0-.*!/applicationContext.xml",
-    "jar:gs-wfs-core.*!/applicationContext.xml#name=^(?!wfsInsertElementHandler|wfsUpdateElementHandler|wfsDeleteElementHandler|wfsReplaceElementHandler).*$"
+/**
+ * @see WPSCoreConfiguration
+ * @see WPSSecurityConfiguration
+ * @see WCSCoreConfiguration
+ * @see WCS20Configuration
+ * @see WFSCoreConfiguration
+ */
+@Configuration(proxyBeanMethods = false)
+@Import({
+    WPSCoreConfiguration.class,
+    WPSSecurityConfiguration.class,
+    WCSCoreConfiguration.class,
+    WCS20Configuration.class,
+    WFSCoreConfiguration.class
 })
 public class WpsApplicationConfiguration {}

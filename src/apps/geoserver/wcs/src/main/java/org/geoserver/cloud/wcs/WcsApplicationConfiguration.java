@@ -5,14 +5,13 @@
 
 package org.geoserver.cloud.wcs;
 
-import org.geoserver.cloud.config.factory.ImportFilteredResource;
+import org.geoserver.configuration.core.wcs.WCS20Configuration;
+import org.geoserver.configuration.core.wcs.WCSCoreConfiguration;
+import org.geoserver.configuration.extension.wcs.WCS10Configuration;
+import org.geoserver.configuration.extension.wcs.WCS11Configuration;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Import;
 
 @Configuration
-@ImportFilteredResource({ //
-    "jar:gs-wcs-.*!/applicationContext.xml", //
-    "jar:gs-wcs1_0-.*!/applicationContext.xml", //
-    "jar:gs-wcs1_1-.*!/applicationContext.xml", //
-    "jar:gs-wcs2_0-.*!/applicationContext.xml" //
-})
+@Import({WCSCoreConfiguration.class, WCS10Configuration.class, WCS11Configuration.class, WCS20Configuration.class})
 public class WcsApplicationConfiguration {}
